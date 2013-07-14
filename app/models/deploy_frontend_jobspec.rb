@@ -1,0 +1,83 @@
+class DeployFrontendJobspec < Struct.new(:deploy_frontend_job_id, :action, :backend_id)
+
+  def enqueue(delayed_job)
+    job = DeployFrontendJob.find(deploy_frontend_job_id)
+    if job && job.frontend.nil?
+      puts "No frontend"
+      return
+    end
+    job.delayed_job=(delayed_job)
+    job.set_status("Enqueued")
+    job.log "Enqueued job to create a web runner for #{job.backend.spec}"
+  end
+
+  def perform
+    job = DeployFrontendJob.find(deploy_frontend_job_id)
+    if job.nil?
+      puts "No DeployFrontendJob, exiting."
+      return
+    end
+    case action
+      when "install_remote_frontend"
+        job.install_remote_frontend
+
+      when "upgrade_remote_frontend"
+        job.upgrade_remote_frontend
+
+      when "configure_remote_frontend"
+        job.configure_remote_frontend
+
+      when "configure_remote_frontend_backends"
+        job.configure_remote_frontend_backends
+
+      when "start_remote_frontend"
+        job.start_remote_frontend
+
+      when "stop_remote_frontend"
+        job.stop_remote_frontend
+
+      when "status_remote_frontend"
+        job.status_remote_frontend
+
+      when "deconfigure_remote_frontend"
+        job.deconfigure_remote_frontend
+
+      when "start_remote_backends"
+        job.start_remote_backends
+
+      when "stop_remote_backends"
+        job.stop_remote_backends
+
+      when "create_all_endpoint_apps"
+        job.create_all_endpoint_apps
+      when "configure_all_endpoint_apps"
+        job.configure_all_endpoint_apps
+      when "start_all_endpoint_apps"
+        job.start_all_endpoint_apps
+      when "stop_all_endpoint_apps"
+        job.stop_all_endpoint_apps
+      when "deploy_all_endpoint_apps"
+        job.deploy_all_endpoint_apps
+      when "destroy_all_endpoint_apps"
+        job.destroy_all_endpoint_apps
+
+      when "configure_remote_backend"
+        backend = Backend.find(backend_id)
+        job.configure_remote_backend(backend)
+
+      when "start_remote_backend"
+        backend = Backend.find(backend_id)
+        job.start_remote_backend(backend)
+
+      when "stop_remote_backend"
+        backend = Backend.find(backend_id)
+        job.stop_remote_backend(backend)
+
+      when "deconfigure_remote_backend"
+        backend = Backend.find(backend_id)
+        job.deconfigure_remote_backend(backend)
+      else
+        job.log "Unknown action #{action}."
+    end
+  end
+end

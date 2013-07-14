@@ -1,0 +1,194 @@
+GIT
+  remote: git://github.com/polar/delayed_job
+  revision: d866b881f82047ed1d36934adeded9eee7ea8353
+  specs:
+    delayed_job (3.0.3)
+      activesupport (~> 3.0)
+
+GIT
+  remote: git://github.com/polar/delayed_job_mongo_mapper.git
+  revision: 8f1f516ca33fd1a3cbadfb4de6f47b780d4b5874
+  specs:
+    delayed_job_mongo_mapper (1.1.0)
+      delayed_job (~> 3.0.1)
+      mongo_mapper (~> 0.11.0)
+
+GIT
+  remote: git://github.com/polar/heroku-headless.git
+  revision: e46fbcb2c42cb0f81ebf07ad77c502eb9dcfc2d4
+  specs:
+    heroku-headless (0.2.0)
+      heroku-api
+      rendezvous
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    actionmailer (3.2.11)
+      actionpack (= 3.2.11)
+      mail (~> 2.4.4)
+    actionpack (3.2.11)
+      activemodel (= 3.2.11)
+      activesupport (= 3.2.11)
+      builder (~> 3.0.0)
+      erubis (~> 2.7.0)
+      journey (~> 1.0.4)
+      rack (~> 1.4.0)
+      rack-cache (~> 1.2)
+      rack-test (~> 0.6.1)
+      sprockets (~> 2.2.1)
+    activemodel (3.2.11)
+      activesupport (= 3.2.11)
+      builder (~> 3.0.0)
+    activerecord (3.2.11)
+      activemodel (= 3.2.11)
+      activesupport (= 3.2.11)
+      arel (~> 3.0.2)
+      tzinfo (~> 0.3.29)
+    activeresource (3.2.11)
+      activemodel (= 3.2.11)
+      activesupport (= 3.2.11)
+    activesupport (3.2.11)
+      i18n (~> 0.6)
+      multi_json (~> 1.0)
+    arel (3.0.2)
+    aws-sdk (1.12.0)
+      json (~> 1.4)
+      nokogiri (< 1.6.0)
+      uuidtools (~> 2.1)
+    bson (1.9.1)
+    bson_ext (1.9.1)
+      bson (~> 1.9.1)
+    builder (3.0.4)
+    carrierwave (0.9.0)
+      activemodel (>= 3.2.0)
+      activesupport (>= 3.2.0)
+      json (>= 1.7)
+    coffee-rails (3.2.2)
+      coffee-script (>= 2.2.0)
+      railties (~> 3.2.0)
+    coffee-script (2.2.0)
+      coffee-script-source
+      execjs
+    coffee-script-source (1.6.3)
+    daemons (1.1.9)
+    encryptor (1.1.3)
+    erubis (2.7.0)
+    excon (0.25.1)
+    execjs (1.4.0)
+      multi_json (~> 1.0)
+    fattr (2.2.1)
+    fog (1.11.1)
+      builder
+      excon (~> 0.20)
+      formatador (~> 0.2.0)
+      json (~> 1.7)
+      mime-types
+      net-scp (~> 1.1)
+      net-ssh (>= 2.1.3)
+      nokogiri (~> 1.5.0)
+      ruby-hmac
+    formatador (0.2.4)
+    heroku-api (0.3.13)
+      excon (~> 0.25.0)
+    hike (1.2.3)
+    i18n (0.6.4)
+    journey (1.0.4)
+    json (1.8.0)
+    mail (2.4.4)
+      i18n (>= 0.4.0)
+      mime-types (~> 1.16)
+      treetop (~> 1.4.8)
+    mime-types (1.23)
+    mm-carrierwave (0.0.2)
+      carrierwave (~> 0.5)
+      mongo_mapper (~> 0.9)
+    mongo (1.9.1)
+      bson (~> 1.9.1)
+    mongo_mapper (0.11.2)
+      activemodel (~> 3.0)
+      activesupport (~> 3.0)
+      plucky (~> 0.5.1)
+    multi_json (1.7.7)
+    net-scp (1.1.2)
+      net-ssh (>= 2.6.5)
+    net-ssh (2.6.8)
+    newrelic_rpm (3.6.5.130)
+    nokogiri (1.5.10)
+    plucky (0.5.2)
+      mongo (~> 1.5)
+    polyglot (0.3.3)
+    rack (1.4.5)
+    rack-cache (1.2)
+      rack (>= 0.4)
+    rack-ssl (1.3.3)
+      rack
+    rack-test (0.6.2)
+      rack (>= 1.0)
+    rails (3.2.11)
+      actionmailer (= 3.2.11)
+      actionpack (= 3.2.11)
+      activerecord (= 3.2.11)
+      activeresource (= 3.2.11)
+      activesupport (= 3.2.11)
+      bundler (~> 1.0)
+      railties (= 3.2.11)
+    railties (3.2.11)
+      actionpack (= 3.2.11)
+      activesupport (= 3.2.11)
+      rack-ssl (~> 1.3.2)
+      rake (>= 0.8.7)
+      rdoc (~> 3.4)
+      thor (>= 0.14.6, < 2.0)
+    rake (10.1.0)
+    rdoc (3.12.2)
+      json (~> 1.4)
+    rendezvous (0.0.2)
+    ruby-hmac (0.4.0)
+    rush (0.6.8)
+      session
+    sass (3.2.9)
+    sass-rails (3.2.6)
+      railties (~> 3.2.0)
+      sass (>= 3.1.10)
+      tilt (~> 1.3)
+    session (3.1.0)
+      fattr
+    sprockets (2.2.2)
+      hike (~> 1.2)
+      multi_json (~> 1.0)
+      rack (~> 1.0)
+      tilt (~> 1.1, != 1.3.0)
+    thor (0.18.1)
+    tilt (1.4.1)
+    treetop (1.4.14)
+      polyglot
+      polyglot (>= 0.3.1)
+    tzinfo (0.3.37)
+    uglifier (2.1.2)
+      execjs (>= 0.3.0)
+      multi_json (~> 1.0, >= 1.0.2)
+    uuidtools (2.1.4)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  aws-sdk
+  bson_ext
+  carrierwave
+  coffee-rails (~> 3.2.1)
+  daemons
+  delayed_job!
+  delayed_job_mongo_mapper!
+  encryptor
+  fog
+  heroku-api
+  heroku-headless!
+  mm-carrierwave
+  mongo_mapper (~> 0.11.0)
+  newrelic_rpm
+  rails (= 3.2.11)
+  rush
+  sass-rails (~> 3.2.3)
+  uglifier (>= 1.0.3)
