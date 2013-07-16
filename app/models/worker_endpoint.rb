@@ -1,4 +1,4 @@
-class SwiftEndpoint
+class WorkerEndpoint
   include MongoMapper::Document
 
   key :name
@@ -10,11 +10,14 @@ class SwiftEndpoint
 
   key :log_level, Integer, :default => Logger::INFO
 
+  # Worker endpoints are organized on backends because
+  # backends are organized around masters within the
+  # frontend.
   belongs_to :backend
 
-  one :swift_endpoint_log, :dependent => :destroy
-  one :swift_endpoint_remote_log, :dependent => :destroy
-  one :deploy_swift_endpoint_job, :dependent => :destroy
+  one :worker_endpoint_log, :dependent => :destroy
+  one :worker_endpoint_remote_log, :dependent => :destroy
+  one :deploy_worker_endpoint_job, :dependent => :destroy
 
   attr_accessible :name, :endpoint_type, :remote_name, :backend, :backend_id
 
@@ -28,34 +31,34 @@ class SwiftEndpoint
   end
 
   def job_status
-    deploy_swift_endpoint_job.get_status if deploy_swift_endpoint_job
+    deploy_worker_endpoint_job.get_status if deploy_worker_endpoint_job
   end
 
   def git_repository
-    installation.swift_endpoint_git_repository
+    installation.worker_endpoint_git_repository
   end
 
   def git_name
-    installation.swift_endpoint_git_name
+    installation.worker_endpoint_git_name
   end
 
   def git_refspec
-    installation.swift_endpoint_git_refspec
+    installation.worker_endpoint_git_refspec
   end
 
   def self.new_instance_for_backend(backend, endpoint_type = "Heroku")
     name = backend.master_slug || backend.host
-    count = backend.swift_endpoints.count
-    remote_name = "busme-#{count}-#{name}"[0..32]
-    endpoint = SwiftEndpoint.new(:name => remote_name,
+    count = backend.worker_endpoints.count
+    remote_name = "busme-w#{count}-#{name}"[0..32]
+    endpoint = WorkerEndpoint.new(:name => remote_name,
                                  :endpoint_type => endpoint_type,
                                  :remote_name => remote_name,
                                  :backend => backend)
     ucount = 0
     while !endpoint.valid? && ucount < 26 do
       u = "ABCDEFGHIJKLMNOPQUSTUVWXYZ"[ucount]
-      remote_name = "busme-#{u}#{count}-#{name}"[0..32]
-      endpoint = SwiftEndpoint.new(:name => remote_name,
+      remote_name = "busme-w#{u}#{count}-#{name}"[0..32]
+      endpoint = WorkerEndpoint.new(:name => remote_name,
                                    :endpoint_type => endpoint_type,
                                    :remote_name => remote_name,
                                    :backend => backend)
@@ -92,10 +95,10 @@ class SwiftEndpoint
       @my_logger.level = self.log_level
       return @my_logger
     end
-    if self.swift_endpoint_log.nil?
-      self.create_swift_endpoint_log
+    if self.worker_endpoint_log.nil?
+      self.create_worker_endpoint_log
     end
-    @my_logger           = MyLogger.new(self.swift_endpoint_log)
+    @my_logger           = MyLogger.new(self.worker_endpoint_log)
     @my_logger.level     = self.log_level
     @my_logger.formatter = Logger::Formatter.new
     @my_logger.datetime_format = "%Y-%m-%dT%H:%M:%S."

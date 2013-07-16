@@ -1,7 +1,6 @@
 class DeployFrontendJob
   include MongoMapper::Document
 
-  belongs_to :delayed_job, :class_name => "Delayed::Job", :dependent => :destroy
   one :frontend
 
   key :status_content
@@ -38,7 +37,7 @@ class DeployFrontendJob
     log "#{head}: START"
     case frontend.host_type
       when "ec2"
-        cmd = "ssh -i #{ssh_cert} ec2-user@#{frontend.host} git clone -b backends git://github.com/polar/busme-swifty.git \\&\\& cd busme-swifty \\&\\& sudo bash install.sh"
+        cmd = "ssh -i #{ssh_cert} ec2-user@#{frontend.host} git clone -b #{frontend.git_refspec} #{frontend.git_repository} \\\"#{frontend.git_name}\\\" \\&\\& cd \\\"#{frontend.git_name}\\\" \\&\\& sudo bash install.sh \\\"#{frontend.git_name}\\\""
         log "#{head}: #{cmd}"
         Open3.popen2e(cmd) do |stdin,out,wait_thr|
           pid = wait_thr.pid
@@ -53,7 +52,7 @@ class DeployFrontendJob
     log "#{head}: START"
     case frontend.host_type
       when "ec2"
-        cmd = "ssh -i #{ssh_cert} ec2-user@#{frontend.host} busme-swifty/scripts/upgrade_frontend.sh  --name #{frontend.name}"
+        cmd = "ssh -i #{ssh_cert} ec2-user@#{frontend.host} \\\"#{frontend.git_name}/scripts/upgrade_frontend.sh\\\"  --name \\\"#{frontend.name}\\\""
         log "#{head}: #{cmd}"
         Open3.popen2e(cmd) do |stdin,out,wait_thr|
           pid = wait_thr.pid
@@ -68,7 +67,7 @@ class DeployFrontendJob
     log "#{head}: START"
     case frontend.host_type
       when "ec2"
-        cmd = "ssh -i #{ssh_cert} ec2-user@#{frontend.host} busme-swifty/scripts/configure_frontend_backends.sh --name '#{frontend.name}'"
+        cmd = "ssh -i #{ssh_cert} ec2-user@#{frontend.host} \\\"#{frontend.git_name}/scripts/configure_frontend_backends.sh\\\" --name \\\"#{frontend.name}\\\""
         log "#{head}: #{cmd}"
         Open3.popen2e(cmd) do |stdin,out,wait_thr|
           pid = wait_thr.pid
@@ -83,7 +82,7 @@ class DeployFrontendJob
     log "#{head}: START"
     case frontend.host_type
       when "ec2"
-        cmd = "ssh -i #{ssh_cert} ec2-user@#{frontend.host} busme-swifty/scripts/configure_frontend.sh --name '#{frontend.name}'"
+        cmd = "ssh -i #{ssh_cert} ec2-user@#{frontend.host} \\\"#{frontend.git_name}/scripts/configure_frontend.sh\\\" --name \\\"#{frontend.name}\\\""
         log "#{head}: #{cmd}"
         Open3.popen2e(cmd) do |stdin,out,wait_thr|
           pid = wait_thr.pid
@@ -98,7 +97,7 @@ class DeployFrontendJob
     log "#{head}: START"
     case frontend.host_type
       when "ec2"
-        cmd = "ssh -i #{ssh_cert} ec2-user@#{frontend.host} busme-swifty/scripts/deconfigure_frontend.sh --name '#{frontend.name}'"
+        cmd = "ssh -i #{ssh_cert} ec2-user@#{frontend.host} \\\"#{frontend.git_name}/scripts/deconfigure_frontend.sh\\\" --name \\\"#{frontend.name}\\\""
         log "#{head}: #{cmd}"
         Open3.popen2e(cmd) do |stdin,out,wait_thr|
           pid = wait_thr.pid
@@ -115,7 +114,7 @@ class DeployFrontendJob
       when "ec2"
         if frontend.configured
           if frontend.backends.include?(backend)
-            cmd = "ssh -i #{ssh_cert} ec2-user@#{frontend.host} busme-swifty/scripts/configure_backend.sh --name '#{backend.name}'"
+            cmd = "ssh -i #{ssh_cert} ec2-user@#{frontend.host} \\\"#{frontend.git_name}/scripts/configure_backend.sh\\\" --name \\\"#{backend.name}\\\""
             log "#{head}: #{cmd}"
             Open3.popen2e(cmd) do |stdin,out,wait_thr|
               pid = wait_thr.pid
@@ -137,7 +136,7 @@ class DeployFrontendJob
     case frontend.host_type
       when "ec2"
         if frontend.backends.include?(backend)
-          cmd = "ssh -i #{ssh_cert} ec2-user@#{frontend.host} busme-swifty/scripts/deconfigure_backend.sh --name '#{backend.name}'"
+          cmd = "ssh -i #{ssh_cert} ec2-user@#{frontend.host} \\\"#{frontend.git_name}/scripts/deconfigure_backend.sh\\\" --name \\\"#{backend.name}\\\""
           log "#{head}: #{cmd}"
           Open3.popen2e(cmd) do |stdin,out,wait_thr|
             pid = wait_thr.pid
@@ -155,7 +154,7 @@ class DeployFrontendJob
     log "#{head}: START"
     case frontend.host_type
       when "ec2"
-        cmd = "ssh -i #{ssh_cert} ec2-user@#{frontend.host} busme-swifty/scripts/status_frontend.sh --name '#{frontend.name}'"
+        cmd = "ssh -i #{ssh_cert} ec2-user@#{frontend.host} \\\"#{frontend.git_name}/scripts/status_frontend.sh\\\" --name \\\"#{frontend.name}\\\""
         log "#{head}: #{cmd}"
         Open3.popen2e(cmd) do |stdin,out,wait_thr|
           pid = wait_thr.pid
@@ -170,7 +169,7 @@ class DeployFrontendJob
     log "#{head}: START"
     case frontend.host_type
       when "ec2"
-        cmd = "ssh -i #{ssh_cert} ec2-user@#{frontend.host} busme-swifty/scripts/start_frontend.sh --name '#{frontend.name}'"
+        cmd = "ssh -i #{ssh_cert} ec2-user@#{frontend.host} \\\"#{frontend.git_name}/scripts/start_frontend.sh\\\" --name \\\"#{frontend.name}\\\""
         log "#{head}: #{cmd}"
         Open3.popen2e(cmd) do |stdin,out,wait_thr|
           pid = wait_thr.pid
@@ -185,7 +184,7 @@ class DeployFrontendJob
     log "#{head}: START"
     case frontend.host_type
       when "ec2"
-        cmd = "ssh -i #{ssh_cert} ec2-user@#{frontend.host} busme-swifty/scripts/stop_frontend.sh --name '#{frontend.name}'"
+        cmd = "ssh -i #{ssh_cert} ec2-user@#{frontend.host} \\\"#{frontend.git_name}/scripts/stop_frontend.sh\\\" --name \\\"#{frontend.name}\\\""
         log "#{head}: #{cmd}"
         Open3.popen2e(cmd) do |stdin,out,wait_thr|
           pid = wait_thr.pid
@@ -200,7 +199,7 @@ class DeployFrontendJob
     log "#{head}: START"
     case frontend.host_type
       when "ec2"
-        cmd = "ssh -i #{ssh_cert} ec2-user@#{frontend.host} busme-swifty/scripts/restart_frontend.sh --name '#{frontend.name}'"
+        cmd = "ssh -i #{ssh_cert} ec2-user@#{frontend.host} \\\"#{frontend.git_name}/scripts/restart_frontend.sh\\\" --name \\\"#{frontend.name}\\\""
         log "#{head}: #{cmd}"
         Open3.popen2e(cmd) do |stdin,out,wait_thr|
           pid = wait_thr.pid
@@ -216,7 +215,7 @@ class DeployFrontendJob
     if frontend.backends.include?(backend)
       case frontend.host_type
         when "ec2"
-          cmd = "ssh -i #{ssh_cert} ec2-user@#{frontend.host} busme-swifty/scripts/start_backend.sh --name '#{backend.name}'"
+          cmd = "ssh -i #{ssh_cert} ec2-user@#{frontend.host} \\\"#{frontend.git_name}/scripts/start_backend.sh\\\" --name \\\"#{backend.name}\\\""
           log "#{head}: #{cmd}"
           Open3.popen2e(cmd) do |stdin,out,wait_thr|
             pid = wait_thr.pid
@@ -233,7 +232,7 @@ class DeployFrontendJob
     if frontend.backends.include?(backend)
       case frontend.host_type
         when "ec2"
-          cmd = "ssh -i #{ssh_cert} ec2-user@#{frontend.host} busme-swifty/scripts/stop_backend.sh --name '#{backend.name}'"
+          cmd = "ssh -i #{ssh_cert} ec2-user@#{frontend.host} \\\"#{frontend.git_name}/scripts/stop_backend.sh\\\" --name \\\"#{backend.name}\\\""
           log "#{head}: #{cmd}"
           Open3.popen2e(cmd) do |stdin,out,wait_thr|
             pid = wait_thr.pid
@@ -249,7 +248,7 @@ class DeployFrontendJob
     log "#{head}: START"
     case frontend.host_type
       when "ec2"
-        cmd = "ssh -i #{ssh_cert} ec2-user@#{frontend.host} busme-swifty/scripts/stop_backends.sh --name '#{frontend.name}'"
+        cmd = "ssh -i #{ssh_cert} ec2-user@#{frontend.host} \\\"#{frontend.git_name}/scripts/stop_backends.sh\\\" --name \\\"#{frontend.name}\\\""
         log "#{head}: #{cmd}"
         Open3.popen2e(cmd) do |stdin,out,wait_thr|
           pid = wait_thr.pid
@@ -264,7 +263,7 @@ class DeployFrontendJob
     log "#{head}: START"
     case frontend.host_type
       when "ec2"
-        cmd = "ssh -i #{ssh_cert} ec2-user@#{frontend.host} busme-swifty/scripts/start_backends.sh --name '#{frontend.name}'"
+        cmd = "ssh -i #{ssh_cert} ec2-user@#{frontend.host} \\\"#{frontend.git_name}/scripts/start_backends.sh\\\" --name \\\"#{frontend.name}\\\""
         log "#{head}: #{cmd}"
         Open3.popen2e(cmd) do |stdin,out,wait_thr|
           pid = wait_thr.pid

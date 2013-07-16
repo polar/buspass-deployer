@@ -1,19 +1,19 @@
-class DeploySwiftEndpointJobspec < Struct.new(:deploy_swift_endpoint_job_id, :action)
+class DeployWorkerEndpointJobspec < Struct.new(:deploy_worker_endpoint_job_id, :action)
 
   def enqueue(delayed_job)
-    job = DeploySwiftEndpointJob.find(deploy_swift_endpoint_job_id)
+    job = DeployWorkerEndpointJob.find(deploy_worker_endpoint_job_id)
     if job && job.backend.nil?
       puts "No backend"
       return
     end
     job.set_status("Enqueued:#{action}")
-    job.log "Enqueued job to create a web runner for #{job.backend.spec}"
+    job.log "Enqueued job to create a worker endpoint for #{job.backend.spec}"
   end
 
   def perform
-    job = DeploySwiftEndpointJob.find(deploy_swift_endpoint_job_id)
+    job = DeployWorkerEndpointJob.find(deploy_worker_endpoint_job_id)
     if job.nil?
-      puts "No DeploySwiftEndpointJob, exiting."
+      puts "No DeployWorkerEndpointJob, exiting."
       return
     end
     case action

@@ -24,12 +24,17 @@ class Backend
   one :backend_log, :dependent => :destroy
   one :deploy_backend_job, :dependent => :destroy
   many :swift_endpoints
+  many :worker_endpoints
 
   before_validation :ensure_hostname, :ensure_name
 
   attr_accessible :frontend, :frontend_id
   attr_accessible :frontend_address, :master_slug, :hostname
   attr_accessible :server_name, :cluster_address, :cluster_port, :address, :port
+
+  def job_status
+    deploy_backend_job.get_status if deploy_backend_job
+  end
 
   def frontend_name
     frontend.name
