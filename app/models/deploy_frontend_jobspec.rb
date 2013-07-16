@@ -7,7 +7,7 @@ class DeployFrontendJobspec < Struct.new(:deploy_frontend_job_id, :action, :back
       return
     end
     job.set_status("Enqueued:#{action}")
-    job.log "Enqueued job to create a web runner for #{job.backend.spec}"
+    job.log "Enqueued job for #{action} for #{job.frontend.name}"
   end
 
   def perform

@@ -6,6 +6,7 @@ class WorkerEndpoint
   key :remote_name
   key :status
   key :remote_status
+  key :master_slug
   key :git_commit, Array
 
   key :log_level, Integer, :default => Logger::INFO
@@ -19,7 +20,7 @@ class WorkerEndpoint
   one :worker_endpoint_remote_log, :dependent => :destroy
   one :deploy_worker_endpoint_job, :dependent => :destroy
 
-  attr_accessible :name, :endpoint_type, :remote_name, :backend, :backend_id
+  attr_accessible :name, :endpoint_type, :remote_name, :backend, :backend_id, :master_slug
 
   validates_uniqueness_of :remote_name, :allow_nil => true
   validates_uniqueness_of :name
@@ -53,6 +54,7 @@ class WorkerEndpoint
     endpoint = WorkerEndpoint.new(:name => remote_name,
                                  :endpoint_type => endpoint_type,
                                  :remote_name => remote_name,
+                                 :master_slug => backend.master_slug,
                                  :backend => backend)
     ucount = 0
     while !endpoint.valid? && ucount < 26 do
@@ -61,6 +63,7 @@ class WorkerEndpoint
       endpoint = WorkerEndpoint.new(:name => remote_name,
                                    :endpoint_type => endpoint_type,
                                    :remote_name => remote_name,
+                                   :master_slug => backend.master_slug,
                                    :backend => backend)
       ucount += 1
     end

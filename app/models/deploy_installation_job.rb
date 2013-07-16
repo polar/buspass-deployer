@@ -30,6 +30,39 @@ class DeployInstallationJob
     log_content.drop(i).take(n)
   end
 
+  def null_all_statuses
+    set_status(nil)
+    installation.installation_log.clear
+    for fe in installation.frontends do
+      if fe.deploy_frontend_job.nil?
+        fe.create_deploy_frontend_job
+      end
+      fe.deploy_frontend_job.set_status(nil)
+      fe.frontend_log.clear
+    end
+    for fe in installation.backends do
+      if fe.deploy_backend_job.nil?
+        fe.create_deploy_backend_job
+      end
+      fe.deploy_backend_job.set_status(nil)
+      fe.backend_log.clear
+    end
+    for fe in installation.swift_endpoints do
+      if fe.deploy_swift_endpoint_job.nil?
+        fe.create_deploy_swift_endpoint_job
+      end
+      fe.deploy_swift_endpoint_job.set_status(nil)
+      fe.swift_endpoint_log.clear
+    end
+    for fe in installation.worker_endpoints do
+      if fe.deploy_worker_endpoint_job.nil?
+        fe.create_deploy_worker_endpoint_job
+      end
+      fe.deploy_worker_endpoint_job.set_status(nil)
+      fe.worker_endpoint_log.clear
+    end
+  end
+
   def install_frontends
     head = __method__
     log "#{head}: START"
@@ -58,7 +91,7 @@ class DeployInstallationJob
       begin
         fe.deploy_frontend_job.upgrade_remote_frontend
       rescue Exception => boom
-        log "#{head}: Error in installing frontend #{frontend.name} -- #{boom}"
+        log "#{head}: Error in installing frontend #{fe.name} -- #{boom}"
       end
     end
   ensure
@@ -92,7 +125,7 @@ class DeployInstallationJob
       begin
         fe.deploy_frontend_job.deconfigure_remote_frontend
       rescue Exception => boom
-        log "#{head}: Error in installing frontend #{frontend.name} -- #{boom}"
+        log "#{head}: Error in installing frontend #{fe.name} -- #{boom}"
       end
     end
   ensure
@@ -109,7 +142,7 @@ class DeployInstallationJob
       begin
         fe.deploy_frontend_job.start_remote_frontend
       rescue Exception => boom
-        log "#{head}: Error in installing frontend #{frontend.name} -- #{boom}"
+        log "#{head}: Error in installing frontend #{fe.name} -- #{boom}"
       end
     end
   ensure
@@ -126,7 +159,7 @@ class DeployInstallationJob
       begin
         fe.deploy_frontend_job.stop_remote_frontend
       rescue Exception => boom
-        log "#{head}: Error in installing frontend #{frontend.name} -- #{boom}"
+        log "#{head}: Error in installing frontend #{fe.name} -- #{boom}"
       end
     end
   ensure
@@ -136,6 +169,7 @@ class DeployInstallationJob
   def upgrade_installation
     head = __method__
     log "#{head}: START"
+    set_status("UpgradeInstallation:Frontends:#{installation.frontends.count}")
     for fe in installation.frontends do
       if fe.deploy_frontend_job.nil?
         fe.create_deploy_frontend_job
@@ -145,13 +179,15 @@ class DeployInstallationJob
         fe.deploy_frontend_job.stop_remote_frontend
         log "#{head}: upgrade_remote_frontend #{fe.name}"
         job = DeployFrontendJobspec.new(fe.deploy_frontend_job.id, "upgrade_remote_frontend", nil)
-        Delayed::Job.enqueue(job, "deploy-web")
+        Delayed::Job.enqueue(job, :queue => "deploy-web")
         #fe.deploy_frontend_job.upgrade_remote_frontend
       rescue Exception => boom
-        log "#{head}: Error in installing frontend #{frontend.name} -- #{boom}"
+        log "#{head}: Error in installing frontend #{fe.name} -- #{boom}"
       end
     end
-    for be in installation.backends do
+    backends = installation.backends
+    set_status("UpgradeInstallation:Backends:#{backends.count}")
+    for be in backends do
       if be.deploy_backend_job.nil?
         be.create_deploy_backend_job
       end
@@ -162,16 +198,17 @@ class DeployInstallationJob
         end
         log "#{head}: deploy_swift_endpoint_apps #{be.name}"
         job = DeployBackendJobspec.new(be.deploy_backend_job.id, "deploy_swift_endpoint_apps", nil)
-        Delayed::Job.enqueue(job, "deploy-web")
+        Delayed::Job.enqueue(job, :queue => "deploy-web")
         #be.deploy_backend_job.deploy_swift_endpoint_apps
         log "#{head}: deploy_worker_endpoint_apps #{be.name}"
         job = DeployBackendJobspec.new(be.deploy_backend_job.id, "deploy_worker_endpoint_apps", nil)
-        Delayed::Job.enqueue(job, "deploy-web")
+        Delayed::Job.enqueue(job, :queue => "deploy-web")
         #be.deploy_backend_job.deploy_worker_endpoint_apps
       rescue Exception => boom
         log "#{head}: Error in deploying backend #{be.name} -- #{boom}"
       end
     end
+    set_status("Done:UpgradeInstallation")
   ensure
     log "#{head}: DONE"
   end
@@ -187,7 +224,7 @@ class DeployInstallationJob
         log "#{head}: start_remote_frontend #{fe.name}"
         fe.deploy_frontend_job.start_remote_frontend
       rescue Exception => boom
-        log "#{head}: Error in starting frontend #{frontend.name} -- #{boom}"
+        log "#{head}: Error in starting frontend #{fe.name} -- #{boom}"
       end
     end
     for be in installation.backends do
@@ -229,7 +266,7 @@ class DeployInstallationJob
         log "#{head}: stop_remote_frontend #{fe.name}"
         fe.deploy_frontend_job.stop_remote_frontend
       rescue Exception => boom
-        log "#{head}: Error in starting frontend #{frontend.name} -- #{boom}"
+        log "#{head}: Error in starting frontend #{fe.name} -- #{boom}"
       end
     end
     for be in installation.backends do

@@ -13,7 +13,7 @@ class FrontendKey
   end
 
   def decrypt_key_content(opts = {})
-    decoded = Base64.decode64(encoded.encode('ascii-8bit'))
+    decoded = Base64.decode64(key_encrypted_content).encode('ascii-8bit')
     return Encryptor.decrypt(decoded, opts)
   end
 
@@ -29,8 +29,17 @@ class FrontendKey
     end
   end
 
+  class KeyFile < StringIO
+    attr_accessor :original_filename
+    def initialize(sanitized_file, string)
+      super(string)
+      @original_filename = sanitized_file.filename
+    end
+
+  end
+
   def decrypt_key_content_to_file(opts = {})
-    ssh_key.store!(StringIO.new(decrypt_key_content(opts)))
+    ssh_key.store!(KeyFile.new(ssh_key.file, decrypt_key_content(opts)))
     File.chmod(0600, ssh_key.file.path)
   end
 

@@ -1,3 +1,6 @@
+require "carrierwave"
+require "carrierwave/orm/mongomapper"
+
 CarrierWave.configure do |config|
   config.fog_credentials = {
       :provider              => 'AWS',

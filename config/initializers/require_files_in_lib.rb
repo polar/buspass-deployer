@@ -1,3 +1,5 @@
+require "open3"
+
 #
 # Autoload the lib files
 #

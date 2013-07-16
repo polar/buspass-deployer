@@ -1,7 +1,7 @@
 class DeployInstallationJobspec < Struct.new(:deploy_installation_job_id, :action, :backend_id)
 
   def enqueue(delayed_job)
-    job = DeployInstallationJob.find(deploy_frontend_job_id)
+    job = DeployInstallationJob.find(deploy_installation_job_id)
     if job && job.installation.nil?
       puts "No Installation"
       return

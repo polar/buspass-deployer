@@ -50,14 +50,24 @@ class DeployFrontendJob
   def upgrade_remote_frontend
     head = __method__
     log "#{head}: START"
+    set_status("Upgrading #{frontend.name}")
     case frontend.host_type
       when "ec2"
+        exit_status = nil
         cmd = "ssh -i #{ssh_cert} ec2-user@#{frontend.host} \\\"#{frontend.git_name}/scripts/upgrade_frontend.sh\\\"  --name \\\"#{frontend.name}\\\""
         log "#{head}: #{cmd}"
         Open3.popen2e(cmd) do |stdin,out,wait_thr|
           pid = wait_thr.pid
           out.each {|line| log("#{head}: #{line}")}
+          exit_status = wait_thr.value
         end
+        if exit_status != 0
+          set_status("Success:Upgrade #{frontend.name}")
+        else
+          # This happens if the git is already up to date.
+          set_status("Error:Upgrade #{frontend.name}")
+        end
+        set_status("Done:Upgrade #{frontend.name}")
     end
     log "#{head}: DONE"
   end
