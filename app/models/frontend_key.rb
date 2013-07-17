@@ -5,7 +5,9 @@ class FrontendKey
 
   key :key_encrypted_content
 
-  mount_uploader :ssh_key, FrontendKeyFileUploader
+  # We don't use CarrierWave this in Swifty and we don't need the key here (yet).
+  # so if we don't have it, we don't need it.
+  mount_uploader :ssh_key, FrontendKeyFileUploader if defined?(FrontendKeyFileUploader)
 
   def encrypt_key_content(key_content, opts = {})
     encrypted = Encryptor.encrypt(key_content, opts)
