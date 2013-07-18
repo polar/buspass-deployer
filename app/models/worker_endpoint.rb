@@ -6,6 +6,7 @@ class WorkerEndpoint
   key :remote_name
   key :status
   key :remote_status
+  key :instance_status
   key :master_slug
   key :git_commit, Array
 

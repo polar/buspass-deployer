@@ -1,0 +1,39 @@
+#!/bin/bash
+
+REPOSITORY=$1
+NAME=$2
+REFSPEC=$3
+DIRECTORY=$4
+
+if [ "x$DIRECTORY" = "x" ];then
+    DIRECTORY=/tmp
+fi
+
+cd "$DIRECTORY"
+
+if [ ! -e "$NAME" ]; then
+    echo "Cloning '$REPOSITORY' to '$NAME'"
+    git clone "$REPOSITORY" "$NAME"
+fi
+
+if [ ! -d "$NAME" ]; then
+    echo "Cannot create git repository"
+    exit 1
+fi
+
+cd "$NAME"
+
+if [ ! -e .git/config ]
+then
+    echo "Configuring Git"
+    git init
+    git add app config lib public script config.ru Gemfile Gemfile.lock main_app.ru Procfile Rakefile .gitignore
+    git commit -a -m update
+else
+    echo "Git is already configured"
+fi
+
+git pull
+git checkout "$REFSPEC"
+git pull
+

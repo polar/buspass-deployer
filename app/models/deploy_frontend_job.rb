@@ -37,13 +37,30 @@ class DeployFrontendJob
     log "#{head}: START"
     case frontend.host_type
       when "ec2"
-        cmd = "ssh -i #{ssh_cert} ec2-user@#{frontend.host} git clone -b #{frontend.git_refspec} #{frontend.git_repository} \\\"#{frontend.git_name}\\\" \\&\\& cd \\\"#{frontend.git_name}\\\" \\&\\& sudo bash install.sh \\\"#{frontend.git_name}\\\""
+        cmd = "ssh -i #{ssh_cert} ec2-user@#{frontend.host} \"git clone -b #{frontend.git_refspec} #{frontend.git_repository} \\\"#{frontend.git_name}\\\" ; cd \\\"#{frontend.git_name}\\\" ; git pull; git checkout \\\"#{frontend.git_refspec}\\\" ; sudo bash install.sh \\\"#{frontend.git_name}\\\"\""
         log "#{head}: #{cmd}"
         Open3.popen2e(cmd) do |stdin,out,wait_thr|
           pid = wait_thr.pid
           out.each {|line| log("#{head}: #{line}")}
         end
     end
+    log "#{head}: DONE"
+  end
+
+  def full_upgrade_remote_frontend
+    head = __method__
+    log "#{head}: START"
+    set_status("Full Upgrade #{frontend.name}")
+    begin
+      upgrade_remote_frontend
+      configure_remote_frontend
+      configure_remote_frontend_backends
+      set_status("Success:FullUpgrade")
+    rescue Exception => boom
+      log "#{head}: Error Full Upgrade : -- #{boom}"
+      set_status("Error:FullUpgrade")
+    end
+  ensure
     log "#{head}: DONE"
   end
 
@@ -162,6 +179,7 @@ class DeployFrontendJob
   def status_remote_frontend
     head = __method__
     log "#{head}: START"
+    set_status("RemoteStatus")
     case frontend.host_type
       when "ec2"
         cmd = "ssh -i #{ssh_cert} ec2-user@#{frontend.host} \\\"#{frontend.git_name}/scripts/status_frontend.sh\\\" --name \\\"#{frontend.name}\\\""
@@ -170,6 +188,7 @@ class DeployFrontendJob
           pid = wait_thr.pid
           out.each {|line| log("#{head}: #{line}")}
         end
+        set_status("Done:RemoteStatus")
     end
     log "#{head}: DONE"
   end

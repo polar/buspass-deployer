@@ -50,6 +50,8 @@ class DeployInstallationJobspec < Struct.new(:deploy_installation_job_id, :actio
       when "restart_worker_endpoints"
         job.restart_worker_endpoints
 
+      when "remote_status_installation"
+        job.remote_status_installation
       else
         job.log "Unknown action #{action}."
     end

@@ -13,8 +13,8 @@ class Backend
   key :timeout
   key :log_level, Integer, :default => Logger::INFO
 
-  key :listen_status, Array, :default => []
-  key :connection_status, Array, :default => []
+  key :listen_status
+  key :connection_status
 
   key :configured, Boolean, :default => false
 

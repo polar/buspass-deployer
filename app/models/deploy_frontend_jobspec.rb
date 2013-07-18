@@ -23,6 +23,9 @@ class DeployFrontendJobspec < Struct.new(:deploy_frontend_job_id, :action, :back
       when "upgrade_remote_frontend"
         job.upgrade_remote_frontend
 
+      when "full_upgrade_remote_frontend"
+        job.full_upgrade_remote_frontend
+
       when "configure_remote_frontend"
         job.configure_remote_frontend
 

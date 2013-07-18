@@ -223,6 +223,7 @@ class DeployBackendJob
     head = __method__
     log "#{head}: START"
     log "#{head}: Status Swift Endpoint Apps #{backend.name}."
+    set_status("RemoteStatus:Swift")
     for se in backend.swift_endpoints do
       begin
         if se.deploy_swift_endpoint_job.nil?
@@ -234,6 +235,7 @@ class DeployBackendJob
         log "#{head}: Cannot get status Swift Endpoint #{se.name} - #{boom}"
       end
     end
+    set_status("Done:RemoteStatus:Swift")
   ensure
     log "#{head}: DONE"
   end
@@ -413,6 +415,7 @@ class DeployBackendJob
     head = __method__
     log "#{head}: START"
     log "#{head}: Status Worker Endpoint Apps #{backend.name}."
+    set_status("RemoteStatus:Worker")
     for se in backend.worker_endpoints do
       begin
         if se.deploy_worker_endpoint_job.nil?
@@ -426,6 +429,7 @@ class DeployBackendJob
         log "#{head}: Cannot get status Worker Endpoint #{se.name} - #{boom}"
       end
     end
+    set_status("Done:RemoteStatus:Worker")
   ensure
     log "#{head}: DONE"
   end

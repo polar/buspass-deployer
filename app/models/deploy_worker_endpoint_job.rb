@@ -43,6 +43,14 @@ class DeployWorkerEndpointJob
     worker_endpoint.backend
   end
 
+  def frontend
+    backend.frontend
+  end
+
+  def installation
+    frontend.installation
+  end
+
   def reset_api
     # We have to reset, because successive connection/SSL failures
     # do not resolve themselves. Ugg.
@@ -106,6 +114,7 @@ class DeployWorkerEndpointJob
   def remote_endpoint_status
     head = __method__
     log "#{head}: START"
+    set_status("RemoteStatus")
     case worker_endpoint.endpoint_type
       when "Heroku"
         begin
@@ -119,22 +128,29 @@ class DeployWorkerEndpointJob
               status = ["DOWN"] if status.length == 0
               worker_endpoint.remote_status = status
               worker_endpoint.save
+              set_status("Success:RemoteStatus")
               return result.data[:body].inspect
             else
+              set_status("Error:RemoteStatus")
+              worker_endpoint.remote_status = ["Not Available"]
+              worker_endpoint.save
               log "#{head}: remote worker endpoint #{app_name} bad status."
               return nil
             end
           else
+            set_status("Error:RemoteStatus")
             status = ["Not Created"]
             worker_endpoint.remote_status = status
             worker_endpoint.save
             return status.inspect
           end
         rescue Heroku::API::Errors::NotFound => boom
+          set_status("Error:RemoteStatus")
           log "#{head}: remote worker endpoint #{app_name} does not exist."
           return nil
         end
       else
+        set_status("Error:RemoteStatus")
         log "#{head}: Unknown Endpoint type #{worker_endpoint.endpoint_type}"
     end
   ensure
@@ -148,7 +164,7 @@ class DeployWorkerEndpointJob
       when "Heroku"
         begin
           log "#{head}: Starting remote worker endpoint #{app_name}."
-          result = HerokuHeadless.heroku.post_ps_scale(app_name, "work", 1)
+          result = HerokuHeadless.heroku.post_ps_scale(app_name, "fork", 1)
           if result && result.data && result.data[:body]
             log "status is #{result.data[:body].inspect}"
             return result.data[:body].inspect
@@ -176,6 +192,7 @@ class DeployWorkerEndpointJob
           log "#{head}: Stopping remote worker endpoint #{app_name}."
           result = HerokuHeadless.heroku.post_ps_scale(app_name, "web", 0)
           result = HerokuHeadless.heroku.post_ps_scale(app_name, "work", 0)
+          result = HerokuHeadless.heroku.post_ps_scale(app_name, "fork", 0)
           if result && result.data && result.data[:body]
             log "status is #{result.data[:body].inspect}"
             return result.data[:body].inspect
@@ -201,6 +218,10 @@ class DeployWorkerEndpointJob
       when "Heroku"
         begin
           vars = {
+              "INSTALLATION" => installation.name,
+              "FRONTEND" => frontend.name,
+              "BACKEND" => backend.name,
+              "WORKER_ENDPOINT" => worker_endpoint.name,
               "HEROKU_API_KEY" => ENV['HEROKU_API_KEY'],
               "AWS_ACCESS_KEY_ID" => ENV['AWS_ACCESS_KEY_ID'],
               "AWS_SECRET_ACCESS_KEY" => ENV['AWS_SECRET_ACCESS_KEY'],
