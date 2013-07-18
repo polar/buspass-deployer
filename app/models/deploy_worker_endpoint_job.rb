@@ -267,6 +267,7 @@ class DeployWorkerEndpointJob
         begin
           set_status("Deploying")
           HerokuHeadless::Deployer.logger = self
+          log "#{head}: Deploying #{app_name} refspec #{worker_endpoint.git_refspec}."
           result = HerokuHeadless::Deployer.deploy(app_name, worker_endpoint.git_refspec)
           if result
             commit = ["#{worker_endpoint.git_repository} #{worker_endpoint.git_refspec}"]
