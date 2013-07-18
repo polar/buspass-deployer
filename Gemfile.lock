@@ -189,6 +189,7 @@ DEPENDENCIES
   mongo_mapper (~> 0.11.0)
   newrelic_rpm
   rails (= 3.2.11)
+  rake
   rush
   sass-rails (~> 3.2.3)
   uglifier (>= 1.0.3)
