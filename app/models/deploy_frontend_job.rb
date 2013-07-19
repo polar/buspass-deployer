@@ -335,7 +335,8 @@ class DeployFrontendJob
             if be.deploy_backend_job.nil?
               be.create_deploy_backend_job
             end
-            be.deploy_backend_job.configure_endpoint_apps
+            be.deploy_backend_job.configure_swift_endpoint_apps
+            be.deploy_backend_job.configure_worker_endpoint_apps
           rescue Exception => boom
             log "#{head}: Error creating endpoint apps for backend #{be.name} - #{boom}"
           end
@@ -355,7 +356,8 @@ class DeployFrontendJob
             if be.deploy_backend_job.nil?
               be.create_deploy_backend_job
             end
-            be.deploy_backend_job.start_endpoint_apps
+            be.deploy_backend_job.start_swift_endpoint_apps
+            be.deploy_backend_job.start_worker_endpoint_apps
           rescue Exception => boom
             log "#{head}: Error creating endpoint apps for backend #{be.name} - #{boom}"
           end
@@ -375,7 +377,8 @@ class DeployFrontendJob
             if be.deploy_backend_job.nil?
               be.create_deploy_backend_job
             end
-            be.deploy_backend_job.stop_endpoint_apps
+            be.deploy_backend_job.stop_swift_endpoint_apps
+            be.deploy_backend_job.stop_worker_endpoint_apps
           rescue Exception => boom
             log "#{head}: Error creating endpoint apps for backend #{be.name} - #{boom}"
           end
@@ -395,7 +398,8 @@ class DeployFrontendJob
             if be.deploy_backend_job.nil?
               be.create_deploy_backend_job
             end
-            be.deploy_backend_job.deploy_endpoint_apps
+            be.deploy_backend_job.deploy_swift_endpoint_apps
+            be.deploy_backend_job.deploy_worker_endpoint_apps
           rescue Exception => boom
             log "#{head}: Error creating endpoint apps for backend #{be.name} - #{boom}"
           end
@@ -415,7 +419,8 @@ class DeployFrontendJob
             if be.deploy_backend_job.nil?
               be.create_deploy_backend_job
             end
-            be.deploy_backend_job.destroy_endpoint_apps
+            be.deploy_backend_job.destroy_swift_endpoint_apps
+            be.deploy_backend_job.destroy_worker_endpoint_apps
           rescue Exception => boom
             log "#{head}: Error creating endpoint apps for backend #{be.name} - #{boom}"
           end
