@@ -73,7 +73,8 @@ class DeploySwiftEndpointJob
           result = HerokuHeadless.heroku.post_app(:name => app_name)
           set_status("Success:Create")
         rescue Exception => boom
-          swift_enpoint.set_status("Error:Create")
+          log "#{head}: error Heroku.post_app(:name => #{app_name}) -- #{boom}"
+          swift_endpoint.set_status("Error:Create")
           set_status("Error:Create")
           return nil
         end

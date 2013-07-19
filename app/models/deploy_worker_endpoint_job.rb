@@ -74,7 +74,7 @@ class DeployWorkerEndpointJob
           result = HerokuHeadless.heroku.post_app(:name => app_name)
           set_status("Success:Create")
         rescue Exception => boom
-          worker_enpoint.set_status("Error:Create")
+          log "#{head}: error Heroku.post_app(:name => #{app_name}) -- #{boom}"
           set_status("Error:Create")
           return nil
         end
