@@ -59,6 +59,7 @@ class DeployWorkerEndpointJob
       config.pre_deploy_git_commands = [
           "script/dist-config \"#{worker_endpoint.git_repository}\" \"#{worker_endpoint.git_name}\" \"#{worker_endpoint.git_refspec}\" /tmp"
       ]
+      config.force_push = true
       config.repository_location = File.join("/", "tmp", worker_endpoint.git_name)
     end
   end
