@@ -312,7 +312,10 @@ class DeployFrontendJob
             if be.deploy_backend_job.nil?
               be.create_deploy_backend_job
             end
-            be.deploy_backend_job.create_endpoint_apps
+            job = DeployBackendJobspec.new(be.deploy_backend_job.id, "create_swift_endpoint_apps", nil)
+            Delayed::Job.enqueue(job, "deploy-web")
+            job = DeployBackendJobspec.new(be.deploy_backend_job.id, "create_worker_endpoint_apps", nil)
+            Delayed::Job.enqueue(job, "deploy-web")
           rescue Exception => boom
             log "#{head}: Error creating endpoint apps for backend #{be.name} - #{boom}"
           end

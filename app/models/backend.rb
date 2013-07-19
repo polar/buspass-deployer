@@ -45,7 +45,7 @@ class Backend
       self.hostname = "#{master_slug}.#{frontend.host}"
     else
       self.hostname    = "#{frontend.host}"
-      self.server_name = "*.#{frontend.host}"
+      self.server_name = "*.#{frontend.host}" if server_name.blank?
     end
   end
 

@@ -51,7 +51,7 @@ class WorkerEndpoint
   def self.new_instance_for_backend(backend, endpoint_type = "Heroku")
     name = backend.master_slug || backend.host
     count = backend.worker_endpoints.count
-    remote_name = "busme-w#{count}-#{name}"[0..32]
+    remote_name = "busme-w#{count}-#{name.gsub(".","-")}"[0..32]
     endpoint = WorkerEndpoint.new(:name => remote_name,
                                  :endpoint_type => endpoint_type,
                                  :remote_name => remote_name,
