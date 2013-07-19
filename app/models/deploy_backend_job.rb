@@ -280,6 +280,7 @@ class DeployBackendJob
     log "#{head}: START"
     log "#{head}: Configuring Worker Endpoint Apps #{backend.name}."
     set_status("ConfiguringWorkerEndpoints")
+    errors = 0
     for se in backend.worker_endpoints do
       begin
         set_status("ConfiguringWorkerEndpoints:#{se.name}")
@@ -310,19 +311,28 @@ class DeployBackendJob
     log "#{head}: START"
     log "#{head}: Deploying Worker Endpoint Apps for #{backend.name}."
     set_status("DeployingWorkerEndpoints")
+    errors = 0
     for se in backend.worker_endpoints do
       begin
+        set_status("DeployingWorkerEndpoints:#{se.name}")
         if se.deploy_worker_endpoint_job.nil?
           se.create_deploy_worker_endpoint_job
         end
         log "#{head}: Deploying Remote App for Worker Endpoint #{se.name}."
         job = DeployWorkerEndpointJobspec.new(se.deploy_worker_endpoint_job.id, "job_create_and_deploy_remote_endpoint")
         Delayed::Job.enqueue(job, :queue => "deploy-web")
+        set_status("Success:DeployWorkerEndpoints:#{se.name}")
       rescue Exception => boom
+        set_status("Error:DeployWorkerEndpoints:#{se.name}")
+        errors += 1
         log "#{head}: Error Deploying Worker Endpoint #{se.name} - #{boom}"
       end
     end
-    set_status("Done:DeployWorkerEndpoints")
+    if errors == 0
+      set_status("Success:ConfigureWorkerEndpoints")
+    else
+      set_status("Error:ConfigureWorkerEndpoints:#{errors}")
+    end
   ensure
     log "#{head}: DONE"
   end
