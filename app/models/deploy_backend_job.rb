@@ -441,7 +441,7 @@ class DeployBackendJob
           se.create_deploy_worker_endpoint_job
         end
         log "#{head}: Status Remote App for Worker Endpoint #{se.name}."
-        job = DeployWorkerEndpointJobspec(se.deploy_worker_endpoint_job.id, "remote_endpoint_status")
+        job = DeployWorkerEndpointJobspec.new(se.deploy_worker_endpoint_job.id, "remote_endpoint_status")
         Delayed::Job.enqueue(job, :queue => "deploy-web")
       rescue Exception => boom
         log "#{head}: Cannot get status Worker Endpoint #{se.name} - #{boom}"
