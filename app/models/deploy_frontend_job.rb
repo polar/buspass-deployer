@@ -78,7 +78,7 @@ class DeployFrontendJob
           out.each {|line| log("#{head}: #{line}")}
           exit_status = wait_thr.value
         end
-        if exit_status != 0
+        if exit_status.exitstatus == 0
           set_status("Success:Upgrade #{frontend.name}")
         else
           # This happens if the git is already up to date.

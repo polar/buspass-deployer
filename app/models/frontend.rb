@@ -8,7 +8,7 @@ class Frontend
   key :log_level, Integer, :default => Logger::INFO
 
   key :git_commit
-  key :listen_status, Array
+  key :listen_status
   key :connection_status, Array
 
   belongs_to :deploy_frontend_job, :dependent => :destroy
@@ -35,7 +35,7 @@ class Frontend
   end
 
   validates_uniqueness_of :host, :allow_nil => false
-  validates_uniqueness_of :hostip, :allow_nil => false
+  #validates_uniqueness_of :hostip, :allow_nil => true
 
   def job_status
     deploy_frontend_job.get_status if deploy_frontend_job

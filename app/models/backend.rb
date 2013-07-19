@@ -76,10 +76,10 @@ class Backend
   validates_presence_of :frontend_address
   validates_presence_of :cluster_address
   validates_numericality_of :cluster_port
-  validates_uniqueness_of :cluster_port, :scope => :cluster_address
+  validates_uniqueness_of :cluster_port, :scope => [:cluster_address, :frontend_id]
   validates_presence_of :address
   validates_numericality_of :port
-  validates_uniqueness_of :port, :scope => :address
+  validates_uniqueness_of :port, :scope => [:cluster_address, :frontend_id]
 
 
 
