@@ -65,6 +65,9 @@ class DeployBackendJobspec < Struct.new(:deploy_backend_job_id, :action, :endpoi
 
       when "status_worker_endpoint_apps"
         job.status_worker_endpoint_apps
+
+      when "destroy_backend"
+        job.destroy_backend
       else
         job.log "Unknown action #{action}."
     end
