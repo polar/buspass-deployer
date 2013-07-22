@@ -282,6 +282,7 @@ class DeploySwiftEndpointJob
               "MASTER_SLUG" => backend.master_slug
           }
           log "#{head}: Setting configuration variables for swift endpoint #{app_name}."
+          log "#{head}: Configuration #{vars.inspect}"
           result = HerokuHeadless.heroku.put_config_vars(app_name, vars)
           if result && result.data[:body]
             vars_set = result.data[:body].keys
