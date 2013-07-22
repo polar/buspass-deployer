@@ -69,16 +69,15 @@ class DeploySwiftEndpointJob
     case swift_endpoint.endpoint_type
       when "Heroku"
         begin
-          set_status("Creating")
           result = HerokuHeadless.heroku.post_app(:name => app_name)
           set_status("Success:Create")
         rescue Exception => boom
           log "#{head}: error Heroku.post_app(:name => #{app_name}) -- #{boom}"
-          swift_endpoint.set_status("Error:Create")
           set_status("Error:Create")
           return nil
         end
       else
+        set_status("Error:Create")
         log "#{head}: Unknown Endpoint type #{swift_endpoint.endpoint_type}"
     end
   ensure
@@ -161,6 +160,7 @@ class DeploySwiftEndpointJob
   def start_remote_endpoint
     head = __method__
     log "#{head}: START"
+    set_status("Start")
     case swift_endpoint.endpoint_type
       when "Heroku"
         begin
@@ -169,17 +169,21 @@ class DeploySwiftEndpointJob
           result = HerokuHeadless.heroku.post_ps_scale(app_name, "work", 0)
           result = HerokuHeadless.heroku.post_ps_scale(app_name, "swift", 1)
           if result && result.data && result.data[:body]
+            set_status("Success:Start")
             log "status is #{result.data[:body].inspect}"
             return result.data[:body].inspect
           else
+            set_status("Error:Start")
             log "#{head}: remote swift endpoint #{app_name} bad result."
             return nil
           end
         rescue Heroku::API::Errors::NotFound => boom
+          set_status("Error:Start")
           log "#{head}: remote swift endpoint #{app_name} does not exist."
           return nil
         end
       else
+        set_status("Error:Start")
         log "#{head}: Unknown Endpoint type #{swift_endpoint.endpoint_type}"
     end
   ensure
@@ -189,6 +193,7 @@ class DeploySwiftEndpointJob
   def stop_remote_endpoint
     head = __method__
     log "#{head}: START"
+    set_status("Stoping")
     case swift_endpoint.endpoint_type
       when "Heroku"
         begin
@@ -197,17 +202,21 @@ class DeploySwiftEndpointJob
           result = HerokuHeadless.heroku.post_ps_scale(app_name, "work", 0)
           result = HerokuHeadless.heroku.post_ps_scale(app_name, "swift", 0)
           if result && result.data && result.data[:body]
+            set_status("Success:Stop")
             log "status is #{result.data[:body].inspect}"
             return result.data[:body].inspect
           else
+            set_status("Error:Stop")
             log "#{head}: remote swift endpoint #{app_name} bad result."
             return nil
           end
         rescue Heroku::API::Errors::NotFound => boom
+          set_status("Error:Stop")
           log "#{head}: remote swift endpoint #{app_name} does not exist."
           return nil
         end
       else
+        set_status("Error:Stop")
         log "#{head}: Unknown Endpoint type #{swift_endpoint.endpoint_type}"
     end
   ensure
@@ -217,24 +226,29 @@ class DeploySwiftEndpointJob
   def restart_remote_endpoint
     head = __method__
     log "#{head}: START"
+    set_status("Restarting")
     case swift_endpoint.endpoint_type
       when "Heroku"
         begin
           log "#{head}: Restarting remote swift endpoint #{app_name}."
           result = HerokuHeadless.heroku.post_ps_scale(app_name, "work", 0)
-          result = HerokuHeadless.heroku.post_ps_scale(app_name, "work", 1)
+          result = HerokuHeadless.heroku.post_ps_scale(app_name, "swift", 1)
           if result && result.data && result.data[:body]
+            set_status("Success:Restart")
             log "status is #{result.data[:body].inspect}"
             return result.data[:body].inspect
           else
+            set_status("Error:Restart")
             log "#{head}: remote swift endpoint #{app_name} bad result."
             return nil
           end
         rescue Heroku::API::Errors::NotFound => boom
+          set_status("Error:Restart")
           log "#{head}: remote swift endpoint #{app_name} does not exist."
           return nil
         end
       else
+        set_status("Error:Restart")
         log "#{head}: Unknown Endpoint type #{swift_endpoint.endpoint_type}"
     end
   ensure
@@ -244,6 +258,7 @@ class DeploySwiftEndpointJob
   def configure_remote_endpoint
     head = __method__
     log "#{head}: START"
+    set_status("Configuring")
     case swift_endpoint.endpoint_type
       when "Heroku"
         begin
@@ -266,7 +281,6 @@ class DeploySwiftEndpointJob
               "SSH_KEY" => ENV['SSH_KEY'],
               "MASTER_SLUG" => backend.master_slug
           }
-          set_status("Configuring")
           log "#{head}: Setting configuration variables for swift endpoint #{app_name}."
           result = HerokuHeadless.heroku.put_config_vars(app_name, vars)
           if result && result.data[:body]
@@ -279,7 +293,7 @@ class DeploySwiftEndpointJob
           return result
         rescue Exception => boom
           log "#{head}: Cannot configure swift endpoint #{app_name} - #{boom}"
-          set_status("Error:Configure")
+          set_status("Error:ConfigureRemoteEndpoint")
           return nil
         end
       else
@@ -316,6 +330,7 @@ class DeploySwiftEndpointJob
           return nil
         end
       else
+        set_status("Error:Deploy")
         log "#{head}: Unknown Endpoint type #{swift_endpoint.endpoint_type}"
     end
   ensure
@@ -339,6 +354,7 @@ class DeploySwiftEndpointJob
           return nil
         end
       else
+        set_status("Error:Delete")
         log "#{head}: Unknown Endpoint type #{swift_endpoint.endpoint_type}"
     end
   ensure
