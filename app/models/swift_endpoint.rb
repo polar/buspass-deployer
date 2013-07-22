@@ -52,7 +52,7 @@ class SwiftEndpoint
   def self.new_instance_for_backend(backend, endpoint_type = "Heroku")
     name = backend.master_slug || backend.host
     count = backend.swift_endpoints.count
-    remote_name = "busme-#{count}-#{name.gsub(".", "-")}"[0..31]
+    remote_name = "busme-#{count}-#{name.gsub(".", "-")}"[0..29]
     endpoint = SwiftEndpoint.new(:name => remote_name,
                                  :endpoint_type => endpoint_type,
                                  :remote_name => remote_name,
@@ -61,7 +61,7 @@ class SwiftEndpoint
     ucount = 0
     while !endpoint.valid? && ucount < 26 do
       u = "ABCDEFGHIJKLMNOPQUSTUVWXYZ"[ucount]
-      remote_name = "busme-#{u}#{count}-#{name.gsub(".", "-")}"[0..31]
+      remote_name = "busme-#{u}#{count}-#{name.gsub(".", "-")}"[0..29]
       endpoint = SwiftEndpoint.new(:name => remote_name,
                                    :endpoint_type => endpoint_type,
                                    :remote_name => remote_name,
