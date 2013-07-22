@@ -43,7 +43,9 @@ class Backend
   def ensure_hostname
     if ! master_slug.blank?
       self.hostname = "#{master_slug}.#{frontend.host}"
-    else
+    end
+
+    if hostname.blank?
       self.hostname    = "#{frontend.host}"
       self.server_name = "*.#{frontend.host}" if server_name.blank?
     end

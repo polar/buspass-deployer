@@ -29,6 +29,10 @@ class SwiftEndpoint
     backend.frontend.installation
   end
 
+  def frontend
+    backend.frontend
+  end
+
   def job_status
     deploy_swift_endpoint_job.get_status if deploy_swift_endpoint_job
   end

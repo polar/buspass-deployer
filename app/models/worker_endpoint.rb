@@ -32,6 +32,10 @@ class WorkerEndpoint
     backend.frontend.installation
   end
 
+  def frontend
+    backend.frontend
+  end
+
   def job_status
     deploy_worker_endpoint_job.get_status if deploy_worker_endpoint_job
   end
