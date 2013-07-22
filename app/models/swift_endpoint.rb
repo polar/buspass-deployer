@@ -60,7 +60,7 @@ class SwiftEndpoint
                                  :backend => backend)
     ucount = 0
     while !endpoint.valid? && ucount < 26 do
-      u = "ABCDEFGHIJKLMNOPQUSTUVWXYZ"[ucount]
+      u = "abcdefghijklmnopqrstuvwxyz"[ucount]
       remote_name = "busme-#{u}#{count}-#{name.gsub(".", "-")}"[0..29]
       endpoint = SwiftEndpoint.new(:name => remote_name,
                                    :endpoint_type => endpoint_type,

@@ -410,6 +410,7 @@ class DeploySwiftEndpointJob
     result = create_remote_endpoint if not result
     result = configure_remote_endpoint if result
     result = deploy_to_remote_endpoint if result
+    result = restart_remote_endpoint if result
     return result
   ensure
     log "#{head}: DONE"
