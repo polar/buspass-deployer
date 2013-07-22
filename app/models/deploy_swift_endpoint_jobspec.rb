@@ -66,6 +66,10 @@ class DeploySwiftEndpointJobspec < Struct.new(:deploy_swift_endpoint_job_id, :ac
         job.reset_api
         job.destroy_remote_endpoint
 
+      when "destroy_swift_endpoint"
+        job.reset_api
+        job.destroy_swift_endpoint
+
       when "logs_remote_endpoint"
         job.reset_api
         job.logs_remote_endpoint

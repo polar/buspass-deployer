@@ -444,5 +444,19 @@ class DeployFrontendJob
     log "#{head}: DONE"
   end
 
+  def destroy_frontend
+    head = __method__
+    log "#{head}: START"
+    deconfigure_remote_frontend
+    for be in frontend.backends do
+      if be.deploy_backend_job.nil?
+        be.create_deploy_backend_job
+      end
+      job = DeployBackendJobspec.new(be.deploy_backend_job.id, "destroy_backend", nil)
+      Delayed::Job.enqueue(job, :queue => "deploy-web")
+    end
+    frontend.destroy
+  end
+
 
 end

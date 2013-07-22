@@ -361,6 +361,13 @@ class DeploySwiftEndpointJob
     log "#{head}: DONE"
   end
 
+  # This is a job to destroy the swift endpoint and the backend
+  def destroy_swift_endpoint
+    destroy_remote_endpoint
+    swift_endpoint.destroy
+    # in turn this object should be destroyed.
+  end
+
   def logs_remote_endpoint
     head = __method__
     log "#{head}: START"

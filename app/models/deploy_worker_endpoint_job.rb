@@ -324,6 +324,13 @@ class DeployWorkerEndpointJob
     log "#{head}: DONE"
   end
 
+  # This is a job to destroy the worker endpoint and the backend
+  def destroy_worker_endpoint
+    destroy_remote_endpoint
+    worker_endpoint.destroy
+    # in turn this object should be destroyed.
+  end
+
   def logs_remote_endpoint
     head = __method__
     log "#{head}: START"

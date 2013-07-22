@@ -36,6 +36,9 @@ class DeployBackendJobspec < Struct.new(:deploy_backend_job_id, :action, :endpoi
       when "destroy_swift_endpoint_apps"
         job.destroy_swift_endpoint_apps
 
+      when "destroy_swift_endpoints"
+        job.destroy_swift_endpoints
+
       when "status_swift_endpoint_apps"
         job.status_swift_endpoint_apps
         
@@ -56,6 +59,9 @@ class DeployBackendJobspec < Struct.new(:deploy_backend_job_id, :action, :endpoi
 
       when "destroy_worker_endpoint_apps"
         job.destroy_worker_endpoint_apps
+
+      when "destroy_worker_endpoints"
+        job.destroy_worker_endpoints
 
       when "status_worker_endpoint_apps"
         job.status_worker_endpoint_apps

@@ -66,6 +66,10 @@ class DeployWorkerEndpointJobspec < Struct.new(:deploy_worker_endpoint_job_id, :
         job.reset_api
         job.destroy_remote_endpoint
 
+      when "destroy_worker_endpoint"
+        job.reset_api
+        job.destroy_worker_endpoint
+
       when "logs_remote_endpoint"
         job.reset_api
         job.logs_remote_endpoint

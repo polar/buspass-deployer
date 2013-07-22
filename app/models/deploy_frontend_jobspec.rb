@@ -78,6 +78,10 @@ class DeployFrontendJobspec < Struct.new(:deploy_frontend_job_id, :action, :back
       when "deconfigure_remote_backend"
         backend = Backend.find(backend_id)
         job.deconfigure_remote_backend(backend)
+
+      when "destroy_frontend"
+        job.destroy_frontend
+
       else
         job.log "Unknown action #{action}."
     end

@@ -46,6 +46,15 @@ class DeployBackendJob
     backend.frontend
   end
 
+  def destroy_backend
+    head = __method__
+    log "#{head}: START"
+    log "#{head}: Destroy Backend #{backend.name}."
+    destroy_swift_endpoints
+    destroy_worker_endpoints
+    backend.destroy
+  end
+
   def create_swift_endpoint_apps
     head = __method__
     log "#{head}: START"
@@ -205,6 +214,37 @@ class DeployBackendJob
         end
         log "#{head}: Destroying Remote App for Swift Endpoint #{se.name}."
         job = DeploySwiftEndpointJobspec.new(se.deploy_swift_endpoint_job.id, "destroy_remote_endpoint")
+        Delayed::Job.enqueue(job, :queue => "deploy-web")
+        set_status("Success:DestroySwiftEndpoints:#{se.name}")
+      rescue Exception => boom
+        set_status("Error:DestroySwiftEndpoints:#{se.name}")
+        errors += 1
+        log "#{head}: Cannot destroy Swift Endpoint #{se.name} - #{boom}"
+      end
+    end
+    if errors == 0
+      set_status("Success:DestroySwiftEndpoints")
+    else
+      set_status("Error:DestroySwiftEndpoints:#{errors}")
+    end
+  ensure
+    log "#{head}: DONE"
+  end
+
+  def destroy_swift_endpoints
+    head = __method__
+    log "#{head}: START"
+    log "#{head}: Destroying Swift Endpoints #{backend.name}."
+    set_status("DestroyingSwiftEndpoints")
+    errors = 0
+    for se in backend.swift_endpoints do
+      begin
+        set_status("DestroyingSwiftEndpoints:#{se.name}")
+        if se.deploy_swift_endpoint_job.nil?
+          se.create_deploy_swift_endpoint_job
+        end
+        log "#{head}: Destroying Remote App for Swift Endpoint #{se.name}."
+        job = DeploySwiftEndpointJobspec.new(se.deploy_swift_endpoint_job.id, "destroy_swift_endpoint")
         Delayed::Job.enqueue(job, :queue => "deploy-web")
         set_status("Success:DestroySwiftEndpoints:#{se.name}")
       rescue Exception => boom
@@ -413,6 +453,37 @@ class DeployBackendJob
         end
         log "#{head}: Destroying Remote App for Worker Endpoint #{se.name}."
         job = DeployWorkerEndpointJobspec.new(se.deploy_worker_endpoint_job.id, "destroy_remote_endpoint")
+        Delayed::Job.enqueue(job, :queue => "deploy-web")
+        set_status("Success:DestroyWorkerEndpoints:#{se.name}")
+      rescue Exception => boom
+        set_status("Error:DestroyWorkerEndpoints:#{se.name}")
+        errors += 1
+        log "#{head}: Cannot destroy Worker Endpoint #{se.name} - #{boom}"
+      end
+    end
+    if errors == 0
+      set_status("Success:DestroyWorkerEndpoints")
+    else
+      set_status("Error:DestroyWorkerEndpoints:#{errors}")
+    end
+  ensure
+    log "#{head}: DONE"
+  end
+
+  def destroy_worker_endpoints
+    head = __method__
+    log "#{head}: START"
+    log "#{head}: Destroying Worker Endpoints #{backend.name}."
+    set_status("DestroyingWorkerEndpoints")
+    errors = 0
+    for se in backend.worker_endpoints do
+      begin
+        set_status("DestroyingWorkerEndpoints:#{se.name}")
+        if se.deploy_worker_endpoint_job.nil?
+          se.create_deploy_worker_endpoint_job
+        end
+        log "#{head}: Destroying Remote App for Worker Endpoint #{se.name}."
+        job = DeployWorkerEndpointJobspec.new(se.deploy_worker_endpoint_job.id, "destroy_worker_endpoint")
         Delayed::Job.enqueue(job, :queue => "deploy-web")
         set_status("Success:DestroyWorkerEndpoints:#{se.name}")
       rescue Exception => boom
