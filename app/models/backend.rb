@@ -19,6 +19,7 @@ class Backend
   key :configured, Boolean, :default => false
 
   key :name
+  timestamps!
 
   belongs_to :frontend
   one :backend_log, :dependent => :destroy

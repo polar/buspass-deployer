@@ -10,6 +10,7 @@ class Frontend
   key :git_commit
   key :listen_status
   key :connection_status, Array
+  timestamps!
 
   belongs_to :deploy_frontend_job, :dependent => :destroy
   one :frontend_log
@@ -22,9 +23,13 @@ class Frontend
 
   belongs_to :installation
 
-  before_validation :ensure_host, :ensure_name
+  before_validation :ensure_hostip_strip, :ensure_host, :ensure_name
 
   attr_accessible :host, :hostip, :host_type, :installation, :installation_id
+
+  def ensure_hostip_strip
+    self.hostip.strip! if hostip
+  end
 
   def ensure_host
     self.host = "#{hostip}" if host.nil?

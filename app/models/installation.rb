@@ -18,6 +18,7 @@ class Installation
 
   belongs_to :deploy_installation_job, :dependent => :destroy
   one :installation_log
+  timestamps!
 
 
   many :frontends

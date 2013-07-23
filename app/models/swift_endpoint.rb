@@ -11,6 +11,7 @@ class SwiftEndpoint
   key :git_commit, Array
 
   key :log_level, Integer, :default => Logger::INFO
+  timestamps!
 
   belongs_to :backend
 

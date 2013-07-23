@@ -11,6 +11,7 @@ class WorkerEndpoint
   key :git_commit, Array
 
   key :log_level, Integer, :default => Logger::INFO
+  timestamps!
 
   # Worker endpoints are organized on backends because
   # backends are organized around masters within the
