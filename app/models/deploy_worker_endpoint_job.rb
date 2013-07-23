@@ -128,9 +128,13 @@ class DeployWorkerEndpointJob
               log "#{head}: status is #{result.data[:body].inspect}"
               status = result.data[:body].map {|s| "#{s["process"]}: #{s["pretty_state"]}" }
               status = ["DOWN"] if status.length == 0
+              worker_endpoint.remote_status = status
+              worker_endpoint.save
               set_status("Success:RemoteStatus")
               return result.data[:body].inspect
             else
+              worker_endpoint.remote_status = ["Not Available"]
+              worker_endpoint.save
               set_status("Error:RemoteStatus")
               log "#{head}: remote worker endpoint #{app_name} bad status."
               return nil
