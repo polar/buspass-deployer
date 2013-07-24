@@ -3,7 +3,7 @@ class FrontendLog < Logger::LogDevice
 
   key :log_content, Array, :default => []
 
-  belongs_to :frontend
+  belongs_to :frontend, :autosave => false
 
   def write(msg)
     push(:log_content => msg)

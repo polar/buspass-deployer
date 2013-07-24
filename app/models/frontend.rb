@@ -13,15 +13,15 @@ class Frontend
   timestamps!
 
   belongs_to :deploy_frontend_job, :dependent => :destroy
-  one :frontend_log
+  one :frontend_log, :autosave => false
 
   one :frontend_key
 
   key :name
 
-  many :backends, :dependent => :destroy
+  many :backends, :dependent => :destroy, :autosave => false
 
-  belongs_to :installation
+  belongs_to :installation, :autosave => false
 
   before_validation :ensure_hostip_strip, :ensure_host, :ensure_name
 

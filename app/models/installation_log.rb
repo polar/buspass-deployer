@@ -3,7 +3,7 @@ class InstallationLog < Logger::LogDevice
 
   key :log_content, Array, :default => []
 
-  belongs_to :installation
+  belongs_to :installation, :autosave => false
 
   def write(msg)
     push(:log_content => msg)

@@ -9,7 +9,7 @@ end
 class DeployWorkerEndpointJob
   include MongoMapper::Document
 
-  belongs_to :worker_endpoint
+  belongs_to :worker_endpoint, :autosave => false
 
   
   key :status_content

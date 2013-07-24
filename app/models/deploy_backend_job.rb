@@ -1,7 +1,7 @@
 class DeployBackendJob
   include MongoMapper::Document
 
-  belongs_to :backend
+  belongs_to :backend, :autosave => false
 
   key :status_content
 

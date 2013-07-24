@@ -3,7 +3,7 @@ class WorkerEndpointLog < Logger::LogDevice
 
   key :log_content, Array, :default => []
 
-  belongs_to :worker_endpoint
+  belongs_to :worker_endpoint, :autosave => false
 
   def write(msg)
     push(:log_content => msg)

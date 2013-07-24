@@ -17,11 +17,11 @@ class Installation
   key :frontend_git_name, :default => "busme-swifty"
 
   belongs_to :deploy_installation_job, :dependent => :destroy
-  one :installation_log
+  one :installation_log, :autosave => false
   timestamps!
 
 
-  many :frontends
+  many :frontends, :autosave => false
 
   validates_presence_of :name
   validates_uniqueness_of :name

@@ -1,7 +1,7 @@
 class FrontendKey
   include MongoMapper::Document
 
-  belongs_to :frontend
+  belongs_to :frontend, :autosave => false
 
   key :key_encrypted_content
 

@@ -3,7 +3,7 @@ class SwiftEndpointRemoteLog < Logger::LogDevice
 
   key :log_content, Array, :default => []
 
-  belongs_to :swift_endpoint
+  belongs_to :swift_endpoint, :autosave => false
 
   def write(msg)
     push(:log_content => msg)

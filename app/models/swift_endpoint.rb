@@ -13,11 +13,11 @@ class SwiftEndpoint
   key :log_level, Integer, :default => Logger::INFO
   timestamps!
 
-  belongs_to :backend
+  belongs_to :backend, :autosave => false
 
-  one :swift_endpoint_log, :dependent => :destroy
-  one :swift_endpoint_remote_log, :dependent => :destroy
-  one :deploy_swift_endpoint_job, :dependent => :destroy
+  one :swift_endpoint_log, :dependent => :destroy, :autosave => false
+  one :swift_endpoint_remote_log, :dependent => :destroy, :autosave => false
+  one :deploy_swift_endpoint_job, :dependent => :destroy, :autosave => false
 
   attr_accessible :name, :endpoint_type, :remote_name, :backend, :backend_id, :master_slug
 

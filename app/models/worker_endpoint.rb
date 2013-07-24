@@ -16,11 +16,11 @@ class WorkerEndpoint
   # Worker endpoints are organized on backends because
   # backends are organized around masters within the
   # frontend.
-  belongs_to :backend
+  belongs_to :backend, :autosave => false
 
-  one :worker_endpoint_log, :dependent => :destroy
-  one :worker_endpoint_remote_log, :dependent => :destroy
-  one :deploy_worker_endpoint_job, :dependent => :destroy
+  one :worker_endpoint_log, :dependent => :destroy, :autosave => false
+  one :worker_endpoint_remote_log, :dependent => :destroy, :autosave => false
+  one :deploy_worker_endpoint_job, :dependent => :destroy, :autosave => false
 
   attr_accessible :name, :endpoint_type, :remote_name, :backend, :backend_id, :master_slug
 
