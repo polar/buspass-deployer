@@ -36,7 +36,9 @@ class WorkerEndpoint
   rescue Exception => boom
     if worker_endpoint_log
       log "On Save #{updated_at}"
-      log boom.backtrace_string
+      boom.backtrace.each do |line|
+        log line.to_s
+      end
     end
   end
 

@@ -33,7 +33,9 @@ class SwiftEndpoint
   rescue Exception => boom
     if swift_endpoint_log
       log "On Save #{updated_at}"
-      log boom.backtrace_string
+      boom.backtrace.each do |line|
+        log line.to_s
+      end
     end
   end
 
