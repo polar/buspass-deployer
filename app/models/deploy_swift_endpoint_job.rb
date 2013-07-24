@@ -120,9 +120,11 @@ class DeploySwiftEndpointJob
         begin
           log "#{head}: Getting deploy swift endpoint #{app_name} status."
           result = HerokuHeadless.heroku.get_releases(app_name)
+          log "#{head}: Result #{result} status."
           if result
             release = result.data[:body].select {|x| x["commit"]}.last
             if release
+              log "#{head}: Release #{release.inspect}"
               commit = [ "#{release["name"]} #{release["descr"]} created_at #{release["created_at"]} by #{release["user"]}"]
               commit += Rush.bash("cd \"/tmp/#{swift_endpoint.git_name}\"; git log --max-count=1 `git rev-parse #{release["commit"]}`").split("\n").take(3)
               swift_endpoint.git_commit = commit
