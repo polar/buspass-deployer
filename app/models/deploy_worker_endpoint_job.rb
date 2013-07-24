@@ -51,6 +51,12 @@ class DeployWorkerEndpointJob
     frontend.installation
   end
 
+  def delayed_jobs
+    Delayed::Job.where(:queue => "deploy-web", :failed_at => nil).select do |job|
+      job.payload_object.deploy_worker_endpoint_job_id == self.id
+    end
+  end
+
   def reset_api
     # We have to reset, because successive connection/SSL failures
     # do not resolve themselves. Ugg.

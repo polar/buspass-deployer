@@ -30,6 +30,12 @@ class DeployInstallationJob
     log_content.drop(i).take(n)
   end
 
+  def delayed_jobs
+    Delayed::Job.where(:queue => "deploy-web", :failed_at => nil).select do |job|
+      job.payload_object.deploy_installation_job_id == self.id
+    end
+  end
+
   def null_all_statuses
     set_status(nil)
     installation.installation_log.clear

@@ -32,6 +32,12 @@ class DeployFrontendJob
     frontend.log s
   end
 
+  def delayed_jobs
+    Delayed::Job.where(:queue => "deploy-web", :failed_at => nil).select do |job|
+      job.payload_object.deploy_frontend_job_id == self.id
+    end
+  end
+
   def ssh_cmd(cmd)
     "ssh -o StrictHostKeychecking=no -o CheckHostIP=no -o UserKnownHostsFile=/dev/null -i #{ssh_cert} ec2-user@#{frontend.host} #{cmd}"
   end

@@ -46,6 +46,12 @@ class DeployBackendJob
     backend.frontend
   end
 
+  def delayed_jobs
+    Delayed::Job.where(:queue => "deploy-web", :failed_at => nil).select do |job|
+       job.payload_object.deploy_backend_job_id == self.id
+    end
+  end
+
   def destroy_backend
     head = __method__
     log "#{head}: START"
