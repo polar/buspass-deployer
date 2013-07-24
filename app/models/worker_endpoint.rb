@@ -29,7 +29,7 @@ class WorkerEndpoint
   validates_presence_of :backend
   validates_presence_of :endpoint_type
 
-  after_save log_save_backtrace
+  after_save :log_save_backtrace
 
   def log_save_backtrace
     raise Exception
