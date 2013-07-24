@@ -64,6 +64,54 @@ class DeployWorkerEndpointJob
     end
   end
 
+  def get_deploy_status
+    head = __method__
+    log "#{head}: START"
+    set_status("DeployStatus")
+    case worker_endpoint.endpoint_type
+      when "Heroku"
+        begin
+          log "#{head}: Getting deploy swift endpoint #{app_name} status."
+          result = HerokuHeadless.heroku.get_releases(app_name)
+          log "#{head}: Result #{result} status."
+          if result
+            release = result.data[:body].select {|x| x["commit"]}.last
+            if release
+              Rush.bash("script/dist-config \"#{worker_endpoint.git_repository}\" \"#{worker_endpoint.git_name}\" \"#{worker_endpoint.git_refspec}\" /tmp")
+              log "#{head}: Release #{release.inspect}"
+              commit = [ "#{release["name"]} #{release["descr"]} created_at #{release["created_at"]} by #{release["user"]}"]
+              commit += Rush.bash("cd \"/tmp/#{worker_endpoint.git_name}\"; git log --max-count=1 `git rev-parse #{release["commit"]}`").split("\n").take(3)
+              worker_endpoint.git_commit = commit
+              commit += ["#{worker_endpoint.git_repository} #{worker_endpoint.git_refspec}"]
+
+              commit += Rush.bash("cd \"/tmp/#{worker_endpoint.git_name}\"; git log --max-count=1 `git rev-parse #{worker_endpoint.git_refspec}`").split("\n").take(3)
+              worker_endpoint.git_commit = commit
+              set_status("Success:DeployStatus")
+              log "#{head}: Swift endpoint #{app_name} - #{commit.inspect}"
+            else
+              set_status("Error:DeployStatus")
+              log "#{head}: No commit releases"
+            end
+          else
+            set_status("Error:DeployStatus")
+            status = ["Not Created"]
+            worker_endpoint.remote_status = status
+            worker_endpoint.save
+            return status.inspect
+          end
+        rescue Heroku::API::Errors::NotFound => boom
+          set_status("Error:DeployStatus")
+          log "#{head}: remote swift endpoint #{app_name} does not exist."
+          return nil
+        end
+      else
+        set_status("Error:DeployStatus")
+        log "#{head}: Unknown Endpoint type #{worker_endpoint.endpoint_type}"
+    end
+  ensure
+    log "#{head}: DONE"
+  end
+
   def create_remote_endpoint
     head = __method__
     log "#{head}: START"
@@ -131,6 +179,7 @@ class DeployWorkerEndpointJob
               worker_endpoint.remote_status = status
               worker_endpoint.save
               set_status("Success:RemoteStatus")
+              get_deploy_status
               return result.data[:body].inspect
             else
               worker_endpoint.remote_status = ["Not Available"]
@@ -286,6 +335,7 @@ class DeployWorkerEndpointJob
             log "#{head}: Created worker endpoint #{app_name}"
             set_status("Success:Deployed")
             HerokuHeadless.heroku.post_ps_scale(app_name, "web", 0)
+            get_deploy_status
             return result
           else
             set_status("Error:Deploy")
