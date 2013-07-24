@@ -124,6 +124,7 @@ class DeploySwiftEndpointJob
           if result
             release = result.data[:body].select {|x| x["commit"]}.last
             if release
+              Rush.bash("script/dist-config \"#{swift_endpoint.git_repository}\" \"#{swift_endpoint.git_name}\" \"#{swift_endpoint.git_refspec}\" /tmp")
               log "#{head}: Release #{release.inspect}"
               commit = [ "#{release["name"]} #{release["descr"]} created_at #{release["created_at"]} by #{release["user"]}"]
               commit += Rush.bash("cd \"/tmp/#{swift_endpoint.git_name}\"; git log --max-count=1 `git rev-parse #{release["commit"]}`").split("\n").take(3)
