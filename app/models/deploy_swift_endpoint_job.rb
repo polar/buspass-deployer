@@ -111,6 +111,51 @@ class DeploySwiftEndpointJob
     log "#{head}: DONE"
   end
 
+  def get_deploy_status
+    head = __method__
+    log "#{head}: START"
+    set_status("DeployStatus")
+    case swift_endpoint.endpoint_type
+      when "Heroku"
+        begin
+          log "#{head}: Getting deploy swift endpoint #{app_name} status."
+          result = HerokuHeadless.heroku.get_releases(app_name)
+          if result
+            release = result.data[:body].select {|x| x["commit"]}.last
+            if release
+              commit = [ "#{release["name"]} #{release["descr"]} created_at #{release["created_at"]} by #{release["user"]}"]
+              commit += Rush.bash("cd \"/tmp/#{swift_endpoint.git_name}\"; git log --max-count=1 `git rev-parse #{release["commit"]}`").split("\n").take(3)
+              swift_endpoint.git_commit = commit
+              commit += ["#{swift_endpoint.git_repository} #{swift_endpoint.git_refspec}"]
+
+              commit += Rush.bash("cd \"/tmp/#{swift_endpoint.git_name}\"; git log --max-count=1 `git rev-parse #{swift_endpoint.git_refspec}`").split("\n").take(3)
+              swift_endpoint.git_commit = commit
+              set_status("Success:DeployStatus")
+              log "#{head}: Swift endpoint #{app_name} - #{commit.inspect}"
+            else
+              set_status("Error:DeployStatus")
+              log "#{head}: No commit releases"
+            end
+          else
+            set_status("Error:DeployStatus")
+            status = ["Not Created"]
+            swift_endpoint.remote_status = status
+            swift_endpoint.save
+            return status.inspect
+          end
+        rescue Heroku::API::Errors::NotFound => boom
+          set_status("Error:DeployStatus")
+          log "#{head}: remote swift endpoint #{app_name} does not exist."
+          return nil
+        end
+      else
+        set_status("Error:DeployStatus")
+        log "#{head}: Unknown Endpoint type #{swift_endpoint.endpoint_type}"
+      end
+    ensure
+    log "#{head}: DONE"
+  end
+
   def remote_endpoint_status
     head = __method__
     log "#{head}: START"
@@ -129,6 +174,7 @@ class DeploySwiftEndpointJob
               swift_endpoint.remote_status = status
               swift_endpoint.save
               set_status("Success:RemoteStatus")
+              get_deploy_status
               return result.data[:body].inspect
             else
               swift_endpoint.remote_status = ["Not Available"]
@@ -321,6 +367,7 @@ class DeploySwiftEndpointJob
             log "#{head}: Created swift endpoint #{app_name} - #{commit.take(1)}"
             set_status("Success:Deployed")
             HerokuHeadless.heroku.post_ps_scale(app_name, "web", 0)
+            get_deploy_status
             return result
           else
             set_status("Error:Deploy")
