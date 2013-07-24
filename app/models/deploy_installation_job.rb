@@ -32,7 +32,7 @@ class DeployInstallationJob
 
   def delayed_jobs
     Delayed::Job.where(:queue => "deploy-web", :failed_at => nil).select do |job|
-      job.payload_object.deploy_installation_job_id == self.id
+      job.payload_object.is_a?(DeployInstallationJobspec) && job.payload_object.deploy_installation_job_id == self.id
     end
   end
 

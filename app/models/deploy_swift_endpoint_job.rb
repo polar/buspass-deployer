@@ -53,7 +53,7 @@ class DeploySwiftEndpointJob
 
   def delayed_jobs
     Delayed::Job.where(:queue => "deploy-web", :failed_at => nil).select do |job|
-      job.payload_object.deploy_swift_endpoint_job_id == self.id
+      job.payload_object.is_a?(DeploySwiftEndpointJobspec) && job.payload_object.deploy_swift_endpoint_job_id == self.id
     end
   end
 

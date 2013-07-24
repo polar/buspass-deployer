@@ -34,7 +34,7 @@ class DeployFrontendJob
 
   def delayed_jobs
     Delayed::Job.where(:queue => "deploy-web", :failed_at => nil).select do |job|
-      job.payload_object.deploy_frontend_job_id == self.id
+      job.payload_object.is_a?(DeployFrontendJobspec) && job.payload_object.deploy_frontend_job_id == self.id
     end
   end
 
