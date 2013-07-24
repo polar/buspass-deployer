@@ -26,16 +26,33 @@ class SwiftEndpoint
   validates_presence_of :backend
   validates_presence_of :endpoint_type
 
+  before_save :log_endpoint
   after_save :log_save_backtrace
+
+  def log_endpoint
+    @endpoint = SwiftEndpoint.find(self.id)
+    if git_commit != @endpoint.git_commit
+      if git_commit_changed?
+        # don't worry about it.
+        @endpoint = nil
+      else
+        raise Exception
+      end
+    end
+  rescue Exception => boom
+    if @endpoint.swift_endpoint_log
+      log "Before Save #{Time.now}"
+    end
+    boom.backtrace.each do |line|
+      log line.to_s
+    end
+  end
 
   def log_save_backtrace
     raise Exception
   rescue Exception => boom
-    if swift_endpoint_log
-      log "On Save #{updated_at}"
-      boom.backtrace.each do |line|
-        log line.to_s
-      end
+    if @endpoint && @endpoint.swift_endpoint_log
+      @endpoint.log "On Save #{updated_at}"
     end
   end
 
