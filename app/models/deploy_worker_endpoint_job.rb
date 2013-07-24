@@ -94,7 +94,7 @@ class DeployWorkerEndpointJob
               worker_endpoint.reload
               worker_endpoint.git_commit = commit
               set_status("Success:DeployStatus")
-              log "#{head}: Swift endpoint #{app_name} - #{commit.inspect}"
+              log "#{head}: Worker endpoint #{app_name} - #{worker_endpoint.git_commit.inspect} - updated_at #{worker_endpoint.updated_at}"
             else
               worker_endpoint.reload
               set_status("Error:DeployStatus")
