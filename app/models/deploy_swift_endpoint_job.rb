@@ -318,7 +318,7 @@ class DeploySwiftEndpointJob
             commit = ["#{swift_endpoint.git_repository} #{swift_endpoint.git_refspec}"]
             commit += Rush.bash("cd \"/tmp/#{swift_endpoint.git_name}\"; git log --max-count=1 `git rev-parse #{swift_endpoint.git_refspec}`").split("\n").take(3)
             swift_endpoint.git_commit = commit
-            log "#{head}: Created swift endpoint #{app_name}"
+            log "#{head}: Created swift endpoint #{app_name} - #{commit.take(1)}"
             set_status("Success:Deployed")
             HerokuHeadless.heroku.post_ps_scale(app_name, "web", 0)
             return result

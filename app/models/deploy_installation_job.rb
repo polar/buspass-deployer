@@ -193,6 +193,12 @@ class DeployInstallationJob
     head = __method__
     log "#{head}: START"
     set_status("UpgradeInstallation:Frontends:#{installation.frontends.count}")
+    log "#{head}: ENVIRONMENT #{ENV.inspect}"
+    Open3.open2e("ps alx") do |stdin, out|
+      out.each do |line|
+        log "#{head}: #{line}"
+      end
+    end
     for fe in installation.frontends do
       if fe.deploy_frontend_job.nil?
         fe.create_deploy_frontend_job
