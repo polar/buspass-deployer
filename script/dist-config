@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 
 REPOSITORY=$1
 NAME=$2
@@ -33,7 +33,16 @@ else
     echo "Git is already configured"
 fi
 
+echo "Before Pull:"
+git log | head -3
 git pull
+echo "After:"
+git log | head -3
+echo "Checkout $REFSPEC"
 git checkout "$REFSPEC"
+git log | head -3
+echo "Before Final pull"
 git pull
+echo "After Final pull"
+git log | head -3
 
