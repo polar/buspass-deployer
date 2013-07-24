@@ -194,7 +194,7 @@ class DeployInstallationJob
     log "#{head}: START"
     set_status("UpgradeInstallation:Frontends:#{installation.frontends.count}")
     log "#{head}: ENVIRONMENT #{ENV.inspect}"
-    Open3.open2e("ps alx") do |stdin, out|
+    Open3.popen2e("ps alx") do |stdin, out|
       out.each do |line|
         log "#{head}: #{line}"
       end
