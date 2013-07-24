@@ -103,7 +103,7 @@ class DeployBackendJob
           se.create_deploy_swift_endpoint_job
         end
         log "#{head}: Configuring Remote App for Swift Endpoint #{se.name}."
-        job = DeploySwiftEndpointJobspec.new(se.deploy_swift_endpoint_job.id, "configure_remote_endpoint")
+        job = DeploySwiftEndpointJobspec.new(se.deploy_swift_endpoint_job.id, se.name, "configure_remote_endpoint")
         Delayed::Job.enqueue(job, :queue => "deploy-web")
         set_status("Success:ConfiguringSwiftEndpoints:#{se.name}")
       rescue Exception => boom
@@ -132,7 +132,7 @@ class DeployBackendJob
             se.create_deploy_swift_endpoint_job
           end
           log "#{head}: Deploying Remote App for Swift Endpoint #{se.name}."
-          job = DeploySwiftEndpointJobspec.new(se.deploy_swift_endpoint_job.id, "job_create_and_deploy_remote_endpoint")
+          job = DeploySwiftEndpointJobspec.new(se.deploy_swift_endpoint_job.id, se.name, "job_create_and_deploy_remote_endpoint")
           Delayed::Job.enqueue(job, :queue => "deploy-web")
       rescue Exception => boom
         set_status("Error:DeployingSwiftEndpoints")
@@ -157,7 +157,7 @@ class DeployBackendJob
           se.create_deploy_swift_endpoint_job
         end
         log "#{head}: Starting Remote App for Swift Endpoint #{se.name}."
-        job = DeploySwiftEndpointJobspec.new(se.deploy_swift_endpoint_job.id, "start_remote_endpoint")
+        job = DeploySwiftEndpointJobspec.new(se.deploy_swift_endpoint_job.id, se.name, "start_remote_endpoint")
         Delayed::Job.enqueue(job, :queue => "deploy-web")
         set_status("Success:StartSwiftEndpoints:#{se.name}")
       rescue Exception => boom
@@ -188,7 +188,7 @@ class DeployBackendJob
           se.create_deploy_swift_endpoint_job
         end
         log "#{head}: Stopping Remote App for Swift Endpoint #{se.name}."
-        job = DeploySwiftEndpointJobspec.new(se.deploy_swift_endpoint_job.id, "stop_remote_endpoint")
+        job = DeploySwiftEndpointJobspec.new(se.deploy_swift_endpoint_job.id, se.name, "stop_remote_endpoint")
         Delayed::Job.enqueue(job, :queue => "deploy-web")
         set_status("Success:StartSwiftEndpoints:#{se.name}")
       rescue Exception => boom
@@ -219,7 +219,7 @@ class DeployBackendJob
           se.create_deploy_swift_endpoint_job
         end
         log "#{head}: Destroying Remote App for Swift Endpoint #{se.name}."
-        job = DeploySwiftEndpointJobspec.new(se.deploy_swift_endpoint_job.id, "destroy_remote_endpoint")
+        job = DeploySwiftEndpointJobspec.new(se.deploy_swift_endpoint_job.id, se.name, "destroy_remote_endpoint")
         Delayed::Job.enqueue(job, :queue => "deploy-web")
         set_status("Success:DestroySwiftEndpoints:#{se.name}")
       rescue Exception => boom
@@ -250,7 +250,7 @@ class DeployBackendJob
           se.create_deploy_swift_endpoint_job
         end
         log "#{head}: Destroying Remote App for Swift Endpoint #{se.name}."
-        job = DeploySwiftEndpointJobspec.new(se.deploy_swift_endpoint_job.id, "destroy_swift_endpoint")
+        job = DeploySwiftEndpointJobspec.new(se.deploy_swift_endpoint_job.id, se.name, "destroy_swift_endpoint")
         Delayed::Job.enqueue(job, :queue => "deploy-web")
         set_status("Success:DestroySwiftEndpoints:#{se.name}")
       rescue Exception => boom
@@ -279,7 +279,7 @@ class DeployBackendJob
           se.create_deploy_swift_endpoint_job
         end
         log "#{head}: Status Remote App for Swift Endpoint #{se.name}."
-        job = DeploySwiftEndpointJobspec.new(se.deploy_swift_endpoint_job.id, "remote_endpoint_status")
+        job = DeploySwiftEndpointJobspec.new(se.deploy_swift_endpoint_job.id, se.name, "remote_endpoint_status")
         Delayed::Job.enqueue(job, :queue => "deploy-web")
       rescue Exception => boom
         log "#{head}: Cannot get status Swift Endpoint #{se.name} - #{boom}"
@@ -303,7 +303,7 @@ class DeployBackendJob
           se.create_deploy_worker_endpoint_job
         end
         log "#{head}: Creating Remote App for Worker Endpoint #{se.name}."
-        job = DeployWorkerEndpointJobspec.new(se.deploy_worker_endpoint_job.id, "create_remote_endpoint")
+        job = DeployWorkerEndpointJobspec.new(se.deploy_worker_endpoint_job.id, se.name, "create_remote_endpoint")
         Delayed::Job.enqueue(job, :queue => "deploy-web")
         set_status("Success:CreateWorkerEndpoints:#{se.name}")
       rescue Exception => boom
@@ -334,7 +334,7 @@ class DeployBackendJob
           se.create_deploy_worker_endpoint_job
         end
         log "#{head}: Configuring Remote App for Worker Endpoint #{se.name}."
-        job = DeployWorkerEndpointJobspec.new(se.deploy_worker_endpoint_job.id, "configure_remote_endpoint")
+        job = DeployWorkerEndpointJobspec.new(se.deploy_worker_endpoint_job.id, se.name, "configure_remote_endpoint")
         Delayed::Job.enqueue(job, :queue => "deploy-web")
         set_status("Success:ConfigureWorkerEndpoints:#{se.name}")
       rescue Exception => boom
@@ -365,7 +365,7 @@ class DeployBackendJob
           se.create_deploy_worker_endpoint_job
         end
         log "#{head}: Deploying Remote App for Worker Endpoint #{se.name}."
-        job = DeployWorkerEndpointJobspec.new(se.deploy_worker_endpoint_job.id, "job_create_and_deploy_remote_endpoint")
+        job = DeployWorkerEndpointJobspec.new(se.deploy_worker_endpoint_job.id, se.name, "job_create_and_deploy_remote_endpoint")
         Delayed::Job.enqueue(job, :queue => "deploy-web")
         set_status("Success:DeployWorkerEndpoints:#{se.name}")
       rescue Exception => boom
@@ -396,7 +396,7 @@ class DeployBackendJob
           se.create_deploy_worker_endpoint_job
         end
         log "#{head}: Starting Remote App for Worker Endpoint #{se.name}."
-        job = DeployWorkerEndpointJobspec.new(se.deploy_worker_endpoint_job.id, "start_remote_endpoint")
+        job = DeployWorkerEndpointJobspec.new(se.deploy_worker_endpoint_job.id, se.name, "start_remote_endpoint")
         Delayed::Job.enqueue(job, :queue => "deploy-web")
         set_status("Success:StartWorkerEndpoints:#{se.name}")
       rescue Exception => boom
@@ -427,7 +427,7 @@ class DeployBackendJob
           se.create_deploy_worker_endpoint_job
         end
         log "#{head}: Stopping Remote App for Worker Endpoint #{se.name}."
-        job = DeployWorkerEndpointJobspec.new(se.deploy_worker_endpoint_job.id, "stop_remote_endpoint")
+        job = DeployWorkerEndpointJobspec.new(se.deploy_worker_endpoint_job.id, se.name, "stop_remote_endpoint")
         Delayed::Job.enqueue(job, :queue => "deploy-web")
         set_status("Success:StopWorkerEndpoints:#{se.name}")
       rescue Exception => boom
@@ -458,7 +458,7 @@ class DeployBackendJob
           se.create_deploy_worker_endpoint_job
         end
         log "#{head}: Destroying Remote App for Worker Endpoint #{se.name}."
-        job = DeployWorkerEndpointJobspec.new(se.deploy_worker_endpoint_job.id, "destroy_remote_endpoint")
+        job = DeployWorkerEndpointJobspec.new(se.deploy_worker_endpoint_job.id, se.name, "destroy_remote_endpoint")
         Delayed::Job.enqueue(job, :queue => "deploy-web")
         set_status("Success:DestroyWorkerEndpoints:#{se.name}")
       rescue Exception => boom
@@ -489,7 +489,7 @@ class DeployBackendJob
           se.create_deploy_worker_endpoint_job
         end
         log "#{head}: Destroying Remote App for Worker Endpoint #{se.name}."
-        job = DeployWorkerEndpointJobspec.new(se.deploy_worker_endpoint_job.id, "destroy_worker_endpoint")
+        job = DeployWorkerEndpointJobspec.new(se.deploy_worker_endpoint_job.id, se.name, "destroy_worker_endpoint")
         Delayed::Job.enqueue(job, :queue => "deploy-web")
         set_status("Success:DestroyWorkerEndpoints:#{se.name}")
       rescue Exception => boom
@@ -518,7 +518,7 @@ class DeployBackendJob
           se.create_deploy_worker_endpoint_job
         end
         log "#{head}: Status Remote App for Worker Endpoint #{se.name}."
-        job = DeployWorkerEndpointJobspec.new(se.deploy_worker_endpoint_job.id, "remote_endpoint_status")
+        job = DeployWorkerEndpointJobspec.new(se.deploy_worker_endpoint_job.id, se.name, "remote_endpoint_status")
         Delayed::Job.enqueue(job, :queue => "deploy-web")
       rescue Exception => boom
         log "#{head}: Cannot get status Worker Endpoint #{se.name} - #{boom}"

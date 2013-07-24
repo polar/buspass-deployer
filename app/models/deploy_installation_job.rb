@@ -213,7 +213,7 @@ class DeployInstallationJob
         log "#{head}: stop_remote_frontend #{fe.name}"
         fe.deploy_frontend_job.stop_remote_frontend
         log "#{head}: upgrade_remote_frontend #{fe.name}"
-        job = DeployFrontendJobspec.new(fe.deploy_frontend_job.id, "full_upgrade_remote_frontend", nil)
+        job = DeployFrontendJobspec.new(fe.deploy_frontend_job.id, fe.host, "full_upgrade_remote_frontend", nil, nil)
         Delayed::Job.enqueue(job, :queue => "deploy-web")
         #fe.deploy_frontend_job.upgrade_remote_frontend
       rescue Exception => boom
@@ -232,11 +232,11 @@ class DeployInstallationJob
           be.deploy_backend_job.configure_remote_backend
         end
         log "#{head}: deploy_swift_endpoint_apps #{be.name}"
-        job = DeployBackendJobspec.new(be.deploy_backend_job.id, "deploy_swift_endpoint_apps", nil)
+        job = DeployBackendJobspec.new(be.deploy_backend_job.id, be.name, "deploy_swift_endpoint_apps", nil)
         Delayed::Job.enqueue(job, :queue => "deploy-web")
         #be.deploy_backend_job.deploy_swift_endpoint_apps
         log "#{head}: deploy_worker_endpoint_apps #{be.name}"
-        job = DeployBackendJobspec.new(be.deploy_backend_job.id, "deploy_worker_endpoint_apps", nil)
+        job = DeployBackendJobspec.new(be.deploy_backend_job.id, be.name, "deploy_worker_endpoint_apps", nil)
         Delayed::Job.enqueue(job, :queue => "deploy-web")
         #be.deploy_backend_job.deploy_worker_endpoint_apps
       rescue Exception => boom

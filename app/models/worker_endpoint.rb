@@ -29,6 +29,17 @@ class WorkerEndpoint
   validates_presence_of :backend
   validates_presence_of :endpoint_type
 
+  after_save log_save_backtrace
+
+  def log_save_backtrace
+    raise Exception
+  rescue Exception => boom
+    if worker_endpoint_log
+      log "On Save #{updated_at}"
+      log boom.backtrace_string
+    end
+  end
+
   def installation
     backend.frontend.installation
   end

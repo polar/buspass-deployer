@@ -1,4 +1,4 @@
-class DeployWorkerEndpointJobspec < Struct.new(:deploy_worker_endpoint_job_id, :action)
+class DeployWorkerEndpointJobspec < Struct.new(:deploy_worker_endpoint_job_id, :name, :action)
 
   def enqueue(delayed_job)
     job = DeployWorkerEndpointJob.find(deploy_worker_endpoint_job_id)

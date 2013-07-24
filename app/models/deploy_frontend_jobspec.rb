@@ -1,4 +1,4 @@
-class DeployFrontendJobspec < Struct.new(:deploy_frontend_job_id, :action, :backend_id)
+class DeployFrontendJobspec < Struct.new(:deploy_frontend_job_id, :name, :action, :backend_id, :backend_name)
 
   def enqueue(delayed_job)
     job = DeployFrontendJob.find(deploy_frontend_job_id)
