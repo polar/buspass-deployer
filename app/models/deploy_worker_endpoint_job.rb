@@ -259,6 +259,41 @@ class DeployWorkerEndpointJob
     log "#{head}: DONE"
   end
 
+  def restart_remote_endpoint
+    head = __method__
+    log "#{head}: START"
+    worker_endpoint.reload
+    set_status("Restarting")
+    case worker_endpoint.endpoint_type
+      when "Heroku"
+        begin
+          log "#{head}: Restarting remote worker endpoint #{app_name}."
+          result = HerokuHeadless.heroku.post_ps_restart(app_name)
+          worker_endpoint.reload
+          if result && result.data && result.data[:body]
+            set_status("Success:Restart")
+            log "status is #{result.data[:body].inspect}"
+            return result.data[:body].inspect
+          else
+            set_status("Error:Restart")
+            log "#{head}: remote worker endpoint #{app_name} bad result."
+            return nil
+          end
+        rescue Heroku::API::Errors::NotFound => boom
+          worker_endpoint.reload
+          set_status("Error:Restart")
+          log "#{head}: remote worker endpoint #{app_name} does not exist."
+          return nil
+        end
+      else
+        worker_endpoint.reload
+        set_status("Error:Restart")
+        log "#{head}: Unknown Endpoint type #{worker_endpoint.endpoint_type}"
+    end
+  ensure
+    log "#{head}: DONE"
+  end
+
   def stop_remote_endpoint
     head = __method__
     log "#{head}: START"

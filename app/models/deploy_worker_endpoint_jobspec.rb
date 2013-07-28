@@ -50,6 +50,10 @@ class DeployWorkerEndpointJobspec < Struct.new(:deploy_worker_endpoint_job_id, :
         job.reset_api
         job.start_remote_endpoint
 
+      when "restart_remote_endpoint"
+        job.reset_api
+        job.restart_remote_endpoint
+
       when "stop_remote_endpoint"
         job.reset_api
         job.stop_remote_endpoint

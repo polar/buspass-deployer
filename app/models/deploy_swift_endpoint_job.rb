@@ -311,8 +311,7 @@ class DeploySwiftEndpointJob
       when "Heroku"
         begin
           log "#{head}: Restarting remote swift endpoint #{app_name}."
-          result = HerokuHeadless.heroku.post_ps_scale(app_name, "work", 0)
-          result = HerokuHeadless.heroku.post_ps_scale(app_name, "swift", 1)
+          result = HerokuHeadless.heroku.post_ps_restart(app_name)
           swift_endpoint.reload
           if result && result.data && result.data[:body]
             set_status("Success:Restart")

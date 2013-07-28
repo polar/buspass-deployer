@@ -56,6 +56,8 @@ class DeployFrontendJobspec < Struct.new(:deploy_frontend_job_id, :name, :action
         job.configure_all_endpoint_apps
       when "start_all_endpoint_apps"
         job.start_all_endpoint_apps
+      when "restart_all_endpoint_apps"
+        job.restart_all_endpoint_apps
       when "stop_all_endpoint_apps"
         job.stop_all_endpoint_apps
       when "deploy_all_endpoint_apps"

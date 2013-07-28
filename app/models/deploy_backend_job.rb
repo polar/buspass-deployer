@@ -175,6 +175,37 @@ class DeployBackendJob
     log "#{head}: DONE"
   end
 
+  def restart_swift_endpoint_apps
+    head = __method__
+    log "#{head}: START"
+    log "#{head}: Retart Swift Endpoint Apps #{backend.name}."
+    set_status("RestartingSwiftEndpoints")
+    errors = 0
+    for se in backend.swift_endpoints do
+      begin
+        set_status("RestartSwiftEndpoints:#{se.name}")
+        if se.deploy_swift_endpoint_job.nil?
+          se.create_deploy_swift_endpoint_job
+        end
+        log "#{head}: Restarting Remote App for Swift Endpoint #{se.name}."
+        job = DeploySwiftEndpointJobspec.new(se.deploy_swift_endpoint_job.id, se.name, "restart_remote_endpoint")
+        Delayed::Job.enqueue(job, :queue => "deploy-web")
+        set_status("Success:RestartSwiftEndpoints:#{se.name}")
+      rescue Exception => boom
+        errors += 1
+        set_status("Error:RestartSwiftEndpoints:#{se.name}")
+        log "#{head}: Cannot restart Swift Endpoint #{se.name} - #{boom}"
+      end
+    end
+    if errors == 0
+      set_status("Success:RestartSwiftEndpoints")
+    else
+      set_status("Error:RestartSwiftEndpoints:#{errors}")
+    end
+  ensure
+    log "#{head}: DONE"
+  end
+
   def stop_swift_endpoint_apps
     head = __method__
     log "#{head}: START"
@@ -409,6 +440,37 @@ class DeployBackendJob
       set_status("Success:StartWorkerEndpoints")
     else
       set_status("Error:StartWorkerEndpoints:#{errors}")
+    end
+  ensure
+    log "#{head}: DONE"
+  end
+
+  def restart_worker_endpoint_apps
+    head = __method__
+    log "#{head}: START"
+    log "#{head}: Restart Worker Endpoint Apps #{backend.name}."
+    set_status("RestartingWorkerEndpoints")
+    errors = 0
+    for se in backend.worker_endpoints do
+      begin
+        set_status("RestartingWorkerEndpoints:#{se.name}")
+        if se.deploy_worker_endpoint_job.nil?
+          se.create_deploy_worker_endpoint_job
+        end
+        log "#{head}: Restarting Remote App for Worker Endpoint #{se.name}."
+        job = DeployWorkerEndpointJobspec.new(se.deploy_worker_endpoint_job.id, se.name, "restart_remote_endpoint")
+        Delayed::Job.enqueue(job, :queue => "deploy-web")
+        set_status("Success:RestartWorkerEndpoints:#{se.name}")
+      rescue Exception => boom
+        set_status("Error:RestartWorkerEndpoints:#{se.name}")
+        errors += 1
+        log "#{head}: Cannot restart Worker Endpoint #{se.name} - #{boom}"
+      end
+    end
+    if errors == 0
+      set_status("Success:RestartWorkerEndpoints")
+    else
+      set_status("Error:RestartWorkerEndpoints:#{errors}")
     end
   ensure
     log "#{head}: DONE"

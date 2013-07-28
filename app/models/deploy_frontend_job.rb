@@ -381,6 +381,29 @@ class DeployFrontendJob
     log "#{head}: DONE"
   end
 
+  def restart_all_endpoint_apps
+    head = __method__
+    log "#{head}: START"
+    case frontend.host_type
+      when "ec2"
+        for be in frontend.backends do
+          begin
+            if be.deploy_backend_job.nil?
+              be.create_deploy_backend_job
+            end
+            job = DeployBackendJobspec.new(be.deploy_backend_job.id, be.name, "restart_swift_endpoint_apps", nil)
+            Delayed::Job.enqueue(job, :queue => "deploy-web")
+            job = DeployBackendJobspec.new(be.deploy_backend_job.id, be.name, "restart_worker_endpoint_apps", nil)
+            Delayed::Job.enqueue(job, :queue => "deploy-web")
+          rescue Exception => boom
+            log "#{head}: Error creating endpoint apps for backend #{be.name} - #{boom}"
+          end
+        end
+    end
+  ensure
+    log "#{head}: DONE"
+  end
+
   def stop_all_endpoint_apps
     head = __method__
     log "#{head}: START"

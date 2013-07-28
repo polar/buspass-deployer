@@ -27,6 +27,9 @@ class DeployBackendJobspec < Struct.new(:deploy_backend_job_id, :name, :action, 
       when "start_swift_endpoint_apps"
         job.start_swift_endpoint_apps
 
+      when "restart_swift_endpoint_apps"
+        job.restart_swift_endpoint_apps
+
       when "stop_swift_endpoint_apps"
         job.stop_swift_endpoint_apps
 
@@ -50,6 +53,9 @@ class DeployBackendJobspec < Struct.new(:deploy_backend_job_id, :name, :action, 
 
       when "start_worker_endpoint_apps"
         job.start_worker_endpoint_apps
+
+      when "restart_worker_endpoint_apps"
+        job.restart_worker_endpoint_apps
 
       when "stop_worker_endpoint_apps"
         job.stop_worker_endpoint_apps
