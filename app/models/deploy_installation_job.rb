@@ -205,6 +205,8 @@ class DeployInstallationJob
         log "#{head}: #{line}"
       end
     end
+    null_all_statuses
+    null_remote_statuses
     for fe in installation.frontends do
       if fe.deploy_frontend_job.nil?
         fe.create_deploy_frontend_job
