@@ -350,6 +350,7 @@ class DeployWorkerEndpointJob
               "S3_BUCKET_NAME" => ENV['S3_BUCKET_NAME'],
               "FOG_PROVIDER" => ENV['FOG_PROVIDER'],
               "FOG_DIRECTORY" => ENV['FOG_DIRECTORY'],
+              "ASSET_DIRECTORY" => ENV['ASSET_DIRECTORY'],
               "ASSET_HOST" => ENV['ASSET_HOST'],
               "MONGOLAB_URI" => ENV['MONGOLAB_URI'],
               "INTERCOM_APPID" => ENV['INTERCOM_APPID'],

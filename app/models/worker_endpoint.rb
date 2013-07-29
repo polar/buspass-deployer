@@ -32,6 +32,14 @@ class WorkerEndpoint
   before_save :log_endpoint
   after_save :log_save_backtrace
 
+  before_destroy :destroy_app
+
+  def destroy_app
+    if deploy_swift_endpoint_job
+      deploy_swift_endpoint_job.destroy_remote_endpoint
+    end
+  end
+
   def log_endpoint
     if persisted?
       begin

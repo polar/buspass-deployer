@@ -29,22 +29,34 @@ class SwiftEndpoint
   before_save :log_endpoint
   after_save :log_save_backtrace
 
+  before_destroy :destroy_app
+
+  def destroy_app
+    if deploy_swift_endpoint_job
+      deploy_swift_endpoint_job.destroy_remote_endpoint
+    end
+  end
+
   def log_endpoint
-    @endpoint = SwiftEndpoint.find(self.id)
-    if git_commit != @endpoint.git_commit
-      if git_commit_changed?
-        # don't worry about it.
-        @endpoint = nil
-      else
-        raise Exception
+    if persisted?
+      begin
+        @endpoint = SwiftEndpoint.find(self.id)
+        if git_commit != @endpoint.git_commit
+          if git_commit_changed?
+            # don't worry about it.
+            @endpoint = nil
+          else
+            raise Exception
+          end
+        end
+      rescue Exception => boom
+        if @endpoint.swift_endpoint_log
+          log "Before Save #{Time.now}"
+        end
+        boom.backtrace.each do |line|
+          log line.to_s
+        end
       end
-    end
-  rescue Exception => boom
-    if @endpoint.swift_endpoint_log
-      log "Before Save #{Time.now}"
-    end
-    boom.backtrace.each do |line|
-      log line.to_s
     end
   end
 
