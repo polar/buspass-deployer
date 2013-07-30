@@ -26,8 +26,7 @@ else
   MongoMapper.database = "#Busme-#{Rails.env}"
 
 end
-
-MongoMapper::Plugins::IdentityMap.enabled = true
+MongoMapper::Plugins::IdentityMap.enabled= true
 
 #
 # Heroku uses Passenger, and we need to connect to the MongoDB when

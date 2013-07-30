@@ -10,7 +10,7 @@ gem 'rake'
 # The following gems are for using MongoMapper ORM
 
 gem "bson_ext"#, ">= 1.3.1"
-gem "mongo_mapper", "~> 0.11.0"
+gem "mongo_mapper"
 
 # The following gems are used to handle file uploads. We use Carrierwave
 # to handle the uploads of PlanFiles, so they get uploaded directly (on Heroku)
