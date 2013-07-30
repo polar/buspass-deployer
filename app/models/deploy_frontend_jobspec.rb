@@ -11,6 +11,7 @@ class DeployFrontendJobspec < Struct.new(:deploy_frontend_job_id, :name, :action
   end
 
   def perform
+    MongoMapper::Plugins::IdentityMap.clear
     job = DeployFrontendJob.find(deploy_frontend_job_id)
     if job.nil?
       puts "No DeployFrontendJob, exiting."

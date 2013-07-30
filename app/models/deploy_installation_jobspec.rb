@@ -11,6 +11,7 @@ class DeployInstallationJobspec < Struct.new(:deploy_installation_job_id, :actio
   end
 
   def perform
+    MongoMapper::Plugins::IdentityMap.clear
     job = DeployInstallationJob.find(deploy_installation_job_id)
     if job.nil?
       puts "No DeployInstallationJob, exiting."
