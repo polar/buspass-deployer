@@ -11,6 +11,7 @@ class DeploySwiftEndpointJobspec < Struct.new(:deploy_swift_endpoint_job_id, :na
   end
 
   def perform
+    MongoMapper::Plugins::IdentityMap.clear
     job = DeploySwiftEndpointJob.find(deploy_swift_endpoint_job_id)
     if job.nil?
       puts "No DeploySwiftEndpointJob, exiting."

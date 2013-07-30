@@ -11,6 +11,7 @@ class DeployWorkerEndpointJobspec < Struct.new(:deploy_worker_endpoint_job_id, :
   end
 
   def perform
+    MongoMapper::Plugins::IdentityMap.clear
     job = DeployWorkerEndpointJob.find(deploy_worker_endpoint_job_id)
     if job.nil?
       puts "No DeployWorkerEndpointJob, exiting."
