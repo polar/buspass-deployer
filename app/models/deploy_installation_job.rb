@@ -229,10 +229,6 @@ class DeployInstallationJob
         be.create_deploy_backend_job
       end
       begin
-        if ! be.configured
-          log "#{head}: configure_remote_backend #{be.name}"
-          be.deploy_backend_job.configure_remote_backend
-        end
         log "#{head}: deploy_swift_endpoint_apps #{be.name}"
         job = DeployBackendJobspec.new(be.deploy_backend_job.id, be.name, "deploy_swift_endpoint_apps", nil)
         Delayed::Job.enqueue(job, :queue => "deploy-web")
