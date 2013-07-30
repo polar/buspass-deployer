@@ -144,7 +144,7 @@ class DeployFrontendJob
           pid = wait_thr.pid
           out.each {|line| log("#{head}: #{line}")}
         end
-        credsfile.destroy
+        File.delete(credsfile.path)
         cmd = ssh_cmd "\\\"#{frontend.git_name}/scripts/configure_frontend.sh\\\" --name \\\"#{frontend.name}\\\""
         log "#{head}: #{cmd}"
         Open3.popen2e(cmd) do |stdin,out,wait_thr|
