@@ -105,7 +105,7 @@ class DeployFrontendJob
 
   def frontend_busme_creds
     vars = {
-        "INSTALLATION" => installation.name,
+        "INSTALLATION" => frontend.installation.name,
         "MONGOLAB_URI" => ENV['MONGOLAB_URI'],
         "SWIFTIPLY_KEY" => ENV['SWIFTIPLY_KEY'],
     }
