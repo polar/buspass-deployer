@@ -1,5 +1,5 @@
 GIT
-  remote: git://github.com/polar/delayed_job
+  remote: git://github.com/polar/delayed_job.git
   revision: d866b881f82047ed1d36934adeded9eee7ea8353
   specs:
     delayed_job (3.0.3)

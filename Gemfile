@@ -33,7 +33,7 @@ gem 'aws-sdk'
 # processing.
 
 #gem "delayed_job", :path => "/home/polar/src/delayed_job"
-gem "delayed_job", :git => "git://github.com/polar/delayed_job"
+gem "delayed_job", :git => "git://github.com/polar/delayed_job.git"
 gem "delayed_job_mongo_mapper", :git => "git://github.com/polar/delayed_job_mongo_mapper.git"
 gem "daemons"
 gem "rush"
