@@ -35,8 +35,8 @@ class WorkerEndpoint
   before_destroy :destroy_app
 
   def destroy_app
-    if deploy_swift_endpoint_job
-      deploy_swift_endpoint_job.destroy_remote_endpoint
+    if deploy_worker_endpoint_job
+      deploy_worker_endpoint_job.destroy_remote_endpoint
     end
   end
 
