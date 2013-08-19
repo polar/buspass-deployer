@@ -25,7 +25,7 @@ class Frontend
 
   before_validation :ensure_hostip_strip, :ensure_host, :ensure_name
 
-  attr_accessible :host, :hostip, :host_type, :installation, :installation_id
+  attr_accessible :host, :hostip, :host_type, :installation, :installation_id, :name
 
   def ensure_hostip_strip
     self.hostip.strip! if hostip
