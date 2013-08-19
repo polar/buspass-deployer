@@ -39,11 +39,11 @@ class DeployFrontendJob
   end
 
   def ssh_cmd(cmd)
-    "ssh -o StrictHostKeychecking=no -o CheckHostIP=no -o UserKnownHostsFile=/dev/null -i #{ssh_cert} ec2-user@#{frontend.host} #{cmd}"
+    "ssh -o StrictHostKeychecking=no -o CheckHostIP=no -o UserKnownHostsFile=/dev/null -i #{ssh_cert} ec2-user@#{frontend.hostip} #{cmd}"
   end
 
   def scp_cmd(path, remote_path)
-    "scp -o StrictHostKeychecking=no -o CheckHostIP=no -o UserKnownHostsFile=/dev/null -i #{ssh_cert} #{path} ec2-user@#{frontend.host}:#{remote_path}"
+    "scp -o StrictHostKeychecking=no -o CheckHostIP=no -o UserKnownHostsFile=/dev/null -i #{ssh_cert} #{path} ec2-user@#{frontend.hostip}:#{remote_path}"
   end
 
   def install_remote_frontend
