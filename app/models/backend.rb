@@ -56,6 +56,10 @@ class Backend
     end
   end
 
+  def hostip
+    frontend.hostip
+  end
+
   def host
     if frontend_local && address == "0.0.0.0"
       frontend.host
