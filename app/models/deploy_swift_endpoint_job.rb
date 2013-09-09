@@ -83,11 +83,13 @@ class DeploySwiftEndpointJob
   end
 
   def unix_ssh_cmd(cmd)
-    "ssh -o StrictHostKeychecking=no -o CheckHostIP=no -o UserKnownHostsFile=/dev/null -i #{ssh_cert} #{user_name}@#{self.remote_name} #{cmd}"
+    _, host, port = /([0-9a-zA-Z\-_]*)(:([0-9]*))?/.match(remote_name)
+    "ssh -o StrictHostKeychecking=no -o CheckHostIP=no -o UserKnownHostsFile=/dev/null  #{"-p #{port}" if port} -i #{ssh_cert} #{user_name}@#{host} #{cmd}"
   end
 
   def unix_scp_cmd(path, remote_path)
-    "scp -o StrictHostKeychecking=no -o CheckHostIP=no -o UserKnownHostsFile=/dev/null -i #{ssh_cert} #{path} #{user_name}@#{self.remote_name}:#{remote_path}"
+    _, host, port = /([0-9a-zA-Z\-_]*)(:([0-9]*))?/.match(remote_name)
+    "scp -o StrictHostKeychecking=no -o CheckHostIP=no -o UserKnownHostsFile=/dev/null  #{"-p #{port}" if port} -i #{ssh_cert} #{path} #{user_name}@#{host}:#{remote_path}"
   end
 
   def create_remote_endpoint
