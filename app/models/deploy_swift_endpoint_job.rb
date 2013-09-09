@@ -31,6 +31,10 @@ class DeploySwiftEndpointJob
     swift_endpoint.log(s)
   end
 
+  def user_name
+    swift_endpoint.user_name
+  end
+
   def app_name
     swift_endpoint.remote_name
   end
@@ -69,6 +73,14 @@ class DeploySwiftEndpointJob
     end
   end
 
+  def unix_ssh_cmd(cmd)
+    "ssh -o StrictHostKeychecking=no -o CheckHostIP=no -o UserKnownHostsFile=/dev/null -i #{ssh_cert} #{user_name}@#{self.remote_name} #{cmd}"
+  end
+
+  def unix_scp_cmd(path, remote_path)
+    "scp -o StrictHostKeychecking=no -o CheckHostIP=no -o UserKnownHostsFile=/dev/null -i #{ssh_cert} #{path} #{user_name}@#{self.remote_name}:#{remote_path}"
+  end
+
   def create_remote_endpoint
     head = __method__
     log "#{head}: START"
@@ -81,6 +93,23 @@ class DeploySwiftEndpointJob
           set_status("Success:Create")
         rescue Exception => boom
           log "#{head}: error Heroku.post_app(:name => #{app_name}) -- #{boom}"
+          set_status("Error:Create")
+          return nil
+        end
+      when "Unix"
+        begin
+          log "#{head}: Creating Unix Endpoint #{app_name}. Should already exist!"
+          result = unix_ssh_cmd("ls /etc/passwd")
+          swift_endpoint.reload
+          if result
+            set_status("Success:Create")
+            return result
+          else
+            set_status("Error:Create")
+            return nil
+          end
+        rescue Exception => boom
+          log "#{head}: error ssh to remote server"
           set_status("Error:Create")
           return nil
         end
@@ -112,6 +141,24 @@ class DeploySwiftEndpointJob
           end
         rescue Heroku::API::Errors::NotFound => boom
           log "remote swift endpoint #{app_name} does not exist."
+          return false
+        end
+      when "Unix"
+        begin
+          log "#{head}: Checking if remote swift endpoint #{user_name}@#{app_name} exists."
+          result = unix_ssh_cmd("ls /etc/motd")
+          swift_endpoint.reload
+          if result
+            set_status("Success:Exists")
+            return true
+          else
+            set_status("Error:Exists")
+            return false
+          end
+        rescue Exception => boom
+          log "#{head}: error ssh to remote server"
+          log "#{head}: remote swift endpoint #{app_name} does not exist."
+          set_status("Error:Exists")
           return false
         end
       else
@@ -166,6 +213,24 @@ class DeploySwiftEndpointJob
           log "#{head}: remote swift endpoint #{app_name} does not exist."
           return nil
         end
+      when "Unix"
+        log "#{head}: Getting deploy swift endpoint #{user_name}@#{app_name} status."
+        result = unix_ssh_cmd("cd buspass-web; git log | head -1")
+        swift_endpoint.reload
+        match = /commit\s*([0-9a-f]*)/.match(result)
+        if match && match[1]
+          swift_endpoint.git_commit = match[1]
+          swift_endpoint.save
+          set_status("Success:DeployStatus")
+          log "#{head}: Swift endpoint #{app_name} - #{swift_endpoint.git_commit.inspect} - updated_at #{swift_endpoint.updated_at}"
+        else
+          log "#{head}: Swift endpoint #{app_name} - #{swift_endpoint.git_commit.inspect} - updated_at #{swift_endpoint.updated_at}"
+          set_status("Error:DeployStatus")
+          status = ["Not Created"]
+          swift_endpoint.remote_status = status
+          swift_endpoint.save
+          return status.inspect
+        end
       else
         swift_endpoint.reload
         set_status("Error:DeployStatus")
@@ -219,6 +284,19 @@ class DeploySwiftEndpointJob
           log "#{head}: remote swift endpoint #{app_name} does not exist."
           return nil
         end
+      when "Unix"
+        log "#{head}: Getting Remote Status of Unix Endpoint #{user_name}@#{app_name}."
+        result = unix_ssh_cmd("ls buspass-web/tmp/pids")
+        swift_endpoint.reload
+        if result
+          swift_endpoint.remote_status = result
+          swift_endpoint.save
+          set_status("Success:RemoteStatus")
+        else
+          swift_endpoint.remote_status = ["No PIDs"]
+          swift_endpoint.save
+          set_status("Error:RemoteStatus")
+        end
       else
         swift_endpoint.reload
         set_status("Error:RemoteStatus")
@@ -254,6 +332,19 @@ class DeploySwiftEndpointJob
           swift_endpoint.reload
           set_status("Error:Start")
           log "#{head}: remote swift endpoint #{app_name} does not exist."
+          return nil
+        end
+      when "Unix"
+        log "#{head}: Starting remote swift endpoint #{user_name}@#{app_name}."
+        result = unix_ssh_cmd("cd buspass-web; bundle exec script/instance -e production")
+        swift_endpoint.reload
+        if result
+          set_status("Success:Start")
+          log "status is #{result.inspect}"
+          return result.data[:body].inspect
+        else
+          set_status("Error:Start")
+          log "#{head}: remote swift endpoint #{app_name} bad result."
           return nil
         end
       else
@@ -293,6 +384,19 @@ class DeploySwiftEndpointJob
           log "#{head}: remote swift endpoint #{app_name} does not exist."
           return nil
         end
+      when "Unix"
+        log "#{head}: Stopping remote swift endpoint #{user_name}@#{app_name}."
+        result = unix_ssh_cmd("cd buspass-web; bundle exec script/stop_instances")
+        if result
+          swift_endpoint.reload
+          set_status("Success:Stop")
+          log "status is #{result.inspect}"
+        else
+          set_status("Error:Stop")
+          log "#{head}: remote swift endpoint #{app_name} bad result."
+          return nil
+        end
+
       else
         swift_endpoint.reload
         set_status("Error:Stop")
@@ -328,6 +432,28 @@ class DeploySwiftEndpointJob
           log "#{head}: remote swift endpoint #{app_name} does not exist."
           return nil
         end
+      when "Unix"
+        begin
+          log "#{head}: Restarting remote swift endpoint #{user_name}@#{app_name}."
+          result = unix_ssh_cmd("cd buspass-web; bundle exec script/stop_instances")
+          result = unix_ssh_cmd("cd buspass-web; bundle exec script/instance -e production")
+          swift_endpoint.reload
+          if result && result
+            set_status("Success:Restart")
+            log "status is #{result.inspect}"
+            return result
+          else
+            set_status("Error:Restart")
+            log "#{head}: remote swift endpoint #{app_name} bad result."
+            return nil
+          end
+        rescue Exception => boom
+          swift_endpoint.reload
+          set_status("Error:Restart")
+          log "#{head}: remote swift endpoint #{app_name} does not exist."
+          return nil
+        end
+
       else
         swift_endpoint.reload
         set_status("Error:Restart")
@@ -362,6 +488,7 @@ class DeploySwiftEndpointJob
               "INTERCOM_APPID" => ENV['INTERCOM_APPID'],
               "BUSME_BASEHOST" => ENV["BUSME_BASEHOST"],
               "SWIFTIPLY_KEY" => ENV['SWIFTIPLY_KEY'],
+              "N_SERVERS" => swift_endpoint.n_servers,
               "SSH_KEY" => ENV['SSH_KEY'],
               "MASTER_SLUG" => backend.master_slug
           }
@@ -378,6 +505,51 @@ class DeploySwiftEndpointJob
             set_status("Error:Configure")
           end
           return result
+        rescue Exception => boom
+          swift_endpoint.reload
+          log "#{head}: Cannot configure swift endpoint #{app_name} - #{boom}"
+          set_status("Error:ConfigureRemoteEndpoint")
+          return nil
+        end
+      when "Unix"
+        begin
+          vars = {
+              "INSTALLATION" => installation.name,
+              "FRONTEND" => frontend.name,
+              "BACKEND" => backend.name,
+              "SWIFT_ENDPOINT" => swift_endpoint.name,
+              "HEROKU_API_KEY" => ENV['HEROKU_API_KEY'],
+              "AWS_ACCESS_KEY_ID" => ENV['AWS_ACCESS_KEY_ID'],
+              "AWS_SECRET_ACCESS_KEY" => ENV['AWS_SECRET_ACCESS_KEY'],
+              "S3_BUCKET_NAME" => ENV['S3_BUCKET_NAME'],
+              "FOG_PROVIDER" => ENV['FOG_PROVIDER'],
+              "FOG_DIRECTORY" => ENV['FOG_DIRECTORY'],
+              "ASSET_DIRECTORY" => ENV['ASSET_DIRECTORY'],
+              "ASSET_HOST" => ENV['ASSET_HOST'],
+              "MONGOLAB_URI" => ENV['MONGOLAB_URI'],
+              "INTERCOM_APPID" => ENV['INTERCOM_APPID'],
+              "BUSME_BASEHOST" => ENV["BUSME_BASEHOST"],
+              "SWIFTIPLY_KEY" => ENV['SWIFTIPLY_KEY'],
+              "N_SERVERS" => swift_endpoint.n_servers,
+              "SSH_KEY" => ENV['SSH_KEY'],
+              "MASTER_SLUG" => backend.master_slug
+          }
+          log "#{head}: Setting configuration variables for swift endpoint #{user_name}@#{app_name}."
+          file = Tempfile.new('vars')
+          vars.each_pair do |k,v|
+            file.write("export #{k}='#{v}'\n")
+          end
+          result = unix_scp_cmd(file.path, ".bash_aliases")
+          file.unlink
+          if result
+            log "#{head}: Configuration Result #{result.inspect}"
+            swift_endpoint.reload
+            swift_endpoint.status = result
+            swift_endpoint.save
+            set_status("Success:Configure")
+          else
+            set_status("Error:Configure")
+          end
         rescue Exception => boom
           swift_endpoint.reload
           log "#{head}: Cannot configure swift endpoint #{app_name} - #{boom}"
@@ -401,6 +573,7 @@ class DeploySwiftEndpointJob
     case swift_endpoint.endpoint_type
       when "Heroku"
         begin
+          log "#{head}: Deploying swift endpoint #{app_name}"
           HerokuHeadless::Deployer.logger = self
           result = HerokuHeadless::Deployer.deploy(app_name, swift_endpoint.git_refspec)
           swift_endpoint.reload
@@ -408,6 +581,27 @@ class DeploySwiftEndpointJob
             log "#{head}: Created swift endpoint #{app_name} - #{result.inspect}"
             set_status("Success:Deployed")
             HerokuHeadless.heroku.post_ps_scale(app_name, "web", 0)
+            get_deploy_status
+            return result
+          else
+            set_status("Error:Deploy")
+            return nil
+          end
+        rescue Exception => boom
+          swift_endpoint.reload
+          log "#{head}: Could not deploy swift endpoint to #{swift_endpoint.endpoint_type} #{app_name} : #{boom}"
+          set_status("Error:Deploy")
+          return nil
+        end
+      when "Unix"
+        begin
+          log "#{head}: Deploying swift endpoint #{user_name}@#{app_name}"
+          result = unix_ssh_cmd("mkdir -p busme-web; cd busme-web; git clone http://github.com/polar/buspass-web.git #{swift_endpoint.git_refspec}")
+          result = unix_ssh_cmd("cd busme-web; git submodule init && git submodule update")
+          swift_endpoint.reload
+          if result
+            log "#{head}: Created swift endpoint #{app_name} - #{result.inspect}"
+            set_status("Success:Deployed")
             get_deploy_status
             return result
           else
@@ -448,6 +642,19 @@ class DeploySwiftEndpointJob
           set_status("Error:Delete")
           return nil
         end
+      when "Unix"
+        begin
+          log "Deleting swift endpoint #{user_name}@#{app_name}"
+          result = unix_ssh_cmd("rm -rf .bash_aliases buspass-web")
+          swift_endpoint.reload
+          set_status("Success:Deleted")
+          return result
+        rescue Exception => boom
+          swift_endpoint.reload
+          log "#{head}: Could not delete swift endpoint #{swift_endpoint.endpoint_type} #{app_name} : #{boom}"
+          set_status("Error:Delete")
+          return nil
+        end
       else
         swift_endpoint.reload
         set_status("Error:Delete")
@@ -472,7 +679,7 @@ class DeploySwiftEndpointJob
     case swift_endpoint.endpoint_type
       when "Heroku"
         begin
-          log "Logs #{app_name}"
+          log "Logs Heroku SwiftEndpoint #{app_name}"
           set_status("GettingLogs")
           result = HerokuHeadless.heroku.get_logs(app_name, :num => 500)
           swift_endpoint.reload
@@ -498,9 +705,22 @@ class DeploySwiftEndpointJob
           set_status("Error:GetLogs")
           return nil
         end
+      when "Unix"
+        log "Logs Unix SwiftEndpoint #{user_name}@#{app_name}"
+        result = unix_ssh_cmd("tail -500 buspass-web/log/production.log")
+        if swift_endpoint.swift_endpoint_remote_log.nil?
+          swift_endpoint.create_swift_endpoint_remote_log
+        end
+        swift_endpoint.swift_endpoint_remote_log.clear
+        result.each do |line|
+          swift_endpoint.swift_endpoint_remote_log.write(line)
+        end
+        set_status("Success:GetLogs")
+        return result
       else
         log "#{head}: Unknown Endpoint type #{swift_endpoint.endpoint_type}"
     end
+
   ensure
     log "#{head}: DONE"
   end
