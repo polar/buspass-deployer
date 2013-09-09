@@ -621,7 +621,7 @@ class DeploySwiftEndpointJob
       when "Unix"
         begin
           log "#{head}: Deploying swift endpoint #{user_name}@#{app_name}"
-          result = Rush.bash unix_ssh_cmd("git clone http://github.com/polar/buspass-web.git -b #{swift_endpoint.git_refspec}")
+          result = Rush.bash unix_ssh_cmd("test -e buspass-web || git clone http://github.com/polar/buspass-web.git -b #{swift_endpoint.git_refspec}")
           result = Rush.bash unix_ssh_cmd("cd buspass-web; git pull; git submodule init; git submodule update")
           swift_endpoint.reload
           if result
