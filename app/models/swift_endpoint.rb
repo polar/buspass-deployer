@@ -21,7 +21,7 @@ class SwiftEndpoint
   one :swift_endpoint_remote_log, :dependent => :destroy, :autosave => false
   one :deploy_swift_endpoint_job, :dependent => :destroy, :autosave => false
 
-  attr_accessible :name, :endpoint_type, :remote_name, :backend, :backend_id, :master_slug
+  attr_accessible :name, :endpoint_type, :remote_name, :backend, :backend_id, :master_slug, :user_name
 
   validates_uniqueness_of :remote_name, :allow_nil => true
   validates_uniqueness_of :name
