@@ -239,18 +239,18 @@ class DeploySwiftEndpointJob
         end
       when "Unix"
         log "#{head}: Getting deploy swift endpoint #{user_name}@#{app_name} status."
-        result = Rush.bash unix_ssh_cmd("cd buspass-web; git log | head -1")
+        result = Rush.bash unix_ssh_cmd("cd buspass-web; git log | head -3")
         swift_endpoint.reload
-        match = /commit\s*([0-9a-f]*)/.match(result)
+        match = /commit\s*([0-9a-f]*)/.match(result[0])
         if match && match[1]
-          swift_endpoint.git_commit = match[1]
+          swift_endpoint.git_commit = result
           swift_endpoint.save
           set_status("Success:DeployStatus")
           log "#{head}: Swift endpoint #{app_name} - #{swift_endpoint.git_commit.inspect} - updated_at #{swift_endpoint.updated_at}"
         else
           log "#{head}: Swift endpoint #{app_name} - #{swift_endpoint.git_commit.inspect} - updated_at #{swift_endpoint.updated_at}"
           set_status("Error:DeployStatus")
-          status = ["Not Created"]
+          status = ["Could not get status"]
           swift_endpoint.remote_status = status
           swift_endpoint.save
           return status.inspect
