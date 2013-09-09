@@ -171,17 +171,17 @@ class DeploySwiftEndpointJob
           result = unix_ssh_cmd("ls /etc/motd")
           swift_endpoint.reload
           if result
-            log "#{head}: remote swift endpoint #{app_name} exists."
+            log "#{head}: remote swift endpoint #{user_name}@#{app_name} exists."
             set_status("Success:Exists")
             return true
           else
-            log "#{head}: remote swift endpoint #{app_name} does not exist."
+            log "#{head}: remote swift endpoint #{user_name}@#{app_name} does not exist."
             set_status("Error:Exists")
             return false
           end
         rescue Exception => boom
           log "#{head}: error ssh to remote server #{boom}"
-          log "#{head}: remote swift endpoint #{app_name} does not exist."
+          log "#{head}: remote swift endpoint #{user_name}@#{app_name} does not exist."
           set_status("Error:Exists")
           return false
         end
@@ -563,6 +563,7 @@ class DeploySwiftEndpointJob
           vars.each_pair do |k,v|
             file.write("export #{k}='#{v}'\n")
           end
+          file.close
           result = unix_scp_cmd(file.path, ".bash_aliases")
           file.unlink
           if result
