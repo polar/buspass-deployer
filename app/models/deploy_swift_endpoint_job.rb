@@ -459,7 +459,7 @@ class DeploySwiftEndpointJob
         begin
           log "#{head}: Restarting remote swift endpoint #{user_name}@#{app_name}."
           result = Rush.bash unix_ssh_cmd("bash --login -c cd buspass-web\\; bundle exec script/stop_instances")
-          result = Rush.bash unix_ssh_cmd("bash --login -c cd buspass-web\\; bundle exec script/instance -e production &")
+          result = Rush.bash unix_ssh_cmd("bash --login -c cd buspass-web\\; bundle exec script/instance -e production \\&")
           swift_endpoint.reload
           if result && result
             set_status("Success:Restart")
