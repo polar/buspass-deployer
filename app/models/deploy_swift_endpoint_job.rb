@@ -166,7 +166,7 @@ class DeploySwiftEndpointJob
         end
       when "Unix"
         begin
-          log "#{head}: Checking if remote swift endpoint #{user_name}@#{app_name} exists."
+          log "#{head}: Checking if remote swift endpoint #{user_name}@#{app_name} exists!"
           result = unix_ssh_cmd("ls /etc/motd")
           swift_endpoint.reload
           if result
