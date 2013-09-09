@@ -88,7 +88,7 @@ class DeploySwiftEndpointJob
     port = match[3]
     cmd = "ssh -o StrictHostKeychecking=no -o CheckHostIP=no -o UserKnownHostsFile=/dev/null  #{"-p #{port}" if port} -i #{ssh_cert} #{user_name}@#{host} #{cmd}"
 
-    log "#{head}: #{cmd}"
+    log "Remote: #{cmd}"
     return cmd
   end
 
@@ -98,7 +98,7 @@ class DeploySwiftEndpointJob
     port = match[3]
     cmd = "scp -o StrictHostKeychecking=no -o CheckHostIP=no -o UserKnownHostsFile=/dev/null  #{"-P #{port}" if port} -i #{ssh_cert} #{path} #{user_name}@#{host}:#{remote_path}"
 
-    log "#{head}: #{cmd}"
+    log "Remote: #{cmd}"
     return cmd
   end
 
