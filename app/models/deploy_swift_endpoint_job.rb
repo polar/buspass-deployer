@@ -168,7 +168,7 @@ class DeploySwiftEndpointJob
       when "Unix"
         begin
           log "#{head}: Checking if remote swift endpoint #{user_name}@#{app_name} exists!"
-          result = unix_ssh_cmd("ls /etc/motd")
+          result = Rush.bash unix_ssh_cmd("ls /etc/motd")
           swift_endpoint.reload
           if result
             log "#{head}: remote swift endpoint #{user_name}@#{app_name} exists."
@@ -239,7 +239,7 @@ class DeploySwiftEndpointJob
         end
       when "Unix"
         log "#{head}: Getting deploy swift endpoint #{user_name}@#{app_name} status."
-        result = unix_ssh_cmd("cd buspass-web; git log | head -1")
+        result = Rush.bash unix_ssh_cmd("cd buspass-web; git log | head -1")
         swift_endpoint.reload
         match = /commit\s*([0-9a-f]*)/.match(result)
         if match && match[1]
@@ -310,7 +310,7 @@ class DeploySwiftEndpointJob
         end
       when "Unix"
         log "#{head}: Getting Remote Status of Unix Endpoint #{user_name}@#{app_name}."
-        result = unix_ssh_cmd("ls buspass-web/tmp/pids")
+        result = Rush.bash unix_ssh_cmd("ls buspass-web/tmp/pids")
         swift_endpoint.reload
         if result
           swift_endpoint.remote_status = result
@@ -360,7 +360,7 @@ class DeploySwiftEndpointJob
         end
       when "Unix"
         log "#{head}: Starting remote swift endpoint #{user_name}@#{app_name}."
-        result = unix_ssh_cmd("cd buspass-web; bundle exec script/instance -e production")
+        result = Rush.bash unix_ssh_cmd("cd buspass-web; bundle exec script/instance -e production")
         swift_endpoint.reload
         if result
           set_status("Success:Start")
@@ -410,7 +410,7 @@ class DeploySwiftEndpointJob
         end
       when "Unix"
         log "#{head}: Stopping remote swift endpoint #{user_name}@#{app_name}."
-        result = unix_ssh_cmd("cd buspass-web; bundle exec script/stop_instances")
+        result = Rush.bash unix_ssh_cmd("cd buspass-web; bundle exec script/stop_instances")
         if result
           swift_endpoint.reload
           set_status("Success:Stop")
@@ -459,8 +459,8 @@ class DeploySwiftEndpointJob
       when "Unix"
         begin
           log "#{head}: Restarting remote swift endpoint #{user_name}@#{app_name}."
-          result = unix_ssh_cmd("cd buspass-web; bundle exec script/stop_instances")
-          result = unix_ssh_cmd("cd buspass-web; bundle exec script/instance -e production")
+          result = Rush.bash unix_ssh_cmd("cd buspass-web; bundle exec script/stop_instances")
+          result = Rush.bash unix_ssh_cmd("cd buspass-web; bundle exec script/instance -e production")
           swift_endpoint.reload
           if result && result
             set_status("Success:Restart")
@@ -564,7 +564,7 @@ class DeploySwiftEndpointJob
             file.write("export #{k}='#{v}'\n")
           end
           file.close
-          result = unix_scp_cmd(file.path, ".bash_aliases")
+          result = Rush.bash unix_scp_cmd(file.path, ".bash_aliases")
           file.unlink
           if result
             log "#{head}: Configuration Result #{result.inspect}"
@@ -621,8 +621,8 @@ class DeploySwiftEndpointJob
       when "Unix"
         begin
           log "#{head}: Deploying swift endpoint #{user_name}@#{app_name}"
-          result = unix_ssh_cmd("mkdir -p busme-web; cd busme-web; git clone http://github.com/polar/buspass-web.git #{swift_endpoint.git_refspec}")
-          result = unix_ssh_cmd("cd busme-web; git submodule init && git submodule update")
+          result = Rush.bash unix_ssh_cmd("mkdir -p busme-web; cd busme-web; git clone http://github.com/polar/buspass-web.git #{swift_endpoint.git_refspec}")
+          result = Rush.bash unix_ssh_cmd("cd busme-web; git submodule init && git submodule update")
           swift_endpoint.reload
           if result
             log "#{head}: Created swift endpoint #{app_name} - #{result.inspect}"
@@ -670,7 +670,7 @@ class DeploySwiftEndpointJob
       when "Unix"
         begin
           log "Deleting swift endpoint #{user_name}@#{app_name}"
-          result = unix_ssh_cmd("rm -rf .bash_aliases buspass-web")
+          result = Rush.bash unix_ssh_cmd("rm -rf .bash_aliases buspass-web")
           swift_endpoint.reload
           set_status("Success:Deleted")
           return result
@@ -732,7 +732,7 @@ class DeploySwiftEndpointJob
         end
       when "Unix"
         log "Logs Unix SwiftEndpoint #{user_name}@#{app_name}"
-        result = unix_ssh_cmd("tail -500 buspass-web/log/production.log")
+        result = Rush.bash unix_ssh_cmd("tail -500 buspass-web/log/production.log")
         if swift_endpoint.swift_endpoint_remote_log.nil?
           swift_endpoint.create_swift_endpoint_remote_log
         end
