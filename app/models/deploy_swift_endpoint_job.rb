@@ -238,17 +238,16 @@ class DeploySwiftEndpointJob
           return nil
         end
       when "Unix"
-        log "#{head}: Getting deploy swift endpoint #{user_name}@#{app_name} status."
-        result = Rush.bash unix_ssh_cmd("cd buspass-web; git log | head -3")
-        swift_endpoint.reload
-        match = /commit\s*([0-9a-f]*)/.match(result[0])
-        if match && match[1]
+        begin
+          log "#{head}: Getting deploy swift endpoint #{user_name}@#{app_name} status."
+          result = Rush.bash unix_ssh_cmd("cd buspass-web; git log | head -3")
+          swift_endpoint.reload
           swift_endpoint.git_commit = result
           swift_endpoint.save
           set_status("Success:DeployStatus")
           log "#{head}: Swift endpoint #{app_name} - #{swift_endpoint.git_commit.inspect} - updated_at #{swift_endpoint.updated_at}"
-        else
-          log "#{head}: Swift endpoint #{app_name} - #{swift_endpoint.git_commit.inspect} - updated_at #{swift_endpoint.updated_at}"
+        rescue Exception => boom
+          log "#{head}: Error getting Swift endpoint #{app_name} deploy status - #{boom}"
           set_status("Error:DeployStatus")
           status = ["Could not get status"]
           swift_endpoint.remote_status = status
@@ -459,8 +458,8 @@ class DeploySwiftEndpointJob
       when "Unix"
         begin
           log "#{head}: Restarting remote swift endpoint #{user_name}@#{app_name}."
-          result = Rush.bash unix_ssh_cmd("cd buspass-web; bundle exec script/stop_instances")
-          result = Rush.bash unix_ssh_cmd("cd buspass-web; bundle exec script/instance -e production")
+          result = Rush.bash unix_ssh_cmd("bash --login -c cd buspass-web\\; bundle exec script/stop_instances")
+          result = Rush.bash unix_ssh_cmd("bash --login -c cd buspass-web\\; bundle exec script/instance -e production")
           swift_endpoint.reload
           if result && result
             set_status("Success:Restart")
