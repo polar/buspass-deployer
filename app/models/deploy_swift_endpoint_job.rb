@@ -471,6 +471,7 @@ class DeploySwiftEndpointJob
             return nil
           end
         rescue Exception => boom
+          log "#{head}: error restarting swift endpoint #{app_name} - #{boom}."
           swift_endpoint.reload
           set_status("Error:Restart")
           log "#{head}: remote swift endpoint #{app_name} does not exist."
