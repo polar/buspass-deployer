@@ -51,6 +51,15 @@ class DeploySwiftEndpointJob
     backend.frontend
   end
 
+  def ssh_cert
+    if frontend.frontend_key
+      if ! File.exists?(frontend.frontend_key.ssh_key.file.path) && frontend.frontend_key.key_encrypted_content
+        frontend.frontend_key.decrypt_key_content_to_file
+      end
+      return frontend.frontend_key.ssh_key.file.path
+    end
+  end
+
   def installation
     frontend.installation
   end
