@@ -86,7 +86,7 @@ class DeploySwiftEndpointJob
     match = /([0-9a-zA-Z\-\._]*)(:([0-9]*))?/.match(swift_endpoint.remote_name)
     host = match[1]
     port = match[3]
-    cmd = "ssh -o StrictHostKeychecking=no -o CheckHostIP=no -o UserKnownHostsFile=/dev/null  #{"-p #{port}" if port} -i #{ssh_cert} #{user_name}@#{host} #{cmd}"
+    cmd = "ssh -o StrictHostKeychecking=no -o CheckHostIP=no -o UserKnownHostsFile=/dev/null  #{"-p #{port}" if port} -i #{ssh_cert} #{user_name}@#{host} '#{cmd}'"
 
     log "Remote: #{cmd}"
     return cmd
