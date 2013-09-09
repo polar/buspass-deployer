@@ -119,10 +119,11 @@ class DeploySwiftEndpointJob
         end
       when "Unix"
         begin
-          log "#{head}: Creating Unix Endpoint #{app_name}. Should already exist!"
+          log "#{head}: Creating Unix Endpoint #{user_name}@#{app_name}. Should already exist!"
           result = unix_ssh_cmd("ls /etc/passwd")
           swift_endpoint.reload
           if result
+            log "#{head}: remote swift endpoint #{user_name}@#{app_name} exists."
             set_status("Success:Create")
             return result
           else
@@ -130,7 +131,7 @@ class DeploySwiftEndpointJob
             return nil
           end
         rescue Exception => boom
-          log "#{head}: error ssh to remote server"
+          log "#{head}: error ssh to remote server #{boom}"
           set_status("Error:Create")
           return nil
         end
