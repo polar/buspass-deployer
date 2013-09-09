@@ -170,14 +170,16 @@ class DeploySwiftEndpointJob
           result = unix_ssh_cmd("ls /etc/motd")
           swift_endpoint.reload
           if result
+            log "#{head}: remote swift endpoint #{app_name} exists."
             set_status("Success:Exists")
             return true
           else
+            log "#{head}: remote swift endpoint #{app_name} does not exist."
             set_status("Error:Exists")
             return false
           end
         rescue Exception => boom
-          log "#{head}: error ssh to remote server"
+          log "#{head}: error ssh to remote server #{boom}"
           log "#{head}: remote swift endpoint #{app_name} does not exist."
           set_status("Error:Exists")
           return false
