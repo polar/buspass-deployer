@@ -63,6 +63,7 @@ class DeploySwiftEndpointJob
   def pub_cert(cert_path)
     file = Tempfile.new("cert.pub")
     Rush.bash("ssh-keygen -y -f #{cert_path} > #{file.path}")
+    return file
   end
 
 
