@@ -606,6 +606,11 @@ class DeploySwiftEndpointJob
           file.close
           result = Rush.bash unix_scp_cmd(file.path, ".bash_login")
           file.unlink
+          file = Tempfile.new("rvmrc")
+          file.write("1.9.3\n")
+          file.close
+          result = Rush.bash unix_scp_cmd(file.path, ".ruby-version")
+
           if result
             log "#{head}: Configuration Result #{result.inspect}"
             swift_endpoint.reload
