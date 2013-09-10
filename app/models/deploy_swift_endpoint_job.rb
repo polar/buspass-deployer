@@ -148,15 +148,9 @@ class DeploySwiftEndpointJob
           log "#{head}: Result #{result.inspect}"
           result = Rush.bash uadmin_unix_ssh_cmd("sudo -u #{user_name} chmod 777 ~#{user_name}/.ssh")
           log "#{head}: Result #{result.inspect}"
-          result = Rush.bash uadmin_unix_scp_cmd(ssh_cert, "~#{user_name}/.ssh/admin.pub")
+          result = Rush.bash uadmin_unix_scp_cmd(ssh_cert, "~#{user_name}/.ssh/authorized_keys")
           log "#{head}: Result #{result.inspect}"
           result = Rush.bash uadmin_unix_ssh_cmd("sudo chown -R #{user_name}:#{user_name} ~#{user_name}")
-          log "#{head}: Result #{result.inspect}"
-          result = Rush.bash uadmin_unix_ssh_cmd("sudo -u #{user_name} cat ~#{user_name}/.ssh/authorized_keys ~#{user_name}/.ssh/admin.pub > ~#{user_name}/.ssh/x")
-          log "#{head}: Result #{result.inspect}"
-          result = Rush.bash uadmin_unix_ssh_cmd("sudo -u #{user_name} cp ~#{user_name}/.ssh/x ~#{user_name}/.ssh/authorized_keys")
-          log "#{head}: Result #{result.inspect}"
-          result = Rush.bash uadmin_unix_ssh_cmd("sudo -u #{user_name} rm -rf ~#{user_name}/.ssh/x")
           log "#{head}: Result #{result.inspect}"
           result = Rush.bash uadmin_unix_ssh_cmd("sudo -u #{user_name} chmod 700 ~#{user_name}/.ssh")
           log "#{head}: Result #{result.inspect}"
