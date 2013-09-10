@@ -564,7 +564,7 @@ class DeploySwiftEndpointJob
             file.write("export #{k}='#{v}'\n")
           end
           file.close
-          result = Rush.bash unix_scp_cmd(file.path, ".bash_aliases")
+          result = Rush.bash unix_scp_cmd(file.path, ".bash_login")
           file.unlink
           if result
             log "#{head}: Configuration Result #{result.inspect}"
