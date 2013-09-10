@@ -141,7 +141,7 @@ class DeploySwiftEndpointJob
         begin
           log "#{head}: Creating Unix Endpoint #{user_name}@#{app_name}. Should already exist!"
           #result = Rush.bash uadmin_unix_ssh_cmd("sudo addgroup --quiet busme; exit 0")
-          result = Rush.bash uadmin_unix_ssh_cmd("sudo adduser #{user_name} --disabled-password")
+          result = Rush.bash uadmin_unix_ssh_cmd("sudo adduser #{user_name} --quiet --disabled-password")
           log "#{head}: Result #{result.inspect}"
           #result = Rush.bash uadmin_unix_ssh_cmd("sudo adduser --quiet #{user_name} busme; exit 0")
           result = Rush.bash uadmin_unix_ssh_cmd("sudo -u #{user_name} mkdir -p ~#{user_name}/.ssh")
@@ -703,7 +703,7 @@ class DeploySwiftEndpointJob
       when "Unix"
         begin
           log "Deleting swift endpoint #{user_name}@#{app_name}"
-          result = Rush.bash uadmin_unix_ssh_cmd("sudo -s 'deluser --remove-all-files --group #{user_name}'")
+          result = Rush.bash uadmin_unix_ssh_cmd("sudo deluser --remove-home #{user_name}'")
           swift_endpoint.reload
           set_status("Success:Deleted")
           return result
