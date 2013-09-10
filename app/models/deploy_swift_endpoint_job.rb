@@ -348,7 +348,7 @@ class DeploySwiftEndpointJob
         end
       when "Unix"
         log "#{head}: Getting Remote Status of Unix Endpoint #{user_name}@#{app_name}."
-        result = Rush.bash unix_ssh_cmd("ls buspass-web/tmp/pids")
+        result = Rush.bash unix_ssh_cmd("ls -l buspass-web/tmp/pids")
         swift_endpoint.reload
         if result
           swift_endpoint.remote_status = result.is_a? Array ? result : [result]
