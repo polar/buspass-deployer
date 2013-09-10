@@ -142,11 +142,16 @@ class DeploySwiftEndpointJob
           log "#{head}: Creating Unix Endpoint #{user_name}@#{app_name}. Should already exist!"
           result = Rush.bash uadmin_unix_ssh_cmd("sudo addgroup --quiet busme")
           result = Rush.bash uadmin_unix_scp_cmd("sudo adduser #{user_name} --quiet --disabled-password  --group")
-          result = Rush.bash uadmin_unix_scp_cmd("sudo adduser #{user_name} busme;sudo mkdir -p ~#{user_name}/.ssh")
-          result = Rush.bash uadmin_unix_scp_cmd("sudo chmod 700 ~#{user_name}/.ssh")
+          result = Rush.bash uadmin_unix_scp_cmd("sudo adduser --quiet #{user_name} busme")
+          result = Rush.bash uadmin_unix_scp_cmd("sudo -u #{user_name} mkdir -p ~#{user_name}/.ssh")
+          result = Rush.bash uadmin_unix_scp_cmd("sudo -u #{user_name} chmod 777 ~#{user_name}/.ssh")
           result = Rush.bash uadmin_unix_scp_cmd(ssh_cert, "~#{user_name}/.ssh/admin.pub")
-          result = Rush.bash uadmin_unix_ssh_cmd("sudo cat ~#{user_name}/.ssh/authorized_keys ~#{user_name}/.ssh/admin.pub > ~#{user_name}/.ssh/x;sudo cp ~#{user_name}/.ssh/x ~#{user_name}/.ssh/authorized_keys;sudo chown -R #{user_name}:#{user_name} ~#{user_name};sudo rm -rf ~#{user_name}/.ssh/x")
-          result = Rush.bash uadmin_unix_ssh_cmd("sudo ls -laR ~#{user_name}")
+          result = Rush.bash uadmin_unix_ssh_cmd("sudo -u #{user_name} cat ~#{user_name}/.ssh/authorized_keys ~#{user_name}/.ssh/admin.pub > ~#{user_name}/.ssh/x")
+          result = Rush.bash uadmin_unix_scp_cmd("sudo -u #{user_name} cp ~#{user_name}/.ssh/x ~#{user_name}/.ssh/authorized_keys")
+          result = Rush.bash uadmin_unix_scp_cmd("sudo chown -R #{user_name}:#{user_name} ~#{user_name}")
+          result = Rush.bash uadmin_unix_scp_cmd("sudo -u #{user_name} rm -rf ~#{user_name}/.ssh/x")
+          result = Rush.bash uadmin_unix_scp_cmd("sudo -u #{user_name} chmod 700 ~#{user_name}/.ssh")
+          result = Rush.bash uadmin_unix_ssh_cmd("sudo -u #{user_name} ls -laR ~#{user_name}")
           swift_endpoint.reload
           log "#{head}: remote swift endpoint #{user_name}@#{app_name} exists."
           log "#{head}: Directory ~#{user_name} created #{result.inspect}"
