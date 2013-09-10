@@ -60,6 +60,12 @@ class DeploySwiftEndpointJob
     end
   end
 
+  def pub_cert(cert_path)
+    file = Tempfile.new("cert.pub")
+    Rush.bash("ssh-ekygen -y -f #{cert_path} > #{file.path}")
+  end
+
+
   def installation
     frontend.installation
   end
@@ -148,8 +154,10 @@ class DeploySwiftEndpointJob
           log "#{head}: Result #{result.inspect}"
           result = Rush.bash uadmin_unix_ssh_cmd("sudo -u #{user_name} chmod 777 ~#{user_name}/.ssh")
           log "#{head}: Result #{result.inspect}"
-          result = Rush.bash uadmin_unix_scp_cmd(ssh_cert, "~#{user_name}/.ssh/authorized_keys")
+          file = pub_cert(ssh_cert)
+          result = Rush.bash uadmin_unix_scp_cmd(file.path, "~#{user_name}/.ssh/authorized_keys")
           log "#{head}: Result #{result.inspect}"
+          file.unlink
           result = Rush.bash uadmin_unix_ssh_cmd("sudo chown -R #{user_name}:#{user_name} ~#{user_name}")
           log "#{head}: Result #{result.inspect}"
           result = Rush.bash uadmin_unix_ssh_cmd("sudo -u #{user_name} chmod 700 ~#{user_name}/.ssh")
