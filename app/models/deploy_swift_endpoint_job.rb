@@ -62,7 +62,7 @@ class DeploySwiftEndpointJob
 
   def pub_cert(cert_path)
     file = Tempfile.new("cert.pub")
-    Rush.bash("ssh-ekygen -y -f #{cert_path} > #{file.path}")
+    Rush.bash("ssh-keygen -y -f #{cert_path} > #{file.path}")
   end
 
 
@@ -693,19 +693,19 @@ class DeploySwiftEndpointJob
     head = __method__
     log "#{head}: START"
     swift_endpoint.reload
-    set_status("DeletingRemote")
+    set_status("DestroyApp")
     case swift_endpoint.endpoint_type
       when "Heroku"
         begin
           log "Deleting swift endpoint #{app_name}"
           result = HerokuHeadless.heroku.delete_app(app_name)
           swift_endpoint.reload
-          set_status("Success:Deleted")
+          set_status("Success:DestroyApp")
           return result
         rescue Exception => boom
           swift_endpoint.reload
           log "#{head}: Could not delete swift endpoint #{swift_endpoint.endpoint_type} #{app_name} : #{boom}"
-          set_status("Error:Delete")
+          set_status("Error:DestroyApp")
           return nil
         end
       when "Unix"
@@ -713,17 +713,17 @@ class DeploySwiftEndpointJob
           log "Deleting swift endpoint #{user_name}@#{app_name}"
           result = Rush.bash uadmin_unix_ssh_cmd("sudo deluser --remove-home #{user_name}")
           swift_endpoint.reload
-          set_status("Success:Deleted")
+          set_status("Success:DestroyApp")
           return result
         rescue Exception => boom
           swift_endpoint.reload
           log "#{head}: Could not delete swift endpoint #{swift_endpoint.endpoint_type} #{app_name} : #{boom}"
-          set_status("Error:Delete")
+          set_status("Error:DestroyApp")
           return nil
         end
       else
         swift_endpoint.reload
-        set_status("Error:Delete")
+        set_status("Error:DestroyApp")
         log "#{head}: Unknown Endpoint type #{swift_endpoint.endpoint_type}"
     end
   ensure
