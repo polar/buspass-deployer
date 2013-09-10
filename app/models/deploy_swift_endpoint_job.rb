@@ -610,6 +610,7 @@ class DeploySwiftEndpointJob
           file.write("1.9.3\n")
           file.close
           result = Rush.bash unix_scp_cmd(file.path, ".ruby-version")
+          file.unlink
 
           if result
             log "#{head}: Configuration Result #{result.inspect}"
