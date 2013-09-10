@@ -23,7 +23,6 @@ class SwiftEndpoint
 
   attr_accessible :name, :endpoint_type, :remote_name, :backend, :backend_id, :master_slug, :user_name
 
-  validates_uniqueness_of :remote_name, :allow_nil => true
   validates_uniqueness_of :name
   validates_presence_of :backend
   validates_presence_of :endpoint_type

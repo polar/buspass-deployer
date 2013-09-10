@@ -140,10 +140,10 @@ class DeploySwiftEndpointJob
       when "Unix"
         begin
           log "#{head}: Creating Unix Endpoint #{user_name}@#{app_name}. Should already exist!"
-          result = uadmin_unix_ssh_cmd("sudo -s 'addgroup --quiet busme; adduser #{user_name} --disabled-password  --group; adduser #{user_name} busme; mkdir -p ~#{user_name}/.ssh; chmod 700 ~#{user_name}/.ssh'")
-          result = uadmin_unix_scp_cmd(ssh_cert, "~#{user_name}/.ssh/admin.pub")
-          result = uadmin_unix_ssh_cmd("sudo -s 'cat ~#{user_name}/.ssh/admin.pub >> ~#{user_name}/.ssh/authorized_keys; chown -R #{user_name}:#{user_name} ~#{user_name}'")
-          result = uadmin_unix_ssh_cmd("sudo -s 'ls -laR ~#{user_name}'")
+          result = Rush.bash uadmin_unix_ssh_cmd("sudo -s 'addgroup --quiet busme; adduser #{user_name} --disabled-password  --group; adduser #{user_name} busme; mkdir -p ~#{user_name}/.ssh; chmod 700 ~#{user_name}/.ssh'")
+          result = Rush.bash uadmin_unix_scp_cmd(ssh_cert, "~#{user_name}/.ssh/admin.pub")
+          result = Rush.bash uadmin_unix_ssh_cmd("sudo -s 'cat ~#{user_name}/.ssh/admin.pub >> ~#{user_name}/.ssh/authorized_keys; chown -R #{user_name}:#{user_name} ~#{user_name}'")
+          result = Rush.bash uadmin_unix_ssh_cmd("sudo -s 'ls -laR ~#{user_name}'")
           swift_endpoint.reload
           log "#{head}: remote swift endpoint #{user_name}@#{app_name} exists."
           log "#{head}: Directory ~#{user_name} created #{result.inspect}"
@@ -692,7 +692,7 @@ class DeploySwiftEndpointJob
       when "Unix"
         begin
           log "Deleting swift endpoint #{user_name}@#{app_name}"
-          result = Rush.bash unix_ssh_cmd("rm -rf .bash_aliases buspass-web")
+          result = Rush.bash uadmin_unix_ssh_cmd("sudo -s 'deluser --remove-all-files #{user_name}'")
           swift_endpoint.reload
           set_status("Success:Deleted")
           return result
