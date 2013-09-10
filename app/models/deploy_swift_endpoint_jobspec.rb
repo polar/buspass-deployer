@@ -7,7 +7,7 @@ class DeploySwiftEndpointJobspec < Struct.new(:deploy_swift_endpoint_job_id, :na
       return
     end
     job.set_status("Enqueued:#{action}")
-    job.log "Enqueued job to create a web runner for #{job.backend.spec}"
+    job.log "Enqueued job to perform #{action} #{job.backend.spec}"
   end
 
   def perform

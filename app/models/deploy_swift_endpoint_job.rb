@@ -351,7 +351,7 @@ class DeploySwiftEndpointJob
         result = Rush.bash unix_ssh_cmd("ls buspass-web/tmp/pids")
         swift_endpoint.reload
         if result
-          swift_endpoint.remote_status = result
+          swift_endpoint.remote_status = result.is_a? Array : result : [result]
           swift_endpoint.save
           set_status("Success:RemoteStatus")
         else
