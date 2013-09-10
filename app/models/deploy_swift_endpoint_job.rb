@@ -140,9 +140,9 @@ class DeploySwiftEndpointJob
       when "Unix"
         begin
           log "#{head}: Creating Unix Endpoint #{user_name}@#{app_name}. Should already exist!"
-          result = Rush.bash uadmin_unix_ssh_cmd("sudo addgroup --quiet busme; exit 0")
+          #result = Rush.bash uadmin_unix_ssh_cmd("sudo addgroup --quiet busme; exit 0")
           result = Rush.bash uadmin_unix_ssh_cmd("sudo adduser #{user_name} --quiet --disabled-password  --group; exit 0")
-          result = Rush.bash uadmin_unix_ssh_cmd("sudo adduser --quiet #{user_name} busme; exit 0")
+          #result = Rush.bash uadmin_unix_ssh_cmd("sudo adduser --quiet #{user_name} busme; exit 0")
           result = Rush.bash uadmin_unix_ssh_cmd("sudo -u #{user_name} mkdir -p ~#{user_name}/.ssh")
           result = Rush.bash uadmin_unix_ssh_cmd("sudo -u #{user_name} chmod 777 ~#{user_name}/.ssh")
           result = Rush.bash uadmin_unix_scp_cmd(ssh_cert, "~#{user_name}/.ssh/admin.pub")
