@@ -711,7 +711,7 @@ class DeploySwiftEndpointJob
       when "Unix"
         begin
           log "Deleting swift endpoint #{user_name}@#{app_name}"
-          result = Rush.bash uadmin_unix_ssh_cmd("sudo deluser --remove-home #{user_name}'")
+          result = Rush.bash uadmin_unix_ssh_cmd("sudo deluser --remove-home #{user_name}")
           swift_endpoint.reload
           set_status("Success:Deleted")
           return result
