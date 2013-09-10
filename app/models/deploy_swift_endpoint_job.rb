@@ -554,6 +554,7 @@ class DeploySwiftEndpointJob
               "INTERCOM_APPID" => ENV['INTERCOM_APPID'],
               "BUSME_BASEHOST" => ENV["BUSME_BASEHOST"],
               "SWIFTIPLY_KEY" => ENV['SWIFTIPLY_KEY'],
+              "RAILS_ENV" => ENV['RAILS_ENV'], # should be 'production'
               "N_SERVERS" => swift_endpoint.n_servers,
               "SSH_KEY" => ENV['SSH_KEY'],
               "MASTER_SLUG" => backend.master_slug
