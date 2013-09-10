@@ -142,19 +142,28 @@ class DeploySwiftEndpointJob
           log "#{head}: Creating Unix Endpoint #{user_name}@#{app_name}. Should already exist!"
           #result = Rush.bash uadmin_unix_ssh_cmd("sudo addgroup --quiet busme; exit 0")
           result = Rush.bash uadmin_unix_ssh_cmd("sudo adduser #{user_name} --disabled-password  --group; exit 0")
+          log "#{head}: Result #{result.inspect}"
           #result = Rush.bash uadmin_unix_ssh_cmd("sudo adduser --quiet #{user_name} busme; exit 0")
           result = Rush.bash uadmin_unix_ssh_cmd("sudo -u #{user_name} mkdir -p ~#{user_name}/.ssh")
+          log "#{head}: Result #{result.inspect}"
           result = Rush.bash uadmin_unix_ssh_cmd("sudo -u #{user_name} chmod 777 ~#{user_name}/.ssh")
+          log "#{head}: Result #{result.inspect}"
           result = Rush.bash uadmin_unix_scp_cmd(ssh_cert, "~#{user_name}/.ssh/admin.pub")
+          log "#{head}: Result #{result.inspect}"
           result = Rush.bash uadmin_unix_ssh_cmd("sudo -u #{user_name} cat ~#{user_name}/.ssh/authorized_keys ~#{user_name}/.ssh/admin.pub > ~#{user_name}/.ssh/x")
+          log "#{head}: Result #{result.inspect}"
           result = Rush.bash uadmin_unix_ssh_cmd("sudo -u #{user_name} cp ~#{user_name}/.ssh/x ~#{user_name}/.ssh/authorized_keys")
+          log "#{head}: Result #{result.inspect}"
           result = Rush.bash uadmin_unix_ssh_cmd("sudo chown -R #{user_name}:#{user_name} ~#{user_name}")
+          log "#{head}: Result #{result.inspect}"
           result = Rush.bash uadmin_unix_ssh_cmd("sudo -u #{user_name} rm -rf ~#{user_name}/.ssh/x")
+          log "#{head}: Result #{result.inspect}"
           result = Rush.bash uadmin_unix_ssh_cmd("sudo -u #{user_name} chmod 700 ~#{user_name}/.ssh")
+          log "#{head}: Result #{result.inspect}"
           result = Rush.bash uadmin_unix_ssh_cmd("sudo -u #{user_name} ls -laR ~#{user_name}")
           swift_endpoint.reload
           log "#{head}: remote swift endpoint #{user_name}@#{app_name} exists."
-          log "#{head}: Directory ~#{user_name} created #{result.inspect}"
+          log "#{head}: Result #{result.inspect}"
           set_status("Success:Create")
           return true
         rescue Exception => boom
