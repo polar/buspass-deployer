@@ -140,7 +140,10 @@ class DeploySwiftEndpointJob
       when "Unix"
         begin
           log "#{head}: Creating Unix Endpoint #{user_name}@#{app_name}. Should already exist!"
-          result = Rush.bash uadmin_unix_ssh_cmd("sudo addgroup --quiet busme;sudo adduser #{user_name} --disabled-password  --group;sudo adduser #{user_name} busme;sudo mkdir -p ~#{user_name}/.ssh;sudo chmod 700 ~#{user_name}/.ssh")
+          result = Rush.bash uadmin_unix_ssh_cmd("sudo addgroup --quiet busme")
+          result = Rush.bash uadmin_unix_scp_cmd("sudo adduser #{user_name} --quiet --disabled-password  --group")
+          result = Rush.bash uadmin_unix_scp_cmd("sudo adduser #{user_name} busme;sudo mkdir -p ~#{user_name}/.ssh")
+          result = Rush.bash uadmin_unix_scp_cmd("sudo chmod 700 ~#{user_name}/.ssh")
           result = Rush.bash uadmin_unix_scp_cmd(ssh_cert, "~#{user_name}/.ssh/admin.pub")
           result = Rush.bash uadmin_unix_ssh_cmd("sudo cat ~#{user_name}/.ssh/authorized_keys ~#{user_name}/.ssh/admin.pub > ~#{user_name}/.ssh/x;sudo cp ~#{user_name}/.ssh/x ~#{user_name}/.ssh/authorized_keys;sudo chown -R #{user_name}:#{user_name} ~#{user_name};sudo rm -rf ~#{user_name}/.ssh/x")
           result = Rush.bash uadmin_unix_ssh_cmd("sudo ls -laR ~#{user_name}")
