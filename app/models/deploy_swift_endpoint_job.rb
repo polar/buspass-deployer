@@ -92,11 +92,31 @@ class DeploySwiftEndpointJob
     return cmd
   end
 
+  def uadmin_unix_ssh_cmd(cmd)
+    match = /([0-9a-zA-Z\-\._]*)(:([0-9]*))?/.match(swift_endpoint.remote_name)
+    host = match[1]
+    port = match[3]
+    cmd = "ssh -o StrictHostKeychecking=no -o CheckHostIP=no -o UserKnownHostsFile=/dev/null  #{"-p #{port}" if port} -i #{ssh_cert} uadmin@#{host} '#{cmd}'"
+
+    log "Remote: #{cmd}"
+    return cmd
+  end
+
   def unix_scp_cmd(path, remote_path)
     match = /([0-9a-zA-Z\-\._]*)(:([0-9]*))?/.match(swift_endpoint.remote_name)
     host = match[1]
     port = match[3]
     cmd = "scp -o StrictHostKeychecking=no -o CheckHostIP=no -o UserKnownHostsFile=/dev/null  #{"-P #{port}" if port} -i #{ssh_cert} #{path} #{user_name}@#{host}:#{remote_path}"
+
+    log "Remote: #{cmd}"
+    return cmd
+  end
+
+  def uadmin_unix_scp_cmd(path, remote_path)
+    match = /([0-9a-zA-Z\-\._]*)(:([0-9]*))?/.match(swift_endpoint.remote_name)
+    host = match[1]
+    port = match[3]
+    cmd = "scp -o StrictHostKeychecking=no -o CheckHostIP=no -o UserKnownHostsFile=/dev/null  #{"-P #{port}" if port} -i #{ssh_cert} #{path} uadmin@#{host}:#{remote_path}"
 
     log "Remote: #{cmd}"
     return cmd
@@ -120,18 +140,17 @@ class DeploySwiftEndpointJob
       when "Unix"
         begin
           log "#{head}: Creating Unix Endpoint #{user_name}@#{app_name}. Should already exist!"
-          result = unix_ssh_cmd("ls /etc/passwd")
+          result = uadmin_unix_ssh_cmd("sudo -s 'addgroup --quiet busme; adduser #{user_name} --disabled-password  --group; adduser #{user_name} busme; mkdir -p ~#{user_name}/.ssh; chmod 700 ~#{user_name}/.ssh'")
+          result = uadmin_unix_scp_cmd(ssh_cert, "~#{user_name}/.ssh/admin.pub")
+          result = uadmin_unix_ssh_cmd("sudo -s 'cat ~#{user_name}/.ssh/admin.pub >> ~#{user_name}/.ssh/authorized_keys; chown -R #{user_name}:#{user_name} ~#{user_name}'")
+          result = uadmin_unix_ssh_cmd("sudo -s 'ls -laR ~#{user_name}'")
           swift_endpoint.reload
-          if result
-            log "#{head}: remote swift endpoint #{user_name}@#{app_name} exists."
-            set_status("Success:Create")
-            return result
-          else
-            set_status("Error:Create")
-            return nil
-          end
+          log "#{head}: remote swift endpoint #{user_name}@#{app_name} exists."
+          log "#{head}: Directory ~#{user_name} created #{result.inspect}"
+          set_status("Success:Create")
+          return true
         rescue Exception => boom
-          log "#{head}: error ssh to remote server #{boom}"
+          log "#{head}: error creating ~#{user_name} on remote server - #{boom}"
           set_status("Error:Create")
           return nil
         end
