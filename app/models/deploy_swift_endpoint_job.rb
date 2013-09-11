@@ -798,6 +798,31 @@ class DeploySwiftEndpointJob
     log "#{head}: DONE"
   end
 
+  def truncate_logs_remote_endpoint
+    head = __method__
+    log "#{head}: START"
+    swift_endpoint.reload
+    set_status("TruncateLogs")
+    case swift_endpoint.endpoint_type
+      when "Heroku"
+        # do nothing
+      when "Unix"
+        begin
+          log "Truncate Logs of #{user_name}@#{app_name}"
+          result = Rush.bash unix_ssh_cmd("truncate --size '<1M' --no-create buspass-web/log/*.log")
+          swift_endpoint.reload
+          log "#{head}: Result - #{result}"
+          set_status("Success:TruncateLogs")
+        rescue Exception => boom
+          log "#{head}: error truncating logs for #{user_name}@#{app_name} - #{boom}"
+        end
+      else
+        log "#{head}: Unknown Endpoint type #{swift_endpoint.endpoint_type}"
+    end
+  ensure
+    log "#{head}: DONE"
+  end
+
   def job_create_and_deploy_remote_endpoint
     head = __method__
     log "#{head}: START"
