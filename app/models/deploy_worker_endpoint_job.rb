@@ -653,7 +653,7 @@ class DeployWorkerEndpointJob
           log "#{head}: Result - #{result.inspect}."
           result = Rush.bash unix_ssh_cmd("test -e buspass-workers || git clone http://github.com/polar/buspass-workers.git -b #{worker_endpoint.git_refspec}")
           log "#{head}: Result - #{result.inspect}."
-          result = Rush.bash unix_ssh_cmd("cd buspass-workers; git pull; git submodule init; git submodule update")
+          result = Rush.bash unix_ssh_cmd("cd buspass-workers; rm Gemfile.lock; git pull; git submodule init; git submodule update")
           log "#{head}: Result - #{result.inspect}."
           result = Rush.bash unix_ssh_cmd('bash --login -c "cd buspass-workers; bundle install"')
           log "#{head}: Result - #{result.inspect}."

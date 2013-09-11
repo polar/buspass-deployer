@@ -662,7 +662,7 @@ class DeploySwiftEndpointJob
           log "#{head}: Result - #{result.inspect}."
           result = Rush.bash unix_ssh_cmd("test -e buspass-web || git clone http://github.com/polar/buspass-web.git -b #{swift_endpoint.git_refspec}")
           log "#{head}: Result - #{result.inspect}."
-          result = Rush.bash unix_ssh_cmd("cd buspass-web; git pull; git submodule init; git submodule update")
+          result = Rush.bash unix_ssh_cmd("cd buspass-web; rm Gemfile.lock; git pull; git submodule init; git submodule update")
           log "#{head}: Result - #{result.inspect}."
           result = Rush.bash unix_ssh_cmd('bash --login -c "cd buspass-web; bundle install"')
           log "#{head}: Result - #{result.inspect}."
