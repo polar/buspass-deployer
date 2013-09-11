@@ -392,7 +392,7 @@ class DeployWorkerEndpointJob
       when "Unix"
         begin
           log "#{head}: Starting remote worker endpoint #{user_name}@#{app_name}."
-          cmd = "source ~/.buspass-workers.env; cd buspass-workers; bundle exec script/instance --workers #{worker_endpoint.n_workers}"
+          cmd = "source ~/.buspass-workers.env; cd buspass-workers; bundle exec script/instance --name #{worker_endpoint.name} --workers #{worker_endpoint.n_workers}"
           result = Rush.bash unix_ssh_cmd("bash --login -c \"#{cmd}\"")
           log "#{head}: Result - #{result.inspect}."
           worker_endpoint.reload
