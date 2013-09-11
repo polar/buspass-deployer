@@ -398,7 +398,7 @@ class DeployWorkerEndpointJob
       when "Unix"
         begin
           log "#{head}: Starting remote worker endpoint #{user_name}@#{app_name}."
-          result = Rush.bash unix_ssh_cmd('bash --login -c "source ~/buspass-workers.env; cd buspass-workers; bundle exec script/instance -e production --daemonize"')
+          result = Rush.bash unix_ssh_cmd('bash --login -c "source ~/.buspass-workers.env; cd buspass-workers; bundle exec script/instance -e production --daemonize"')
           log "#{head}: Result - #{result.inspect}."
           worker_endpoint.reload
           set_status("Success:Start")
@@ -447,9 +447,9 @@ class DeployWorkerEndpointJob
       when "Unix"
         begin
           log "#{head}: Restarting remote worker endpoint #{user_name}@#{app_name}."
-          result = Rush.bash unix_ssh_cmd('bash --login -c "source ~/buspass-workers.env; cd buspass-workers; bundle exec script/stop_instances -e production"')
+          result = Rush.bash unix_ssh_cmd('bash --login -c "source ~/.buspass-workers.env; cd buspass-workers; bundle exec script/stop_instances -e production"')
           log "#{head}: Result - #{result.inspect}."
-          result = Rush.bash unix_ssh_cmd('bash --login -c "source ~/buspass-workers.env; cd buspass-workers; bundle exec script/instance -e production --daemonize"')
+          result = Rush.bash unix_ssh_cmd('bash --login -c "source ~/.buspass-workers.env; cd buspass-workers; bundle exec script/instance -e production --daemonize"')
           log "#{head}: Result - #{result.inspect}."
           worker_endpoint.reload
           set_status("Success:Restart")
@@ -503,7 +503,7 @@ class DeployWorkerEndpointJob
       when "Unix"
         begin
           log "#{head}: Stopping remote worker endpoint #{user_name}@#{app_name}."
-          result = Rush.bash unix_ssh_cmd('bash --login -c "source ~/buspass-workers.env; cd buspass-workers; bundle exec script/stop_instances -e production"')
+          result = Rush.bash unix_ssh_cmd('bash --login -c "source ~/.buspass-workers.env; cd buspass-workers; bundle exec script/stop_instances -e production"')
           log "#{head}: Result - #{result.inspect}."
           worker_endpoint.reload
           set_status("Success:Stop")
