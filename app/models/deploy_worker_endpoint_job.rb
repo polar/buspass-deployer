@@ -351,15 +351,9 @@ class DeployWorkerEndpointJob
         result = Rush.bash unix_ssh_cmd("ls -l buspass-workers/tmp/pids")
         log "#{head}: Result - #{result.inspect}."
         worker_endpoint.reload
-        if result
-          worker_endpoint.remote_status = result.is_a?(Array) ? result : result.split("\n").drop(1)
-          worker_endpoint.save
-          set_status("Success:RemoteStatus")
-        else
-          worker_endpoint.remote_status = ["No PIDs"]
-          worker_endpoint.save
-          set_status("Error:RemoteStatus")
-        end
+        worker_endpoint.remote_status = result.is_a?(Array) ? result : result.split("\n").drop(1)
+        worker_endpoint.save
+        set_status("Success:RemoteStatus")
       else
         worker_endpoint.reload
         set_status("Error:RemoteStatus")
