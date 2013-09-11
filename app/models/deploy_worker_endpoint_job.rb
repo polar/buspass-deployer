@@ -392,7 +392,8 @@ class DeployWorkerEndpointJob
       when "Unix"
         begin
           log "#{head}: Starting remote worker endpoint #{user_name}@#{app_name}."
-          result = Rush.bash unix_ssh_cmd('bash --login -c "source ~/.buspass-workers.env; cd buspass-workers; bundle exec script/instance -e production --daemonize"')
+          cmd = "source ~/.buspass-workers.env; cd buspass-workers; bundle exec script/instance --workers #{worker_endpoint.n_workers}"
+          result = Rush.bash unix_ssh_cmd("bash --login -c '#{cmd}'")
           log "#{head}: Result - #{result.inspect}."
           worker_endpoint.reload
           set_status("Success:Start")
@@ -441,9 +442,11 @@ class DeployWorkerEndpointJob
       when "Unix"
         begin
           log "#{head}: Restarting remote worker endpoint #{user_name}@#{app_name}."
-          result = Rush.bash unix_ssh_cmd('bash --login -c "source ~/.buspass-workers.env; cd buspass-workers; bundle exec script/stop_instances -e production"')
+          cmd = "source ~/.buspass-workers.env; cd buspass-workers; bundle exec script/stop_instances --workers #{worker_endpoint.n_workers}"
+          result = Rush.bash unix_ssh_cmd("bash --login -c '#{cmd}'")
           log "#{head}: Result - #{result.inspect}."
-          result = Rush.bash unix_ssh_cmd('bash --login -c "source ~/.buspass-workers.env; cd buspass-workers; bundle exec script/instance -e production --daemonize"')
+          cmd = "source ~/.buspass-workers.env; cd buspass-workers; bundle exec script/instance --workers #{worker_endpoint.n_workers}"
+          result = Rush.bash unix_ssh_cmd("bash --login -c '#{cmd}'")
           log "#{head}: Result - #{result.inspect}."
           worker_endpoint.reload
           set_status("Success:Restart")
