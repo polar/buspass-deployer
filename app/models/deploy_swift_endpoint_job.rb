@@ -148,7 +148,7 @@ class DeploySwiftEndpointJob
         begin
           log "#{head}: Creating Unix Endpoint #{user_name}@#{app_name}. Should already exist!"
           #result = Rush.bash uadmin_unix_ssh_cmd("sudo addgroup --quiet busme; exit 0")
-          result = Rush.bash uadmin_unix_ssh_cmd("sudo adduser #{user_name} --quiet --disabled-password")
+          result = Rush.bash uadmin_unix_ssh_cmd("sudo adduser #{user_name} --quiet --disabled-password || exit 0")
           log "#{head}: Result #{result.inspect}"
           #result = Rush.bash uadmin_unix_ssh_cmd("sudo adduser --quiet #{user_name} busme; exit 0")
           result = Rush.bash uadmin_unix_ssh_cmd("sudo -u #{user_name} mkdir -p ~#{user_name}/.ssh")
@@ -156,14 +156,15 @@ class DeploySwiftEndpointJob
           result = Rush.bash uadmin_unix_ssh_cmd("sudo -u #{user_name} chmod 777 ~#{user_name}/.ssh")
           log "#{head}: Result #{result.inspect}"
           file = pub_cert(ssh_cert)
-          result = Rush.bash uadmin_unix_scp_cmd(file.path, "~#{user_name}/.ssh/authorized_keys")
+          result = Rush.bash uadmin_unix_scp_cmd(file.path, "~#{user_name}/.ssh/swift_endpoint.pub")
           log "#{head}: Result #{result.inspect}"
           file.unlink
+          result = Rush.bash uadmin_unix_ssh_cmd("cat ~#{user_name}/.ssh/swift_endpoint.pub | sudo -u #{user_name} tee -a ~#{user_name}/.ssh/authorized_keys")
           result = Rush.bash uadmin_unix_ssh_cmd("sudo chown -R #{user_name}:#{user_name} ~#{user_name}")
           log "#{head}: Result #{result.inspect}"
           result = Rush.bash uadmin_unix_ssh_cmd("sudo -u #{user_name} chmod 700 ~#{user_name}/.ssh")
           log "#{head}: Result #{result.inspect}"
-          result = Rush.bash uadmin_unix_ssh_cmd("sudo -u #{user_name} ls -laR ~#{user_name}")
+          result = Rush.bash unix_ssh_cmd("ls -la")
           swift_endpoint.reload
           log "#{head}: remote swift endpoint #{user_name}@#{app_name} exists."
           log "#{head}: Result #{result.inspect}"
