@@ -806,6 +806,9 @@ class DeploySwiftEndpointJob
     case swift_endpoint.endpoint_type
       when "Heroku"
         # do nothing
+        swift_endpoint.reload
+        log "#{head} No need to truncate logs for Heroku"
+        set_status("Success:TruncateLogs")
       when "Unix"
         begin
           log "Truncate Logs of #{user_name}@#{app_name}"
