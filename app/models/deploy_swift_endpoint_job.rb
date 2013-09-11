@@ -785,7 +785,7 @@ class DeploySwiftEndpointJob
           swift_endpoint.create_swift_endpoint_remote_log
         end
         swift_endpoint.swift_endpoint_remote_log.clear
-        result.each do |line|
+        result.split("\n").each do |line|
           swift_endpoint.swift_endpoint_remote_log.write(line)
         end
         set_status("Success:GetLogs")
