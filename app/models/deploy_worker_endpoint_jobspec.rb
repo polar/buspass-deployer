@@ -79,6 +79,11 @@ class DeployWorkerEndpointJobspec < Struct.new(:deploy_worker_endpoint_job_id, :
         job.reset_api
         job.logs_remote_endpoint
 
+      when "truncate_logs_remote_endpoint"
+        job.reset_api
+        job.truncate_logs_remote_endpoint
+
+
       else
         job.log "Unknown action : #{action}."
     end

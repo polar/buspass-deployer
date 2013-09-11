@@ -4,6 +4,8 @@ class WorkerEndpoint
   key :name
   key :endpoint_type
   key :remote_name
+  key :user_name # may be standard or different per endpoint.
+  key :n_workers, :default => "1"
   key :status
   key :remote_status
   key :instance_status

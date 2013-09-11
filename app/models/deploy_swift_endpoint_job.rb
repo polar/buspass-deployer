@@ -9,7 +9,7 @@ end
 class DeploySwiftEndpointJob
   include MongoMapper::Document
 
-  belongs_to :swift_endpoint
+  belongs_to :swift_endpoint, :autosave => false
 
 
   key :status_content
@@ -51,6 +51,10 @@ class DeploySwiftEndpointJob
     backend.frontend
   end
 
+  def installation
+    frontend.installation
+  end
+
   def ssh_cert
     if frontend.frontend_key
       if ! File.exists?(frontend.frontend_key.ssh_key.file.path) && frontend.frontend_key.key_encrypted_content
@@ -64,11 +68,6 @@ class DeploySwiftEndpointJob
     file = Tempfile.new("cert.pub")
     Rush.bash("ssh-keygen -y -f #{cert_path} > #{file.path}")
     return file
-  end
-
-
-  def installation
-    frontend.installation
   end
 
   def delayed_jobs
@@ -85,6 +84,7 @@ class DeploySwiftEndpointJob
       config.pre_deploy_git_commands = [
           "script/dist-config \"#{swift_endpoint.git_repository}\" \"#{swift_endpoint.git_name}\" \"#{swift_endpoint.git_refspec}\" /tmp"
       ]
+      config.force_push = true
       config.repository_location = File.join("/", "tmp", swift_endpoint.git_name)
     end
   end
@@ -136,11 +136,14 @@ class DeploySwiftEndpointJob
     case swift_endpoint.endpoint_type
       when "Heroku"
         begin
+          set_status("Creating")
           result = HerokuHeadless.heroku.post_app(:name => app_name)
           swift_endpoint.reload
           set_status("Success:Create")
+          return true
         rescue Exception => boom
           log "#{head}: error Heroku.post_app(:name => #{app_name}) -- #{boom}"
+          swift_endpoint.reload
           set_status("Error:Create")
           return nil
         end
@@ -176,6 +179,7 @@ class DeploySwiftEndpointJob
           return nil
         end
       else
+        swift_endpoint.reload
         set_status("Error:Create")
         log "#{head}: Unknown Endpoint type #{swift_endpoint.endpoint_type}"
     end
@@ -212,15 +216,9 @@ class DeploySwiftEndpointJob
           result = Rush.bash unix_ssh_cmd("ls ~#{user_name}")
           log "#{head}: Result - #{result.inspect}."
           swift_endpoint.reload
-          if result
-            log "#{head}: remote swift endpoint #{user_name}@#{app_name} exists."
-            set_status("Success:Exists")
-            return true
-          else
-            log "#{head}: remote swift endpoint #{user_name}@#{app_name} does not exist."
-            set_status("Error:Exists")
-            return false
-          end
+          log "#{head}: remote swift endpoint #{user_name}@#{app_name} exists."
+          set_status("Success:Exists")
+          return true
         rescue Exception => boom
           log "#{head}: error ssh to remote server #{boom}"
           log "#{head}: remote swift endpoint #{user_name}@#{app_name} does not exist."
@@ -317,6 +315,7 @@ class DeploySwiftEndpointJob
           result = HerokuHeadless.heroku.get_app(app_name)
           if result
             result = HerokuHeadless.heroku.get_ps(app_name)
+            swift_endpoint.reload
             if result && result.data && result.data[:body]
               log "#{head}: status is #{result.data[:body].inspect}"
               status = result.data[:body].map {|s| "#{s["process"]}: #{s["pretty_state"]}" }
@@ -401,17 +400,17 @@ class DeploySwiftEndpointJob
           return nil
         end
       when "Unix"
-        log "#{head}: Starting remote swift endpoint #{user_name}@#{app_name}."
-        result = Rush.bash unix_ssh_cmd('bash --login -c "cd buspass-web; bundle exec script/instance -e production --daemonize"')
-        log "#{head}: Result - #{result.inspect}."
-        swift_endpoint.reload
-        if result
+        begin
+          log "#{head}: Starting remote swift endpoint #{user_name}@#{app_name}."
+          result = Rush.bash unix_ssh_cmd('bash --login -c "source ~/.buspass-web.env; cd buspass-web; bundle exec script/instance -e production --daemonize"')
+          log "#{head}: Result - #{result.inspect}."
+          swift_endpoint.reload
           set_status("Success:Start")
-          log "status is #{result.inspect}"
-          return result.data[:body].inspect
-        else
+          return result.inspect
+        rescue Exception => boom
+          swift_endpoint.reload
           set_status("Error:Start")
-          log "#{head}: remote swift endpoint #{app_name} bad result."
+          log "#{head}: error in starting swift endpoint #{user_name}@#{app_name} - #{boom}."
           return nil
         end
       else
@@ -452,13 +451,20 @@ class DeploySwiftEndpointJob
           return nil
         end
       when "Unix"
-        log "#{head}: Stopping remote swift endpoint #{user_name}@#{app_name}."
-        result = Rush.bash unix_ssh_cmd('bash --login -c "cd buspass-web; bundle exec script/stop_instances -e production"')
-        log "#{head}: Result - #{result.inspect}."
-        swift_endpoint.reload
-        set_status("Success:Stop")
-        log "status is #{result.inspect}"
-        return true
+        begin
+          log "#{head}: Stopping remote swift endpoint #{user_name}@#{app_name}."
+          result = Rush.bash unix_ssh_cmd('bash --login -c "source ~/.buspass-web.env; cd buspass-web; bundle exec script/stop_instances -e production"')
+          log "#{head}: Result - #{result.inspect}."
+          swift_endpoint.reload
+          set_status("Success:Stop")
+          log "status is #{result.inspect}"
+          return true
+        rescue Exception => boom
+          swift_endpoint.reload
+          set_status("Error:Stop")
+          log "#{head}: Error stopping swift endpoint #{user_name}@#{app_name} - #{boom}"
+        end
+
       else
         swift_endpoint.reload
         set_status("Error:Stop")
@@ -497,9 +503,9 @@ class DeploySwiftEndpointJob
       when "Unix"
         begin
           log "#{head}: Restarting remote swift endpoint #{user_name}@#{app_name}."
-          result = Rush.bash unix_ssh_cmd('bash --login -c "cd buspass-web; bundle exec script/stop_instances -e production"')
+          result = Rush.bash unix_ssh_cmd('bash --login -c "source ~/.buspass-web.env; cd buspass-web; bundle exec script/stop_instances -e production"')
           log "#{head}: Result - #{result.inspect}."
-          result = Rush.bash unix_ssh_cmd('bash --login -c "cd buspass-web; bundle exec script/instance -e production --daemonize"')
+          result = Rush.bash unix_ssh_cmd('bash --login -c "source ~/.buspass-web.env; cd buspass-web; bundle exec script/instance -e production --daemonize"')
           log "#{head}: Result - #{result.inspect}."
           swift_endpoint.reload
           set_status("Success:Restart")
@@ -552,7 +558,6 @@ class DeploySwiftEndpointJob
               "MASTER_SLUG" => backend.master_slug
           }
           log "#{head}: Setting configuration variables for swift endpoint #{app_name}."
-          log "#{head}: Configuration Vars #{vars.inspect}"
           result = HerokuHeadless.heroku.put_config_vars(app_name, vars)
           swift_endpoint.reload
           if result && result.data[:body]
@@ -600,7 +605,7 @@ class DeploySwiftEndpointJob
             file.write("export #{k}='#{v}'\n")
           end
           file.close
-          result = Rush.bash unix_scp_cmd(file.path, ".bash_login")
+          result = Rush.bash unix_scp_cmd(file.path, ".buspass-web.env")
           file.unlink
           log "#{head}: Configuration Result #{result.inspect}"
           swift_endpoint.reload
@@ -630,7 +635,7 @@ class DeploySwiftEndpointJob
     case swift_endpoint.endpoint_type
       when "Heroku"
         begin
-          log "#{head}: Deploying swift endpoint #{app_name}"
+          log "#{head}: Deploying swift endpoint #{app_name} refspec #{swift_endpoint.git_refspec}"
           HerokuHeadless::Deployer.logger = self
           result = HerokuHeadless::Deployer.deploy(app_name, swift_endpoint.git_refspec)
           swift_endpoint.reload
@@ -653,7 +658,7 @@ class DeploySwiftEndpointJob
       when "Unix"
         begin
           log "#{head}: Deploying swift endpoint #{user_name}@#{app_name}"
-          result = Rush.bash unix_ssh_cmd('test -e buspass-web && test -e buspass-web/script/stop_instances && bash --login -c "cd buspass-web; bundle exec script/stop_instances -e production" || exit 0')
+          result = Rush.bash unix_ssh_cmd('test -e buspass-web && test -e buspass-web/script/stop_instances && bash --login -c "source ~/.buspass-web.env; cd buspass-web; bundle exec script/stop_instances -e production" || exit 0')
           log "#{head}: Result - #{result.inspect}."
           result = Rush.bash unix_ssh_cmd("test -e buspass-web || git clone http://github.com/polar/buspass-web.git -b #{swift_endpoint.git_refspec}")
           log "#{head}: Result - #{result.inspect}."
@@ -667,7 +672,7 @@ class DeploySwiftEndpointJob
           get_deploy_status
         rescue Exception => boom
           swift_endpoint.reload
-          log "#{head}: Could not deploy swift endpoint to #{swift_endpoint.endpoint_type} #{app_name} : #{boom}"
+          log "#{head}: Could not deploy swift endpoint to #{swift_endpoint.endpoint_type} #{user_name}@#{app_name} : #{boom}"
           set_status("Error:Deploy")
         end
       else
@@ -701,7 +706,10 @@ class DeploySwiftEndpointJob
       when "Unix"
         begin
           log "Deleting swift endpoint #{user_name}@#{app_name}"
-          result = Rush.bash uadmin_unix_ssh_cmd("sudo deluser --remove-home #{user_name}")
+          stop_remote_endpoint
+          result = Rush.bash unix_ssh_cmd("rm -rf buspass-web")
+          log "#{head}: Result - #{result.inspect}."
+          result = Rush.bash uadmin_unix_ssh_cmd("test `ls ~#{user_name} | wc -l` == '0' && sudo deluser --remove-home #{user_name}")
           log "#{head}: Result - #{result.inspect}."
           swift_endpoint.reload
           set_status("Success:DestroyApp")
@@ -758,22 +766,29 @@ class DeploySwiftEndpointJob
           end
         rescue Exception => boom
           swift_endpoint.reload
-          log "#{head}: Could not get remote logs for #{swift_endpoint.endpoint_type} #{app_name} : #{boom}"
+          log "#{head}: Could not get remote logs for #{swift_endpoint.endpoint_type} #{user_name}@#{app_name} : #{boom}"
           set_status("Error:GetLogs")
           return nil
         end
       when "Unix"
-        log "Logs Unix SwiftEndpoint #{user_name}@#{app_name}"
-        result = Rush.bash unix_ssh_cmd("tail -500 buspass-web/log/production.log")
-        if swift_endpoint.swift_endpoint_remote_log.nil?
-          swift_endpoint.create_swift_endpoint_remote_log
+        begin
+          log "Logs Unix SwiftEndpoint #{user_name}@#{app_name}"
+          result = Rush.bash unix_ssh_cmd("tail -500 buspass-web/log/production.log")
+          if swift_endpoint.swift_endpoint_remote_log.nil?
+            swift_endpoint.create_swift_endpoint_remote_log
+          end
+          swift_endpoint.swift_endpoint_remote_log.clear
+          result.split("\n").each do |line|
+            swift_endpoint.swift_endpoint_remote_log.write(line)
+          end
+          set_status("Success:GetLogs")
+          return result
+        rescue Exception => boom
+          swift_endpoint.reload
+          log "#{head}: Could not get remote logs for #{swift_endpoint.endpoint_type} #{user_name}@#{app_name} : #{boom}"
+          set_status("Error:GetLogs")
+          return nil
         end
-        swift_endpoint.swift_endpoint_remote_log.clear
-        result.split("\n").each do |line|
-          swift_endpoint.swift_endpoint_remote_log.write(line)
-        end
-        set_status("Success:GetLogs")
-        return result
       else
         log "#{head}: Unknown Endpoint type #{swift_endpoint.endpoint_type}"
     end
