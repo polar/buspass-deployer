@@ -30,6 +30,10 @@ class DeployWorkerEndpointJob
   def log(s)
     worker_endpoint.log(s)
   end
+
+  def user_name
+    worker_endpoint.user_name
+  end
   
   def app_name
     worker_endpoint.remote_name
@@ -86,7 +90,7 @@ class DeployWorkerEndpointJob
   end
 
   def unix_ssh_cmd(cmd)
-    match = /([0-9a-zA-Z\-\._]*)(:([0-9]*))?/.match(worker_endpoint.remote_name)
+    match = /([0-9a-zA-Z\-\._]*)(:([0-9]*))?/.match(app_name)
     host = match[1]
     port = match[3]
     cmd = "ssh -o StrictHostKeychecking=no -o CheckHostIP=no -o UserKnownHostsFile=/dev/null  #{"-p #{port}" if port} -i #{ssh_cert} #{user_name}@#{host} '#{cmd}'"
@@ -96,7 +100,7 @@ class DeployWorkerEndpointJob
   end
 
   def uadmin_unix_ssh_cmd(cmd)
-    match = /([0-9a-zA-Z\-\._]*)(:([0-9]*))?/.match(worker_endpoint.remote_name)
+    match = /([0-9a-zA-Z\-\._]*)(:([0-9]*))?/.match(app_name)
     host = match[1]
     port = match[3]
     cmd = "ssh -o StrictHostKeychecking=no -o CheckHostIP=no -o UserKnownHostsFile=/dev/null  #{"-p #{port}" if port} -i #{ssh_cert} uadmin@#{host} '#{cmd}'"
@@ -106,7 +110,7 @@ class DeployWorkerEndpointJob
   end
 
   def unix_scp_cmd(path, remote_path)
-    match = /([0-9a-zA-Z\-\._]*)(:([0-9]*))?/.match(worker_endpoint.remote_name)
+    match = /([0-9a-zA-Z\-\._]*)(:([0-9]*))?/.match(app_name)
     host = match[1]
     port = match[3]
     cmd = "scp -o StrictHostKeychecking=no -o CheckHostIP=no -o UserKnownHostsFile=/dev/null  #{"-P #{port}" if port} -i #{ssh_cert} #{path} #{user_name}@#{host}:#{remote_path}"
@@ -116,7 +120,7 @@ class DeployWorkerEndpointJob
   end
 
   def uadmin_unix_scp_cmd(path, remote_path)
-    match = /([0-9a-zA-Z\-\._]*)(:([0-9]*))?/.match(worker_endpoint.remote_name)
+    match = /([0-9a-zA-Z\-\._]*)(:([0-9]*))?/.match(app_name)
     host = match[1]
     port = match[3]
     cmd = "scp -o StrictHostKeychecking=no -o CheckHostIP=no -o UserKnownHostsFile=/dev/null  #{"-P #{port}" if port} -i #{ssh_cert} #{path} uadmin@#{host}:#{remote_path}"
