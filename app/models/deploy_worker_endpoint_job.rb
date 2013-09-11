@@ -442,10 +442,10 @@ class DeployWorkerEndpointJob
       when "Unix"
         begin
           log "#{head}: Restarting remote worker endpoint #{user_name}@#{app_name}."
-          cmd = "source ~/.buspass-workers.env; cd buspass-workers; bundle exec script/stop_instances --workers #{worker_endpoint.n_workers}"
+          cmd = "source ~/.buspass-workers.env; cd buspass-workers; bundle exec script/stop_instances --name #{worker_endpoint.name} --workers #{worker_endpoint.n_workers}"
           result = Rush.bash unix_ssh_cmd("bash --login -c \"#{cmd}\"")
           log "#{head}: Result - #{result.inspect}."
-          cmd = "source ~/.buspass-workers.env; cd buspass-workers; bundle exec script/instance --workers #{worker_endpoint.n_workers}"
+          cmd = "source ~/.buspass-workers.env; cd buspass-workers; bundle exec script/instance --name #{worker_endpoint.name} --workers #{worker_endpoint.n_workers}"
           result = Rush.bash unix_ssh_cmd("bash --login -c \"#{cmd}\"")
           log "#{head}: Result - #{result.inspect}."
           worker_endpoint.reload
@@ -500,7 +500,8 @@ class DeployWorkerEndpointJob
       when "Unix"
         begin
           log "#{head}: Stopping remote worker endpoint #{user_name}@#{app_name}."
-          result = Rush.bash unix_ssh_cmd('bash --login -c "source ~/.buspass-workers.env; cd buspass-workers; bundle exec script/stop_instances -e production"')
+          cmd = "source ~/.buspass-workers.env; cd buspass-workers; bundle exec script/stop_instances --name #{worker_endpoint.name} --workers #{worker_endpoint.n_workers}"
+          result = Rush.bash unix_ssh_cmd("bash --login -c \"#{cmd}\"" )
           log "#{head}: Result - #{result.inspect}."
           worker_endpoint.reload
           set_status("Success:Stop")
@@ -649,7 +650,8 @@ class DeployWorkerEndpointJob
       when "Unix"
         begin
           log "#{head}: Deploying worker endpoint #{user_name}@#{app_name}"
-          result = Rush.bash unix_ssh_cmd('test -e buspass-workers && test -e buspass-workers/script/stop_instances && bash --login -c "source ~/.buspass-workers.env; cd buspass-workers; bundle exec script/stop_instances -e production" || exit 0')
+          cmd = "test -e buspass-workers && test -e buspass-workers/script/stop_instances && bash --login -c \"source ~/.buspass-workers.env; cd buspass-workers; bundle exec script/stop_instances --name #{worker_endpoint.name} --workers #{worker_endpoint.n_workers}\" || exit 0"
+          result = Rush.bash unix_ssh_cmd(cmd)
           log "#{head}: Result - #{result.inspect}."
           result = Rush.bash unix_ssh_cmd("test -e buspass-workers || git clone http://github.com/polar/buspass-workers.git -b #{worker_endpoint.git_refspec}")
           log "#{head}: Result - #{result.inspect}."
