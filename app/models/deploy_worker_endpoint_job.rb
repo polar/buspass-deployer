@@ -548,9 +548,6 @@ class DeployWorkerEndpointJob
               "SWIFTIPLY_KEY" => ENV['SWIFTIPLY_KEY'],
               "N_SERVERS" => worker_endpoint.n_workers,
               "SSH_KEY" => ENV['SSH_KEY'],
-              "NEW_RELIC_APP_NAME" => worker_endpoint.name,
-              "NEW_RELIC_ID" => ENV["NEW_RELIC_ID"],
-              "NEW_RELIC_LICENSE_KEY" => ENV["NEW_RELIC_LICENSE_KEY"],
               "NEW_RELIC_LOG" => ENV["NEW_RELIC_LOG"],
               "MASTER_SLUG" => backend.master_slug
           }
@@ -594,9 +591,6 @@ class DeployWorkerEndpointJob
               "RAILS_ENV" => ENV['RAILS_ENV'], # should be 'production'
               "N_SERVERS" => worker_endpoint.n_workers,
               "SSH_KEY" => ENV['SSH_KEY'],
-              "NEW_RELIC_APP_NAME" => worker_endpoint.name,
-              "NEW_RELIC_ID" => ENV["NEW_RELIC_ID"],
-              "NEW_RELIC_LICENSE_KEY" => ENV["NEW_RELIC_LICENSE_KEY"],
               "NEW_RELIC_LOG" => ENV["NEW_RELIC_LOG"],
               "MASTER_SLUG" => backend.master_slug
           }
