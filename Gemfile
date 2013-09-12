@@ -55,6 +55,7 @@ group :assets do
 end
 
 gem 'newrelic_rpm'
+gem 'newrelic_mongo'
 
 #gem 'jquery-rails'
 

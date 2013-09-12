@@ -113,6 +113,9 @@ GEM
     net-scp (1.1.2)
       net-ssh (>= 2.6.5)
     net-ssh (2.6.8)
+    newrelic_mongo (0.0.4)
+      mongo (~> 1.4)
+      newrelic_rpm (~> 3.5)
     newrelic_rpm (3.6.6.147)
     nokogiri (1.5.10)
     plucky (0.5.2)
@@ -187,6 +190,7 @@ DEPENDENCIES
   heroku-headless!
   mm-carrierwave
   mongo_mapper
+  newrelic_mongo
   newrelic_rpm
   rails (= 3.2.11)
   rake
