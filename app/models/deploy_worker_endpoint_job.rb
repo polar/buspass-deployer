@@ -159,6 +159,7 @@ class DeployWorkerEndpointJob
           log "#{head}: Result #{result.inspect}"
           result = Rush.bash uadmin_unix_ssh_cmd("sudo -u #{user_name} chmod 777 ~#{user_name}/.ssh")
           log "#{head}: Result #{result.inspect}"
+          result = Rush.bash uadmin_unix_ssh_cmd("rm -f ~#{user_name}/.ssh/worker_endpoint.pub")
           file = pub_cert(ssh_cert)
           result = Rush.bash uadmin_unix_scp_cmd(file.path, "~#{user_name}/.ssh/worker_endpoint.pub")
           log "#{head}: Result #{result.inspect}"
