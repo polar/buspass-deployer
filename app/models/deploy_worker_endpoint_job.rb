@@ -173,7 +173,7 @@ class DeployWorkerEndpointJob
           log "#{head}: Result #{result.inspect}"
           result = Rush.bash unix_ssh_cmd("test -e .rvm || \\curl -L https://get.rvm.io | bash -s stable --autolibs=read-fail")
           log "#{head}: Result #{result.inspect}"
-          result = Rush.bash unix_ssh_cmd("test -e .rvm && rvm install 1.9.3")
+          result = Rush.bash unix_ssh_cmd("test -e .rvm && bash --login -c \"rvm install 1.9.3\"")
           log "#{head}: Result #{result.inspect}"
           worker_endpoint.reload
           log "#{head}: remote worker endpoint #{user_name}@#{app_name} exists."
