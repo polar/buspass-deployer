@@ -13,11 +13,9 @@ su - admin '/usr/bin/curl -L https://get.rvm.io | sudo bash'
 #
 # Need some extra libraries to get Busme! running
 #
-apt-get install libcurl4-gnutils-dev
-apt-get install rmagic
-apt-get install libmagick++-dev
-apt-get install libgsl0-dev
-apt-get isntall nodejs
+adduser admin
+
+apt-get install build-essential libcurl4-gnutils-dev   rmagic   libmagick++-dev  libgsl0-dev nodejs git
 
 #
 # The Busme! Deployer needs to create users on the endpoint machines
@@ -33,4 +31,11 @@ adduser uadmin --ingroup admin
 cat > /etc/sudoers.d/uadmin <<EOF
 Defaults !requiretty
 uadmin ALL=(ALL:ALL) NOPASSWD: /usr/sbin/adduser, /user/sbin/deluser, /usr/sbin/delgroup, /usr/bin/addgroup, /bin/ls, /bin/cp, /bin/mkdir, /bin/rm, /bin/cat, /bin/chmod, /bin/chown, /usr/bin/tee
+EOF
+
+
+su - uadmin mkdir .ssh
+chmod 700 .ssh
+cat > .ssh/authorized_keys << EOF
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC4SkAS1ob2mNoyGnHShWramjOWCPkBfJl4x/DWfVxsP3Y7WZwwCriQPUT9btuWQRMOsZqeWFtLssbNBnDVNsBj3/551Pr9sGqK+pN+/Eyr41G90ukIbkC9wOGRh7q1MQNGkhjaABWTG3h3e+v7NGiPmycqbJNGrxr74gh0Rs/T9Iv7oukdSo0jmoodIjpCRn9Q6QFY8y2Ps8UTz3MPqMitRCyVNiyb2+8LXBqoFWZMqIOt3NNRXfdkpU+JORLSZd8FD6T/erqVyJiRna72OzSPUapbX8X5EtKXxUGRwPwDv+dihnyv/3emWv9byQcFHRBqU67SU4Nrc0X+i2zSLpBF
 EOF
