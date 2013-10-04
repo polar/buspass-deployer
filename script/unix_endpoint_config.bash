@@ -5,17 +5,18 @@
 # prep the system.
 #
 
-#
-# Add RVM for all users. You must not be the root user when doing this action
-#
-su - admin '/usr/bin/curl -L https://get.rvm.io | sudo bash'
 
 #
 # Need some extra libraries to get Busme! running
 #
 adduser admin
 
-apt-get install build-essential libcurl4-gnutils-dev   rmagic   libmagick++-dev  libgsl0-dev nodejs git
+#
+# Add RVM for all users. You must not be the root user when doing this action
+#
+su - admin '/usr/bin/curl -L https://get.rvm.io | sudo bash'
+
+apt-get install build-essential libcurl4-gnutls-dev rmagic libmagick++-dev libgsl0-dev nodejs git gawk libreadline6-dev libssl-dev libyaml-dev libsqlite3-dev sqlite3 autoconf libgdbm-dev libncurses5-dev automake bison libffi-dev mongodb
 
 #
 # The Busme! Deployer needs to create users on the endpoint machines
