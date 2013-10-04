@@ -161,8 +161,11 @@ class DeployWorkerEndpointJob
           log "#{head}: Result #{result.inspect}"
           result = Rush.bash uadmin_unix_ssh_cmd("rm -f ~#{user_name}/.ssh/worker_endpoint.pub")
           file = pub_cert(ssh_cert)
+          begin
           result = Rush.bash uadmin_unix_scp_cmd(file.path, "~#{user_name}/.ssh/worker_endpoint.pub")
-          log "#{head}: Result #{result.inspect}"
+          rescue Exception => boom4
+            log "#{head}: error creating ~#{user_name}/.ssh/swift_endpoint.pub on remote server - #{boom4} - trying to ignore"
+          end
           file.unlink
           result = Rush.bash uadmin_unix_ssh_cmd("cat ~#{user_name}/.ssh/worker_endpoint.pub | sudo -u #{user_name} tee -a ~#{user_name}/.ssh/authorized_keys")
           result = Rush.bash uadmin_unix_ssh_cmd("sudo chown -R #{user_name}:#{user_name} ~#{user_name}")
