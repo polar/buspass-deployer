@@ -77,6 +77,10 @@ class DeployFrontendJobspec < Struct.new(:deploy_frontend_job_id, :name, :action
         backend = Backend.find(backend_id)
         job.start_remote_backend(backend)
 
+      when "restart_remote_backend"
+        backend = Backend.find(backend_id)
+        job.restart_remote_backend(backend)
+
       when "stop_remote_backend"
         backend = Backend.find(backend_id)
         job.stop_remote_backend(backend)
