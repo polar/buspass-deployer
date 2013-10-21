@@ -39,11 +39,11 @@ class DeployFrontendJob
   end
 
   def ssh_cmd(cmd)
-    "ssh -o StrictHostKeychecking=no -o CheckHostIP=no -o UserKnownHostsFile=/dev/null -i #{ssh_cert} ec2-user@#{frontend.hostip} #{cmd}"
+    "ssh -o StrictHostKeychecking=no -o CheckHostIP=no -o UserKnownHostsFile=/dev/null -i #{ssh_cert} ec2-user@#{frontend.host} #{cmd}"
   end
 
   def scp_cmd(path, remote_path)
-    "scp -o StrictHostKeychecking=no -o CheckHostIP=no -o UserKnownHostsFile=/dev/null -i #{ssh_cert} #{path} ec2-user@#{frontend.hostip}:#{remote_path}"
+    "scp -o StrictHostKeychecking=no -o CheckHostIP=no -o UserKnownHostsFile=/dev/null -i #{ssh_cert} #{path} ec2-user@#{frontend.host}:#{remote_path}"
   end
 
   def install_remote_frontend
@@ -329,6 +329,21 @@ class DeployFrontendJob
     case frontend.host_type
       when "ec2"
         cmd = ssh_cmd "\\\"#{frontend.git_name}/scripts/start_backends.sh\\\" --name \\\"#{frontend.name}\\\""
+        log "#{head}: #{cmd}"
+        Open3.popen2e(cmd) do |stdin,out,wait_thr|
+          pid = wait_thr.pid
+          out.each {|line| log("#{head}: #{line}")}
+        end
+    end
+    log "#{head}: DONE"
+  end
+
+  def restart_remote_backends
+    head = __method__
+    log "#{head}: START"
+    case frontend.host_type
+      when "ec2"
+        cmd = ssh_cmd "\\\"#{frontend.git_name}/scripts/restart_backends.sh\\\" --name \\\"#{frontend.name}\\\""
         log "#{head}: #{cmd}"
         Open3.popen2e(cmd) do |stdin,out,wait_thr|
           pid = wait_thr.pid

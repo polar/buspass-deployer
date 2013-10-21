@@ -51,6 +51,9 @@ class DeployFrontendJobspec < Struct.new(:deploy_frontend_job_id, :name, :action
       when "stop_remote_backends"
         job.stop_remote_backends
 
+      when "restart_remote_backends"
+        job.restart_remote_backends
+
       when "create_all_endpoint_apps"
         job.create_all_endpoint_apps
       when "configure_all_endpoint_apps"
