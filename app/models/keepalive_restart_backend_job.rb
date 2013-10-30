@@ -1,3 +1,5 @@
+require "open-uri"
+
 class KeepaliveRestartBackendJob < Struct.new(:queue, :backend_id, :period)
 
   def perform
