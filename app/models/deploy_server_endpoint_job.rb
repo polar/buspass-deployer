@@ -626,6 +626,7 @@ class DeployServerEndpointJob
           result = Rush.bash unix_scp_cmd(file.path, ".buspass-web_#{name}.env")
           file.unlink
           log "#{head}: Configuration Result #{result.inspect}"
+          result = Rush.bash unix_ssh_cmd("test buspass-web && bash --login -c 'cd buspass-web; script/configure_unix_server_endpoint.sh #{server_endpoint.name}' || exit 0")
           server_endpoint.reload
           server_endpoint.status = result
           server_endpoint.save

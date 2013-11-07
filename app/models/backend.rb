@@ -12,6 +12,7 @@ class Backend
   key :port
   key :timeout
   key :log_level, Integer, :default => Logger::INFO
+  key :backend_type, String
 
   key :listen_status
   key :connection_status
@@ -26,6 +27,7 @@ class Backend
   one :deploy_backend_job, :dependent => :destroy, :autosave => false
   many :swift_endpoints, :dependent => :destroy, :autosave => false
   many :worker_endpoints, :dependent => :destroy, :autosave => false
+  many :server_endpoints, :dependent => :destroy, :autosave => false
 
   before_validation :ensure_hostname, :ensure_name
 
