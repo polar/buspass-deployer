@@ -4,6 +4,10 @@ class Installation
   key :name
   key :log_level, Integer, :default => Logger::INFO
 
+  key :server_endpoint_git_repository, :default => "git://github.com/polar/buspass-web.git"
+  key :server_endpoint_git_refspec, :default => "HEAD"
+  key :server_endpoint_git_name, :default => "buspass-web"
+
   key :swift_endpoint_git_repository, :default => "git://github.com/polar/buspass-web.git"
   key :swift_endpoint_git_refspec, :default => "HEAD"
   key :swift_endpoint_git_name, :default => "buspass-web"
@@ -21,7 +25,7 @@ class Installation
   timestamps!
 
 
-  many :frontends, :autosave => false
+  many :frontends, :autosave => false, :dependent => :destroy
 
   validates_presence_of :name
   validates_uniqueness_of :name
@@ -75,6 +79,5 @@ class Installation
   def log(s)
     logger.info s
   end
-
 
 end
