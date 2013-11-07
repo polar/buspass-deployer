@@ -852,8 +852,8 @@ class DeployServerEndpointJob
     server_endpoint.reload
     result = remote_endpoint_exists?
     result = create_remote_endpoint if not result
-    result = configure_remote_endpoint if result
     result = deploy_to_remote_endpoint if result
+    result = configure_remote_endpoint if result
     result = start_remote_endpoint if result
     return result
   ensure
