@@ -10,6 +10,7 @@ class WorkerEndpoint
   key :remote_status
   key :instance_status
   key :master_slug
+  key :remote_configuration_literal, String
   key :git_commit, Array
 
   key :log_level, Integer, :default => Logger::INFO
@@ -36,6 +37,12 @@ class WorkerEndpoint
 
   before_destroy :destroy_app
 
+  def remote_configuration
+
+  end
+  def remote_configuration=
+
+  end
   def destroy_app
     if deploy_worker_endpoint_job
       deploy_worker_endpoint_job.destroy_remote_endpoint

@@ -1,0 +1,18 @@
+<H1>New Backend</H1>
+
+<%= form_for(@backend, :validate => true) do |f| %>
+    <%= f.label(:frontend_id) %>
+    <%= f.collection_select_with_client_side_validations :frontend_id, @frontends, :id, :host %>
+    <%= f.label(:master_slug, "Master") %>
+    <%= f.select(:master_slug, @master_slugs) %>
+    <%= f.label :cluster_address, "Cluster Port (frontend local port)" %>
+    <%= f.text_field :cluster_address %>
+    <%= f.label :cluster_port, "Cluster Port (frontend local port)" %>
+    <%= f.text_field :cluster_port %>
+    <%= f.label :hostname, "Hostname (frontend hostname for this master if other than <master>.#{@backend.hostname}, e.g. citytransit.com)" %>
+    <%= f.text_field :hostname %>
+    <%= f.label :address, "Backend Host (host to which the web runner connects)" %>
+    <%= f.text_field :address %>
+    <%= f.label :port, "Backend Port (port to which the web runner connects)" %>
+    <%= f.text_field :port %>
+<% end %>

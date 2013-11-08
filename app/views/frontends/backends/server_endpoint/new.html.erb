@@ -1,0 +1,53 @@
+<h1>Create Server Endpoint</h1>
+
+<%= form_for(@server_endpoint, :url => frontend_backend_server_endpoints_path(@frontend, @backend), :validate => true) do |f| %>
+    <%= f.label :name %>
+    <%= f.text_field :name %>
+    <%= f.label :endpoint_type, "Endpoint Type" %>
+    <%= f.select(:endpoint_type, options_for_select(["Heroku", "Unix"])) %>
+    <%= f.label :user_name, "User Name (Heroku: N/A, Unix login)" %>
+    <%= f.text_field :user_name, :value => "busme" %>
+    <%= f.label :remote_name, "Remote Name (Heroku Appname, Unix <Hostname|ip>[:ssh_port])" %>
+    <%= f.text_field :remote_name %>
+    <%= f.label :n_servers %>
+    <%= f.text_field :n_servers %>
+    <br />
+    <br />
+    <%= f.submit "Create Server Endpoint", :class => "btn" %>
+<% end %>
+
+
+
+<table class="table table-bordered">
+  <tbody>
+  <tr>
+    <th>Frontend</th>
+    <td><%= @frontend.name %></td>
+  </tr>
+  <tr>
+    <th>Host IP</th>
+    <td><%= @frontend.hostip %></td>
+  </tr>
+  </tbody>
+</table>
+
+<table class="table table-bordered">
+  <tbody>
+  <tr>
+    <th>Backend</th>
+    <td><%= @backend.name %></td>
+  </tr>
+  <tr>
+    <th>Host</th>
+    <td><%= @backend.host %></td>
+  </tr>
+  <tr>
+    <th>Port</th>
+    <td><%= @backend.port %></td>
+  </tr>
+  <tr>
+    <th>Master</th>
+    <td><%= @backend.master_slug %></td>
+  </tr>
+  </tbody>
+</table>

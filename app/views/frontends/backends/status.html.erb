@@ -1,0 +1,93 @@
+<H1>Frontend Backend Status</H1>
+
+<table class="table table-bordered">
+  <thead>
+  <tr>
+    <th>Backend/Master</th>
+    <th>Host:Port</th>
+    <th>Names</th>
+    <th>Listen</th>
+    <th>Connections</th>
+  </tr>
+  </thead>
+  <tbody>
+  <% for be in [@backend] %>
+  <tr>
+    <td><%= link_to be.name, frontend_backend_path(@frontend, be) %></td>
+    <td><%= be.host %>:<%= be.port %></td>
+    <td><div><%= be.hostname %></div><div><%= be.server_name %></div></td>
+    <td><%= be.listen_status.length > 0 ? "LISTEN" : "DOWN" %></td>
+    <td><%= be.connection_status.length %></td>
+  </tr>
+  <tr>
+    <td><%= be.master_slug %></td>
+    <td><%= button_to "Details", status_frontend_backend_path(@frontend, be), :class => "btn btn-mini" %></td>
+    <td><%= button_to "Start", start_frontend_backend_path(@frontend, be), :class => "btn btn-mini" %></td>
+    <td><%= button_to "Stop", stop_frontend_backend_path(@frontend, be), :class => "btn btn-mini" %></td>
+    <td></td>
+  </tr>
+  <% end %>
+  </tbody>
+</table>
+
+<table class="table table-bordered">
+  <tbody>
+  <tr>
+    <th>Listen</th>
+    <td><%= be.listen_status.length > 0 ? "LISTEN" : "DOWN" %></td>
+  </tr>
+  <tr>
+    <th>Connections</th>
+    <td><%= be.connection_status.length %></td>
+  </tr>
+  <tr>
+    <th>Connection Details</th>
+    <td><% for s in be.connection_status do %>
+          <div><%= s %></div>
+      <% end %>
+    </td>
+  </tr>
+  </tbody>
+</table>
+
+<table class="table table-bordered">
+  <thead>
+  <tr>
+    <th>Frontend Name</th>
+    <th>Host</th>
+    <th>Type</th>
+    <th>Host IP</th>
+    <th>Listen</th>
+    <th>Connections</th>
+  </tr>
+  </thead>
+  <tbody>
+  <% for fe in [@frontend] do %>
+      <tr>
+        <td><%= link_to fe.name, frontend_path(fe) %></td>
+        <td><%= fe.host %></td>
+        <td><%= fe.host_type %></td>
+        <td><%= fe.hostip %></td>
+        <td>
+          <% if fe.listen_status.nil? || fe.listen_status.length == 0 %>
+              DOWN
+          <% else
+               for s in @frontend.listen_status do %>
+                <div><%= s %></div>
+            <% end
+            end
+            %>
+          </td>
+        <td><%= be.connection_status.length %></td>
+      </tr>
+  <% end %>
+  </tbody>
+</table>
+
+<h3>Log
+  <%= button_to "Clear", clear_log_frontend_backends_path(@frontend), :class => "btn" %>  </h3>
+<div id="log">
+  <% for l in @frontend.logger.to_a do %>
+      <div><%= l %></div>
+  <% end %>
+</div>

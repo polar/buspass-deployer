@@ -1,0 +1,4 @@
+<% for s in @server_endpoint.remote_status %>
+    <div><%= s %></div>
+<% end if @server_endpoint.remote_status %>
+<div>Instance: <%= @server_endpoint.instance_status %></div>

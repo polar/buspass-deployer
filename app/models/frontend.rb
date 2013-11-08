@@ -58,6 +58,9 @@ class Frontend
     installation.frontend_git_name
   end
 
+  def server_endpoints
+    backends.all.reduce([]) {|t,be| t + be.server_endpoints}
+  end
   def swift_endpoints
     backends.all.reduce([]) {|t,be| t + be.swift_endpoints}
   end

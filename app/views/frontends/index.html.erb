@@ -1,0 +1,40 @@
+<h1>Frontends</h1>
+
+<table class="table table-bordered">
+  <thead>
+  <tr>
+    <th>Name</th>
+    <th>Host</th>
+    <th>Type</th>
+    <th>Host IP</th>
+    <th>Backends (Master, Hostname, Server Name, Swift Endpoints)</th>
+    <th>Actions</th>
+  </tr>
+  </thead>
+  <tbody>
+  <% for fe in @frontends do %>
+  <tr>
+    <td><%= link_to fe.name, frontend_path(fe) %></td>
+    <td><%= fe.host %></td>
+    <td><%= fe.host_type %></td>
+    <td><%= fe.hostip %></td>
+    <td>
+      <table>
+        <% for be in fe.backends do %>
+            <tr>
+              <td><%= link_to (be.master_slug || "#{be.hostname}"), frontend_backend_path(fe, be) %></td>
+
+              <td><%= link_to (be.hostname), frontend_backend_path(fe, be) %></td>
+              <td><%= link_to (be.server_name), frontend_backend_path(fe, be) %></td>
+              <td><%= link_to "#{be.swift_endpoints.count}", frontend_backend_swift_endpoints_path(fe, be) %></td>
+            </tr>
+        <% end %>
+      </table>
+    </td>
+    <td><%= link_to "Manage", frontend_backends_path(fe) %></td>
+  </tr>
+  <% end %>
+  </tbody>
+</table>
+
+<%= link_to "New Frontend", new_frontend_path %>

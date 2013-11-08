@@ -1,0 +1,28 @@
+<h1>Installations</h1>
+
+<table class="table table-bordered">
+  <thead>
+  <tr>
+    <th>Name</th>
+    <th>Frontends</th>
+    <th>Backends</th>
+    <th>Endpoints</th>
+    <th>Workers</th>
+    <th>Actions</th>
+  </tr>
+  </thead>
+  <tbody>
+  <% for i in @installations do %>
+  <tr>
+    <td><%= link_to i.name, installation_path(i) %></td>
+    <td><%= i.frontends.count %></td>
+    <td><%= i.backends.count %></td>
+    <td><%= i.swift_endpoints.count %></td>
+    <td><%= i.worker_endpoints.count %></td>
+    <td><%= button_to "Destroy", installation_path(i), :method => :delete, :class => "btn btn-mini", :confirm => "You will destroy all associated frontends, backends, and endpoints." %></td>
+  </tr>
+  <% end %>
+  </tbody>
+</table>
+
+<%= link_to "New Installation", new_installation_path %>

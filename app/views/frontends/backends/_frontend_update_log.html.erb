@@ -1,0 +1,21 @@
+<script type="text/javascript">
+    var done = false;
+
+    function updateLog() {
+        var n = $("#log").children().size();
+        $.getScript("<%= frontend_partial_status_frontend_backends_path(@frontend) %>?log_end="+n);
+        if (!done) {
+            setTimeout(updateLog, 5000);
+        } else {
+            setFlash("notice", "Log update stopped.");
+        }
+    }
+
+    // Stop updating log after 10 minutes.
+    $(function() {
+        updateLog();
+        setTimeout(function() {
+            done = true;
+        }, 10*60*1000);
+    });
+</script>

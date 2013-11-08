@@ -1,0 +1,15 @@
+<%= render :partial => "installations/update_deploy_status" %>
+
+<h1>Installation Deploy Status</h1>
+
+<div id="status_table">
+<%= render :partial => 'deploy_table_status' %>
+</div>
+
+<h3>Log
+  <%= button_to "Clear", clear_log_installation_path(@installation), :class => "btn" %>  </h3>
+<div id="log">
+  <% for l in @installation.logger.to_a do %>
+      <div><%= l %></div>
+  <% end %>
+</div>

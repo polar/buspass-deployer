@@ -1,0 +1,15 @@
+<h1>Edit Worker Endpoint Git</h1>
+
+<%= form_for @installation, :url => update_worker_endpoint_git_installation_path(@installation) do |f| %>
+    <%= f.label :worker_endpoint_git_repository %>
+    <%= f.text_field :worker_endpoint_git_repository, :class => "input-xxlarge" %>
+    <%= f.label :worker_endpoint_git_refspec %>
+    <%= f.text_field :worker_endpoint_git_refspec %>
+    <%= f.label :worker_endpoint_git_name %>
+    <%= f.text_field :worker_endpoint_git_name %>
+    <br />
+    <br />
+    <%= f.submit "Update", :class => "btn" %>
+<% end %>
+
+<%= link_to "Installation #{@installation.name}", installation_path(@installation) %>

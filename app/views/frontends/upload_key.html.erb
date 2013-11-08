@@ -1,0 +1,32 @@
+<h1>Upload SSH Key</h1>
+
+<table class="table table-bordered">
+  <tbody>
+  <tr>
+    <th>Host</th>
+    <td><%= @frontend.host %></td>
+    <th colspan="3">Actions</th>
+  </tr>
+  <tr>
+    <th>Host Type</th>
+    <td><%= @frontend.host_type %></td>
+  </tr>
+  <tr>
+    <th>Host IP</th>
+    <td><%= @frontend.hostip %></td>
+  </tr>
+  </tbody>
+</table>
+
+<%= form_for @frontend_key,
+             :url => store_key_frontend_path(@frontend),
+             :method => "put",
+             :html => {:multipart => true} do |f| %>
+    <p>
+      <% error_messages!(@frontend_key) %>
+      <%= f.label :ssh_key, "PEM File" %>
+      <%= f.file_field :ssh_key %>
+      <%= f.hidden_field :ssh_key_cache %>
+    </p>
+    <p><%=  f.submit "Upload Key", :class => "btn" %></p>
+<% end %>

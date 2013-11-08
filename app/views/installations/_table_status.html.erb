@@ -1,0 +1,58 @@
+<table class="table table-bordered">
+  <tr>
+    <th>Component</th>
+    <th>Name</th>
+    <th>Last Job Status</th>
+    <th>Remote Status</th>
+  </tr>
+  <tbody>
+  <tr>
+    <th>Installation</th>
+    <td><%= link_to @installation.name, installation_path(@installation) %></td>
+    <td><%= @installation.job_status %></td>
+    <td><%= button_to "Update", ping_remote_status_installation_path(@installation), :class => "btn btn-mini" %></td>
+  </tr>
+  <% for fe in @installation.frontends do %>
+      <tr>
+        <th>Frontend</th>
+        <td><%= link_to fe.name, frontend_path(fe) %>&nbsp;&nbsp; <%= link_to fe.hostip, frontend_path(fe) %></td>
+        <td><%= fe.job_status %></td>
+        <td><%= (fe.listen_status.length > 0 ? "UP" :"DOWN") if fe.listen_status %></td>
+      </tr>
+      <% for be in fe.backends %>
+          <tr>
+            <td>Backend</td>
+            <td><%= link_to be.name, frontend_backend_path(fe,be) %></td>
+            <td><%= be.job_status %></td>
+            <td><%= (be.listen_status.length > 0 ? "UP" :"DOWN") if be.listen_status %></td>
+          </tr>
+          <% for se in be.swift_endpoints do %>
+              <tr>
+                <td>Swift Endpoint</td>
+                <td><%= link_to se.name, frontend_backend_swift_endpoint_path(fe,be,se) %></td>
+                <td><%= se.job_status %></td>
+                <td>
+                  <% for s in se.remote_status do %>
+                      <div><%= s %></div>
+                  <% end if se.remote_status %>
+                  <div><%= "Instance:#{se.instance_status}" if se.instance_status %></div>
+                </td>
+              </tr>
+          <% end %>
+          <% for we in be.worker_endpoints do %>
+              <tr>
+                <td>Worker Endpoint</td>
+                <td><%= link_to we.name, frontend_backend_worker_endpoint_path(fe,be,we) %></td>
+                <td><%= we.job_status %></td>
+                <td>
+                  <% for s in we.remote_status do %>
+                      <div><%= s %></div>
+                  <% end if we.remote_status %>
+                  <div><%= "Instance:#{we.instance_status}" if we.instance_status %></div>
+                </td>
+              </tr>
+          <% end %>
+      <% end %>
+  <% end %>
+  </tbody>
+</table>

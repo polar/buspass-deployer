@@ -1,0 +1,101 @@
+<table class="table table-bordered">
+  <thead>
+  <tr>
+    <th>Frontend Name</th>
+    <th>Host</th>
+    <th>Type</th>
+    <th>Host IP</th>
+    <th>Remote Configured</th>
+  </tr>
+  </thead>
+  <tbody>
+  <% for fe in [@frontend] do %>
+      <tr>
+        <td><%= link_to fe.name, frontend_path(fe) %></td>
+        <td><%= fe.host %></td>
+        <td><%= fe.host_type %></td>
+        <td><%= fe.hostip %></td>
+        <td><%= fe.configured %></td>
+      </tr>
+  <% end %>
+  </tbody>
+</table>
+<table class="table table-bordered">
+  <tbody>
+  <tr>
+    <th>Git Commit</th>
+    <td>
+      <% for s in @frontend.git_commit do %>
+          <div><%= s %></div>
+      <% end if @frontend.git_commit %>
+    </td>
+  </tr>
+  <tr>
+    <th>Listen</th>
+    <td>
+      <% for s in @frontend.listen_status do %>
+          <div><%= s %></div>
+      <% end if @frontend.listen_status %>
+    </td>
+  </tr>
+  <tr>
+    <th>Connections</th>
+    <td>
+      <%= @frontend.connection_status.length if @frontend.connection_status %>
+    </td>
+  </tr>
+  </tbody>
+</table>
+
+<table class="table table-stripped">
+  <tbody>
+  <tr>
+    <th>Frontend Actions</th>
+    <td><%= button_to "Status", status_all_frontend_backends_path(fe), :class => "btn btn-mini" %></td>
+    <td><%= button_to "Start", start_frontend_path(fe), :class => "btn btn-mini" %></td>
+    <td><%= button_to "Stop", stop_frontend_path(fe), :class => "btn btn-mini" %></td>
+    <td><%= button_to "Start All Backends", start_all_frontend_backends_path(fe), :class => "btn btn-mini" %></td>
+    <td><%= button_to "Stop All Backends", stop_all_frontend_backends_path(fe), :class => "btn btn-mini" %></td>
+    <td><%= link_to "Manage", frontend_backends_path(fe), :class => "btn btn-mini" %></td>
+  </tr>
+  </tbody>
+</table>
+
+<table class="table table-bordered">
+  <thead>
+  <tr>
+    <th>Backend/Master</th>
+    <th>Host:Port</th>
+    <th>Names</th>
+    <th>Local:Port</th>
+    <th>Listen</th>
+    <th>Connections</th>
+  </tr>
+  </thead>
+  <tbody>
+  <% for be in @frontend.backends.order(:master_slug).all %>
+      <tr>
+        <td><%= link_to be.name, frontend_backend_path(@frontend, be) %></td>
+        <td><%= be.hostip %>:<%= be.port %></td>
+        <td><div><%= be.hostname %></div><div><%= be.server_name %></div></td>
+        <td><%= be.cluster_address %>:<%= be.cluster_port %></td>
+        <td>
+          <% if be.listen_status %>
+              <% if be.listen_status.length > 0 %>
+                  <% for l in be.listen_status do %>
+                      <div><%= l %></div>
+                  <% end %>
+              <% end %>
+          <% end %>
+        </td>
+        <td><%= be.connection_status.length if be.connection_status %></td>
+      </tr>
+      <tr>
+        <td><%= be.master_slug %></td>
+        <td><%= button_to "Details", status_frontend_backend_path(@frontend, be), :class => "btn btn-mini" %></td>
+        <td><%= button_to "Start", start_frontend_backend_path(@frontend, be), :class => "btn btn-mini" %></td>
+        <td><%= button_to "Stop", stop_frontend_backend_path(@frontend, be), :class => "btn btn-mini" %></td>
+      </tr>
+  <% end %>
+  </tbody>
+</table>

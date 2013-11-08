@@ -1,0 +1,21 @@
+<script type="text/javascript">
+    var done = false;
+
+    function updateStatus() {
+        var n = $("#log").children().size();
+        $.getScript("<%= partial_deploy_status_installation_path(@installation) %>?log_end="+n);
+        if (!done) {
+            setTimeout(updateStatus, 5000);
+        } else {
+            setFlash("notice", "Log update stopped.");
+        }
+    }
+
+    // Stop updating log after 10 minutes.
+    $(function() {
+        updateStatus();
+        setTimeout(function() {
+            done = true;
+        }, 10*60*1000);
+    });
+</script>

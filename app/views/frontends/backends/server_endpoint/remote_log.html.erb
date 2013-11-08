@@ -1,0 +1,36 @@
+<h1>Remote Server Endpoint Log</h1>
+<table class="table table-bordered">
+  <thead>
+  <tr>
+    <th>Name</th>
+    <th>Master</th>
+    <th>Backend</th>
+    <th>Frontend</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+    <td><%= link_to @server_endpoint.name, frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint) %></td>
+    <td><%= @backend.master_slug %></td>
+    <td><%= link_to @backend.name, frontend_backends_path(@frontend, @backend) %></td>
+    <td><%= @frontend.name %></td>
+  </tr>
+  </tbody>
+</table>
+<p></p>
+<div class='row'>
+  <div class="span2">
+    <%= button_to "Update", get_logs_frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint), :class => "btn" %>
+  </div>
+  <div class="span2">
+    <%= link_to "Reload", remote_log_frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint), :class => "btn" %>
+  </div>
+</div>
+<p></p>
+<% if @server_endpoint.server_endpoint_remote_log %>
+    <% for line in @server_endpoint.server_endpoint_remote_log.to_a %>
+    <div><%= line %></div>
+    <%  end %>
+<% else %>
+ <div>No Logs Available</div>
+<% end %>

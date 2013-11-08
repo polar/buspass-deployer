@@ -1,0 +1,16 @@
+<% content_for :head do %>
+    <%= render :partial => "update_backends_status" %>
+<% end %>
+<H1>Frontend Backends Status</H1>
+
+<div id="backends_table">
+  <%= render :partial => 'backends_table' %>
+</div>
+
+<h3>Log
+  <%= button_to "Clear", clear_log_frontend_backends_path(@frontend), :class => "btn" %>  </h3>
+<div id="log">
+  <% for l in @frontend.logger.to_a do %>
+      <div><%= l %></div>
+  <% end %>
+</div>

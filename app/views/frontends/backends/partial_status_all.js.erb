@@ -1,0 +1,2 @@
+$("#backends_table").html('<%= escape_javascript(render :partial => "backends_table") %>');
+$("#log").append('<%= @logs.map{|x| "<div>#{escape_javascript(x)}</div>" }.join.html_safe %>');

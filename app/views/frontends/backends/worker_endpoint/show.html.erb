@@ -1,0 +1,96 @@
+<%= render :partial => "frontends/backends/worker_endpoint/update_log" %>
+
+<h1>Worker Endpoint</h1>
+<%= link_to @worker_endpoint.installation.name, installation_path(@worker_endpoint.installation) %> >
+<%= link_to @worker_endpoint.frontend.host, frontend_path(@worker_endpoint.frontend) %> >
+<%= link_to @worker_endpoint.backend.name, frontend_backend_path(@worker_endpoint.frontend, @worker_endpoint.backend) %>
+
+<table class="table table-bordered">
+  <tbody>
+  <tr>
+    <th>Name</th>
+    <td><%= @worker_endpoint.name %></td><td><%= button_to "Delete", frontend_backend_worker_endpoint_path(@frontend, @backend, @worker_endpoint), :method => :delete, :confirm => "Are you sure?", :class => "btn btn-mini" %></td>
+
+  </tr>
+  <tr>
+    <th>Endpoint Type</th>
+    <td><%= @worker_endpoint.endpoint_type %></td>
+    <td><%= @worker_endpoint.user_name %></td>
+    <td>Workers: <%= @worker_endpoint.n_workers %></td>
+  </tr>
+  <tr>
+    <th>Remote Name</th>
+    <td><%= @worker_endpoint.remote_name %></td>
+    <td><%= button_to "Create App", create_app_frontend_backend_worker_endpoint_path(@frontend, @backend, @worker_endpoint), :confirm => "Are you sure?", :class => "btn btn-mini" %></td>
+    <td><%= button_to "Configure App", configure_app_frontend_backend_worker_endpoint_path(@frontend, @backend, @worker_endpoint), :confirm => "Are you sure?", :class => "btn btn-mini" %></td>
+    <td><%= button_to "Deploy App", deploy_app_frontend_backend_worker_endpoint_path(@frontend, @backend, @worker_endpoint), :confirm => "Are you sure?", :class => "btn btn-mini" %></td>
+    <td><%= button_to "Start App", start_app_frontend_backend_worker_endpoint_path(@frontend, @backend, @worker_endpoint), :confirm => "Are you sure?", :class => "btn btn-mini" %></td>
+    <td><%= button_to "Restart App", restart_app_frontend_backend_worker_endpoint_path(@frontend, @backend, @worker_endpoint), :confirm => "Are you sure?", :class => "btn btn-mini" %></td>
+    <td><%= button_to "Stop App", stop_app_frontend_backend_worker_endpoint_path(@frontend, @backend, @worker_endpoint), :confirm => "Are you sure?", :class => "btn btn-mini" %></td>
+    <td><%= button_to "Truncate Logs", truncate_remote_logs_frontend_backend_worker_endpoint_path(@frontend, @backend, @worker_endpoint), :confirm => "Are you sure?", :class => "btn btn-mini" %></td>
+    <td><%= button_to "Destroy App", destroy_app_frontend_backend_worker_endpoint_path(@frontend, @backend, @worker_endpoint), :method => :delete, :confirm => "Are you sure?", :class => "btn btn-mini" %></td>
+
+  </tr>
+  <tr>
+    <th>Status</th>
+    <td id="endpoint_deploy_status"><%= @worker_endpoint.status %></td>
+    <td colspan="5">
+      <% for s in @worker_endpoint.git_commit do %>
+          <div><%= s %></div>
+      <% end if @worker_endpoint.git_commit %>
+    </td>
+  </tr>
+  <tr>
+    <th>Remote Status</th>
+    <td id="endpoint_remote_status">
+      <%= render :partial => 'endpoint_remote_status' %>
+    </td>
+    <td><%= button_to "Update Status", remote_status_frontend_backend_worker_endpoint_path(@frontend, @backend, @worker_endpoint), :class => "btn btn-mini" %></td>
+    <td><%= button_to "Get Logs", get_logs_frontend_backend_worker_endpoint_path(@frontend, @backend, @worker_endpoint), :class => "btn btn-mini" %></td>
+  </tr>
+  </tbody>
+</table>
+
+
+<table class="table table-bordered">
+  <tbody>
+  <tr>
+    <th>Frontend</th>
+    <td><%= link_to @frontend.name, frontend_backends_path(@frontend) %></td>
+  </tr>
+  <tr>
+    <th>Host IP</th>
+    <td><%= @frontend.hostip %></td>
+  </tr>
+  </tbody>
+</table>
+
+<table class="table table-bordered">
+  <tbody>
+  <tr>
+    <th>Backend</th>
+    <td><%= link_to @backend.name, frontend_backend_worker_endpoints_path(@frontend, @backend) %></td>
+  </tr>
+  <tr>
+    <th>Host</th>
+    <td><%= @backend.host %></td>
+  </tr>
+  <tr>
+    <th>Port</th>
+    <td><%= @backend.port %></td>
+  </tr>
+  <tr>
+    <th>Master</th>
+    <td><%= @backend.master_slug %></td>
+  </tr>
+  </tbody>
+</table>
+
+
+<h3>Log
+  <%= button_to "Clear", clear_log_frontend_backend_worker_endpoint_path(@frontend, @backend, @worker_endpoint), :class => "btn" %>  </h3>
+<div id="log">
+  <% for l in @worker_endpoint.logger.to_a do %>
+      <div><%= l %></div>
+  <% end %>
+</div>

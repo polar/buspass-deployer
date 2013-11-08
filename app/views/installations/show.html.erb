@@ -1,0 +1,137 @@
+<h1>Installation</h1>
+
+<table class="table table-bordered">
+  <tbody>
+  <tr>
+    <th>Name</th>
+    <td><%= @installation.name %></td>
+  </tr>
+  </tbody>
+</table>
+<table class="table table-bordered">
+  <tbody>
+  <tr>
+    <td><%= button_to "Install Frontends", install_frontends_installation_path(@installation), :class => "btn btn-mini" %></td>
+    <td><%= button_to "Upgrade Installation", upgrade_installation_path(@installation), :class => "btn btn-mini"  %></td>
+    <td><%= button_to "Start Installation", start_installation_path(@installation), :class => "btn btn-mini"  %></td>
+    <td><%= button_to "Stop Installation", stop_installation_path(@installation), :class => "btn btn-mini"  %></td>
+    <td><%= link_to "Job Status", status_installation_path(@installation), :class => "btn btn-mini"  %></td>
+    <td><%= link_to "Deploy Status", deploy_status_installation_path(@installation), :class => "btn btn-mini"  %></td>
+  </tr>
+  <tbody>
+</table>
+
+<table class="table table-bordered">
+  <thead>
+  <tr>
+    <th>Frontend Name</th>
+    <th>Frontend IP</th>
+    <th>Backends</th>
+    <th>Server Endpoints</th>
+    <th>Swift Endpoints</th>
+    <th>Worker Endpoints</th>
+    <th>Actions</th>
+  </tr>
+  </thead>
+  <tbody>
+  <% for fe in @installation.frontends do %>
+  <tr>
+    <td><%= link_to fe.name, frontend_path(fe) %></td>
+    <td><%= link_to fe.hostip, frontend_path(fe) %></td>
+    <td><%= fe.backends.count %></td>
+    <td><%= fe.server_endpoints.count %></td>
+    <td><%= fe.swift_endpoints.count %></td>
+    <td><%= fe.worker_endpoints.count %></td>
+    <td><%= button_to "Destroy All", frontend_path(fe), :method => :delete, :class => "btn btn-mini" %></td>
+  </tr>
+  <% end %>
+  </tbody>
+</table>
+
+<%= link_to "New Frontend", new_frontend_path %>
+
+<% for fe in @installation.frontends.order(:host) do %>
+    <h4><%= fe.name %></h4>
+    <table class="table table-bordered">
+      <thead>
+      <tr>
+        <th>Backend Name</th>
+        <th>Server Endpoints</th>
+        <th>Swift Endpoints</th>
+        <th>Worker Endpoints</th>
+      </tr>
+      </thead>
+      <tbody>
+      <% for be in fe.backends.order(:name) do %>
+      <tr>
+        <td><%= link_to be.name, frontend_backend_path(fe,be) %></td>
+        <td><%= be.server_endpoints.count %></td>
+        <td><%= be.swift_endpoints.count %></td>
+        <td><%= be.worker_endpoints.count %></td>
+      </tr>
+      <% end %>
+      </tbody>
+    </table>
+<% end %>
+
+<table class="table table-bordered">
+  <tbody>
+  <tr>
+    <th>Frontend Git Repository</th>
+    <th>Git Refspec(branch)</th>
+    <th>Git Name</th>
+    <th>Actions</th>
+  </tr>
+  <tr>
+    <td><%= @installation.frontend_git_repository %></td>
+    <td><%= @installation.frontend_git_refspec %></td>
+    <td><%= @installation.frontend_git_name %></td>
+    <td><%= link_to "Edit", edit_frontend_git_installation_path(@installation), :class => "btn btn-mini" %></td>
+  </tr>
+  <tr>
+    <th>Swift Endpoint Git Repository</th>
+    <th>Git Refspec(branch)</th>
+    <th>Git Name</th>
+    <th>Actions</th>
+  </tr>
+  <tr>
+    <td><%= @installation.swift_endpoint_git_repository %></td>
+    <td><%= @installation.swift_endpoint_git_refspec %></td>
+    <td><%= @installation.swift_endpoint_git_name %></td>
+    <td><%= link_to "Edit", edit_swift_endpoint_git_installation_path(@installation), :class => "btn btn-mini" %></td>
+  </tr>
+  <tr>
+    <th>Server Endpoint Git Repository</th>
+    <th>Git Refspec(branch)</th>
+    <th>Git Name</th>
+    <th>Actions</th>
+  </tr>
+  <tr>
+    <td><%= @installation.server_endpoint_git_repository %></td>
+    <td><%= @installation.server_endpoint_git_refspec %></td>
+    <td><%= @installation.server_endpoint_git_name %></td>
+    <td><%= link_to "Edit", edit_server_endpoint_git_installation_path(@installation), :class => "btn btn-mini" %></td>
+  </tr>
+  <tr>
+    <th>Worker Git Repository</th>
+    <th>Git Refspec(branch)</th>
+    <th>Git Name</th>
+    <th>Actions</th>
+  </tr>
+  <tr>
+    <td><%= @installation.worker_endpoint_git_repository %></td>
+    <td><%= @installation.worker_endpoint_git_refspec %></td>
+    <td><%= @installation.worker_endpoint_git_name %></td>
+    <td><%= link_to "Edit", edit_worker_endpoint_git_installation_path(@installation), :class => "btn btn-mini" %></td>
+  </tr>
+  </tbody>
+</table>
+
+
+<h3>Log
+  <%= button_to "Clear", clear_log_installation_path(@installation), :class => "btn" %>  </h3>
+<div id="log">
+  <% for l in @installation.logger.to_a do %>
+      <div><%= l %></div>
+  <% end %>
+</div>

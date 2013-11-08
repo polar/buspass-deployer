@@ -1,0 +1,5 @@
+<% for s in @worker_endpoint.remote_status %>
+    <div><%= s %></div>
+<% end if @worker_endpoint.remote_status %>
+<div>Instance: <%= @worker_endpoint.instance_status %></div>
+<div>UPDATED <%= @worker_endpoint.updated_at %></div>

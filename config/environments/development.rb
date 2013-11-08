@@ -33,7 +33,7 @@ BuspassDeployer::Application.configure do
   config.assets.compress = false
 
   # Expands the lines which load the assets
-  config.assets.debug = true
+  config.assets.debug = false
 
   config.paperclip_defaults = {
       :storage        => :s3,

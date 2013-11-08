@@ -1,0 +1,111 @@
+<%= render :partial => "frontends/backends/frontend_update_log" %>
+<H1>Frontend Backends</H1>
+
+<table class="table table-bordered">
+  <thead>
+  <tr>
+    <th>Installation</th>
+    <th>Frontend Name</th>
+    <th>Host</th>
+    <th>Type</th>
+    <th>Key</th>
+    <th>Host IP</th>
+    <th>Host Configured</th>
+    <th>Actions</th>
+  </tr>
+  </thead>
+  <tbody>
+  <% for fe in [@frontend] do %>
+      <tr>
+        <td><%= link_to fe.installation.name, installation_path(fe.installation) %></td>
+        <td><%= link_to fe.name, frontend_path(fe) %></td>
+        <td><%= fe.host %></td>
+        <td><%= fe.host_type %></td>
+        <td><%= fe.frontend_key.name if fe.frontend_key && fe.frontend_key.exists? %></td>
+        <td id="frontend_hostip"><%= fe.hostip %></td>
+        <td id="frontend_configured"><%= fe.configured %></td>
+        <td><%= link_to "Upload Key", upload_key_frontend_path(fe), :class => "btn btn-mini" %></td>
+      </tr>
+  <% end %>
+  </tbody>
+</table>
+
+<table class="table table-stripped">
+  <tbody>
+  <tr>
+    <th>Backend Actions</th>
+    <td><%= button_to "Status", status_all_frontend_backends_path(fe), :class => "btn btn-mini" %></td>
+    <td><%= button_to "Configure", full_configure_frontend_path(fe), :class => "btn btn-mini" %></td>
+    <td>
+      <%= button_to "Deconfigure", deconfigure_frontend_path(fe), :class => "btn btn-mini" %></td>
+    <td>
+      <%= button_to "Start All", start_all_frontend_backends_path(fe), :class => "btn btn-mini" %></td>
+    <td>
+      <%= button_to "Restart All", restart_all_frontend_backends_path(fe), :class => "btn btn-mini" %></td>
+    <td>
+      <%= button_to "Stop All", stop_all_frontend_backends_path(fe), :class => "btn btn-mini" %></td>
+    <td>
+      <%= button_to "Delete", frontend_path(fe), :method => :delete, :class => "btn btn-mini" %></td>
+  </tr>
+  <tr>
+    <th>Endpoint Actions</th>
+    <td><%= button_to "Create All Endpoints", create_all_endpoint_apps_frontend_path(fe), :class => "btn btn-mini" %></td>
+    <td><%= button_to "Configure All Endpoints", configure_all_endpoint_apps_frontend_path(fe), :class => "btn btn-mini" %></td>
+    <td><%= button_to "Start All Endpoints", start_all_endpoint_apps_frontend_path(fe), :class => "btn btn-mini" %></td>
+    <td><%= button_to "Restart All Endpoints", restart_all_endpoint_apps_frontend_path(fe), :class => "btn btn-mini" %></td>
+    <td><%= button_to "Stop All Endpoints", stop_all_endpoint_apps_frontend_path(fe), :class => "btn btn-mini" %></td>
+    <td><%= button_to "Deploy All Endpoints", deploy_all_endpoint_apps_frontend_path(fe), :class => "btn btn-mini" %></td>
+    <td><%= button_to "Destroy All Endpoints", destroy_all_endpoint_apps_frontend_path(fe), :class => "btn btn-mini" %></td>
+  </tr>
+  </tbody>
+</table>
+
+<table class="table table-bordered">
+  <thead>
+  <tr>
+    <th>Master</th>
+    <th>Host</th>
+    <th>Port</th>
+    <th><div>Hostname</div>
+    <div>Server Name</div></th>
+    <th>Frontend Configured</th>
+    <th>Swift Endpoints</th>
+    <th>Worker Endpoints</th>
+  </tr>
+  </thead>
+  <tbody>
+  <% for be in @frontend.backends %>
+      <tr>
+        <td><%= be.master_slug ? be.master_slug : "*" %></td>
+        <td><%= be.host %></td>
+        <td><%= be.port %></td>
+        <td><div><%= be.hostname %></div><div><%= be.server_name %></div></td>
+        <td><%= be.configured %></td>
+        <td><%= be.swift_endpoints.count %>
+        <%= link_to "+", new_frontend_backend_swift_endpoint_path(@frontend, be), :class => "btn btn-mini"  %></td>
+        <td><%= be.worker_endpoints.count %>
+        <%= link_to "+", new_frontend_backend_worker_endpoint_path(@frontend, be), :class => "btn btn-mini" %></td>
+      </tr>
+      <tr>
+        <td colspan="4"><%= link_to be.name, frontend_backend_path(@frontend, be) %></td><td colspan="4"><table class="table table-stripped"><tbody><tr>
+        <td><%= link_to "Show", frontend_backend_path(fe, be), :class => "btn btn-mini" %></td>
+        <td><%= button_to "Configure", configure_frontend_backend_path(fe, be), :class => "btn btn-mini" %></td>
+        <td><%= button_to "Start", start_frontend_backend_path(fe, be), :class => "btn btn-mini" %></td>
+        <td><%= button_to "Stop", stop_frontend_backend_path(fe, be), :class => "btn btn-mini" %></td>
+        <td><%= button_to "Deconfigure", deconfigure_frontend_backend_path(fe, be), :class => "btn btn-mini" %></td>
+        <td><%= button_to "Delete", frontend_backend_path(@frontend, be), :method => :delete, :class => "btn btn-mini", :confirm => "Are you sure?" %></td></tr></tbody></table> </td>
+      </tr>
+  <% end %>
+  </tbody>
+</table>
+
+<%= link_to "New Backend", new_frontend_backend_path(@frontend) %>
+<%= link_to "New Base Backend", new_base_frontend_backends_path(@frontend) %>
+
+<h3>Log
+<%= button_to "Clear", clear_log_frontend_path(@frontend), :class => "btn" %>  </h3>
+<div id="log">
+  <% for l in @frontend.logger.to_a do %>
+      <div><%= l %></div>
+  <% end %>
+</div>

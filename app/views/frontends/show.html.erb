@@ -1,0 +1,77 @@
+<h1>Frontend</h1>
+
+<table class="table table-bordered">
+  <tbody>
+  <tr>
+    <th>Installation</th>
+    <td><%= link_to @frontend.installation.name, installation_path(@frontend.installation) %></td>
+    <th colspan="3">Actions</th>
+  </tr>
+  <tr>
+    <th>Host</th>
+    <td><%= @frontend.host %></td>
+    <td><%= link_to "Edit Host", edit_frontend_path(@frontend), :class => "btn btn-mini" %></td>
+    <th colspan="2"></th>
+  </tr>
+  <tr>
+    <th>SSH Key</th>
+    <td><%= @frontend.frontend_key.name if @frontend.frontend_key && @frontend.frontend_key.exists? %></td>
+    <td><%= link_to "Upload Key", upload_key_frontend_path(@frontend), :class => "btn btn-mini" %></td>
+  </tr>
+  <tr>
+    <th>Host IP</th>
+    <td id="frontend_hostip"><%= @frontend.hostip %></td>
+    <td><%= link_to "Manage Backends", frontend_backends_path(@frontend), :class => "btn btn-mini" %></td>
+  </tr>
+  <tr>
+    <th>Git Commit</th>
+    <td>
+      <% for s in @frontend.git_commit do %>
+          <div><%= s %></div>
+      <% end if @frontend.git_commit %>
+    </td>
+    <td><%= button_to "Install", install_frontend_path(@frontend), :class => "btn btn-mini" %></td>
+    <td><%= button_to "Upgrade", upgrade_frontend_path(@frontend), :class => "btn btn-mini" %></td>
+    <td><%= button_to "Full Configure", full_configure_frontend_path(@frontend), :class => "btn btn-mini" %></td>
+  </tr>
+  </tbody>
+</table>
+
+<h2>Backends</h2>
+<table class="table table-bordered">
+  <thead><tr>
+    <th>Master</th>
+    <th>Host</th>
+    <th>Port</th>
+    <th>Hostname<br />Server Name</th>
+    <th colspan="2">Server Endpoints</th>
+    <th colspan="2">Swift Endpoints</th>
+    <th colspan="2">Worker Endpoints</th>
+    <th>Actions</th>
+  </tr></thead>
+  <tbody><% for be in @frontend.backends.order(:master_slug).all %>
+      <tr>
+        <td><%= be.master_slug ? be.master_slug : "*" %></td>
+        <td><%= be.address %></td>
+        <td><%= be.port %></td>
+        <td><%= be.hostname %><br /><%= be.server_name %></td>
+        <td><%= be.server_endpoints.count %>
+          <%= link_to "+", new_frontend_backend_server_endpoint_path(@frontend, be), :class => "btn btn-mini" %>
+        </td><td><%= link_to "All", frontend_backend_server_endpoints_path(@frontend, be) %></td>
+        <td><%= be.server_endpoints.count %>
+          <%= link_to "+", new_frontend_backend_swift_endpoint_path(@frontend, be), :class => "btn btn-mini" %>
+        </td><td><%= link_to "All", frontend_backend_swift_endpoints_path(@frontend, be) %></td>
+        <td><%= be.worker_endpoints.count %>
+          <%= link_to "+", new_frontend_backend_worker_endpoint_path(@frontend, be), :class => "btn btn-mini" %></td>
+
+        <td><%= link_to "All", frontend_backend_worker_endpoints_path(@frontend, be) %></td>
+        <td><%= link_to "Show", frontend_backend_path(@frontend, be), :class => "btn btn-mini" %></td>
+        <td><%= button_to "Destroy All", backend_path(be), :method => :delete, :class => "btn btn-mini" %></td>
+              </tr>
+  <% end %></tbody>
+</table>
+
+<%= link_to "New Backend", new_backend_path(:frontend_id => @frontend.id) %> |
+<%= link_to "New Base Backend", new_base_frontend_backends_path(@frontend) %>
+<br />
+<%= link_to "All Frontends", frontends_path %>

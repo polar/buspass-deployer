@@ -1,0 +1,8 @@
+$("#log").append('<%= @logs.map{|x| "<div>#{escape_javascript(x)}</div>" }.join.html_safe %>');
+$("#backend_configured").html('<%= escape_javascript("#{@backend.configured}"); %>');
+<% for se in @backend.swift_endpoints do %>
+  <% if se.remote_status %>
+    $("#endpoint_<%=se.id%> .remote_status").html('<%= escape_javascript(render(:partial => 'endpoint_remote_status', :locals => { :se => se })) %>');
+  <% end %>
+    $("#endpoint_<%=se.id%> .deploy_status").html('<%= escape_javascript(se.status); %>');
+<% end %>

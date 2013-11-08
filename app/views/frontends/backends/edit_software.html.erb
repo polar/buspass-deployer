@@ -1,0 +1,66 @@
+<h2>Edit Endpoint Software for Frontend</h2>
+
+<%= form_for @frontend, :validate => true, :url => update_software_frontend_backends_path(@frontend), :method => "post" do |f| %>
+    <%= f.label :endpoint_git_repository, "Endpoint Git Repository" %>
+    <%= f.text_field :endpoint_git_repository, :class => "input-xxlarge" %>
+    <%= f.label :endpoint_git_refspec, "Git Refspec (branch)" %>
+    <%= f.text_field :endpoint_git_refspec %>
+    <%= f.label :endpoint_git_name, "Repository Name" %>
+    <%= f.text_field :endpoint_git_name %>
+    <br />
+    <br />
+    <%= f.submit %>
+<% end %>
+<table class="table table-bordered">
+  <thead>
+  <tr>
+    <th>Frontend Name</th>
+    <th>Host</th>
+    <th>Type</th>
+    <th>Key</th>
+    <th>Host IP</th>
+    <th>Remote Configured</th>
+    <th>Backends</th>
+  </tr>
+  </thead>
+  <tbody>
+  <% for fe in [@frontend] do %>
+      <tr>
+        <td><%= link_to fe.name, frontend_path(fe) %></td>
+        <td><%= fe.host %></td>
+        <td><%= fe.host_type %></td>
+        <td><%= fe.frontend_key.name if fe.frontend_key && fe.frontend_key.exists? %></td>
+        <td><%= fe.hostip %></td>
+        <td><%= fe.configured %></td>
+        <td><%= fe.backends.count %></td>
+      </tr>
+  <% end %>
+  </tbody>
+</table>
+
+<table class="table table-bordered">
+  <thead>
+  <tr>
+    <th>Master</th>
+    <th>Host</th>
+    <th>Port</th>
+    <th>Hostname</th>
+    <th>Server Name</th>
+    <th>Configured</th>
+    <th>Swift Endpoints</th>
+  </tr>
+  </thead>
+  <tbody>
+  <% for be in @frontend.backends %>
+      <tr>
+        <td><%= be.master_slug %></td>
+        <td><%= be.host %></td>
+        <td><%= be.port %></td>
+        <td><%= be.hostname %></td>
+        <td><%= be.server_name %></td>
+        <td><%= be.configured %></td>
+        <td><%= be.swift_endpoints.count %></td>
+      </tr>
+  <% end %>
+  </tbody>
+</table>

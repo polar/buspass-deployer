@@ -1,0 +1,8 @@
+$("#log").append('<%= @logs.map{|x| "<div>#{escape_javascript(x)}</div>" }.join.html_safe %>');
+<% if @server_endpoint.remote_status %>
+$("#endpoint_remote_status").html('<%= escape_javascript(render(:partial => 'endpoint_remote_status')) %>');
+<% end %>
+<% if @server_endpoint.git_commit %>
+$("#endpoint_git_status").html('<%= escape_javascript(render(:partial => 'endpoint_git_status')) %>');
+<% end %>
+$("#endpoint_deploy_status").html('<%= escape_javascript(@server_endpoint.status); %>');
