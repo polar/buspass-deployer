@@ -1,594 +1,148 @@
 class DeployBackendJob
   include MongoMapper::Document
 
-  belongs_to :backend, :autosave => false
-
   key :status_content
+
+  key :state_destroy, Boolean, :default => false
+
+  belongs_to :backend
 
   attr_accessible :backend, :backend_id
 
-  def set_status(s)
-    begin
-      reload
-    rescue
+  def ssh_cert
+    if @ssh_cert
+      return @ssh_cert
     end
-    self.status_content = s
-    save
-    log("status: #{s}")
-  end
-
-  def get_status
-    status_content
-  end
-
-  def log(s)
-    backend.log(s)
-  end
-
-  def to_a()
-    reload
-    log_content
-  end
-
-  def segment(i, n)
-    log_content.drop(i).take(n)
-  end
-
-  def host
-    backend.host
-  end
-
-  def port
-    backend.port
+    remote_key = RemoteKey.find_by_name(frontend.installation.ssh_key_name)
+    if ! File.exists?(remote_key.ssh_key.file.path) && remote_key.key_encrypted_content
+      remote_key.decrypt_key_content_to_file
+    end
+    @ssh_cert = remote_key.ssh_key.file.path
   end
 
   def frontend
     backend.frontend
   end
 
-  def delayed_jobs
-    Delayed::Job.where(:queue => "deploy-web", :failed_at => nil).select do |job|
-      job.payload_object.is_a?(DeployBackendJobspec) && job.payload_object.deploy_backend_job_id == self.id
+  def state
+    return @state if @state
+    @state = DeployBackendState.where(:backend_id => backend.id).first
+    if @state.nil?
+      @state = DeployBackendState.new(:backend_id => backend.id)
+      @state.save
+    end
+    @state
+  end
+
+  def log(s)
+    state.logger.log(@state.log_level, s)
+  end
+
+  def set_status(s, rs = nil)
+    self.status_content = s
+    save
+    state.status = s
+    state.remote_status = rs if rs
+    state.save
+    log("status: #{s}")
+    log("remote status: #{rs.inspect}") if rs
+  end
+
+  # We are assuming
+  def create_remote_backend
+    load_impl
+    self.send(__method__)
+  end
+
+  def configure_remote_backend
+    load_impl
+    self.send(__method__)
+  end
+
+  def deconfigure_remote_backend
+    load_impl
+    self.send(__method__)
+  end
+
+  def deploy_to_remote_backend
+    load_impl
+    self.send(__method__)
+  end
+
+  def start_remote_backend
+    load_impl
+    self.send(__method__)
+  end
+
+  def stop_remote_backend
+    load_impl
+    self.send(__method__)
+  end
+
+  def restart_remote_backend
+    load_impl
+    self.send(__method__)
+  end
+
+  def destroy_remote_backend
+    load_impl
+    self.send(__method__)
+  end
+
+  def apply_to_endpoint(method, endpoint)
+    if endpoint && endpoint.backend == self.backend
+      job = DeployEndpointJob.get_job(endpoint)
+      djob = job.jobspec(endpoint.name, method)
+      Delayed::Job.enqueue(djob, :queue => "deploy-web")
     end
   end
 
-  def destroy_backend
-    head = __method__
-    log "#{head}: START"
-    log "#{head}: Destroy Backend #{backend.name}."
-    destroy_swift_endpoints
-    destroy_worker_endpoints
-    backend.destroy
+  def start_all_endpoints
+    backend.endpoints.each do |endpoint|
+      apply_to_endpoint("start_remote_endpoint", endpoint)
+    end
   end
 
-  def create_swift_endpoint_apps
-    head = __method__
-    log "#{head}: START"
-    log "#{head}: Creating Swift Endpoint Apps #{backend.name}."
-    set_status("CreatingSwiftEndpoints")
-    errors = 0
-    for se in backend.swift_endpoints do
-      begin
-        set_status("CreatingSwiftEndpoints:#{se.name}")
-        if se.deploy_swift_endpoint_job.nil?
-          se.create_deploy_swift_endpoint_job
-        end
-        log "#{head}: Creating Remote App for Swift Endpoint #{se.name}."
-        se.deploy_swift_endpoint_job.create_remote_endpoint
-      rescue Exception => boom
-        set_status("Error:CreateSwiftEndpoints:#{se.name}")
-        errors += 1
-        log "#{head}: Error creating Swift Endpoint #{se.name} - #{boom}"
-      end
+  def restart_all_endpoints
+    backend.endpoints.each do |endpoint|
+      apply_to_endpoint("restart_remote_endpoint", endpoint)
     end
-    if errors == 0
-      set_status("Success:CreateSwiftEndpoints")
-    else
-      set_status("Error:CreateSwiftEndpoints:#{errors}")
-    end
-  ensure
-    log "#{head}: DONE"
   end
 
-  def configure_swift_endpoint_apps
-    head = __method__
-    log "#{head}: START"
-    log "#{head}: Configuring Swift Endpoint Apps #{backend.name}."
-    set_status("ConfiguringSwiftEndpoints")
-    errors = 0
-    for se in backend.swift_endpoints do
-      begin
-        set_status("ConfiguringSwiftEndpoints:#{se.name}")
-        if se.deploy_swift_endpoint_job.nil?
-          se.create_deploy_swift_endpoint_job
-        end
-        log "#{head}: Configuring Remote App for Swift Endpoint #{se.name}."
-        job = DeploySwiftEndpointJobspec.new(se.deploy_swift_endpoint_job.id, se.name, "configure_remote_endpoint")
-        Delayed::Job.enqueue(job, :queue => "deploy-web")
-        set_status("Success:ConfiguringSwiftEndpoints:#{se.name}")
-      rescue Exception => boom
-        errors += 1
-        set_status("Error:ConfiguringSwiftEndpoints:#{se.name}")
-        log "#{head}: Cannot configure Swift Endpoint #{se.name} - #{boom}"
-      end
+  def stop_all_endpoints
+    backend.endpoints.each do |endpoint|
+      apply_to_endpoint("stop_remote_endpoint", endpoint)
     end
-    if errors == 0
-      set_status("Success:ConfiguringSwiftEndpoints")
-    else
-      set_status("Error:ConfiguringSwiftEndpoints:#{errors}")
-    end
-  ensure
-    log "#{head}: DONE"
   end
 
-  def deploy_swift_endpoint_apps
-    head = __method__
-    log "#{head}: START"
-    log "#{head}: Deploying Swift Endpoint Apps for #{backend.name}."
-    set_status("DeployingSwiftEndpoints")
-    for se in backend.swift_endpoints do
-      begin
-          if se.deploy_swift_endpoint_job.nil?
-            se.create_deploy_swift_endpoint_job
-          end
-          log "#{head}: Deploying Remote App for Swift Endpoint #{se.name}."
-          job = DeploySwiftEndpointJobspec.new(se.deploy_swift_endpoint_job.id, se.name, "job_create_and_deploy_remote_endpoint")
-          Delayed::Job.enqueue(job, :queue => "deploy-web")
-      rescue Exception => boom
-        set_status("Error:DeployingSwiftEndpoints")
-        log "#{head}: Error Deploying Swift Endpoint #{se.name} - #{boom}"
-      end
-      set_status("Success:DeployingSwiftEndpoints")
+  def deploy_to_all_endpoints
+    backend.endpoints.each do |endpoint|
+      apply_to_endpoint("deploy_to_remote_endpoint", endpoint)
     end
-  ensure
-    log "#{head}: DONE"
   end
 
-  def start_swift_endpoint_apps
-    head = __method__
-    log "#{head}: START"
-    log "#{head}: Start Swift Endpoint Apps #{backend.name}."
-    set_status("StartingSwiftEndpoints")
-    errors = 0
-    for se in backend.swift_endpoints do
-      begin
-        set_status("StartSwiftEndpoints:#{se.name}")
-        if se.deploy_swift_endpoint_job.nil?
-          se.create_deploy_swift_endpoint_job
-        end
-        log "#{head}: Starting Remote App for Swift Endpoint #{se.name}."
-        job = DeploySwiftEndpointJobspec.new(se.deploy_swift_endpoint_job.id, se.name, "start_remote_endpoint")
-        Delayed::Job.enqueue(job, :queue => "deploy-web")
-        set_status("Success:StartSwiftEndpoints:#{se.name}")
-      rescue Exception => boom
-        errors += 1
-        set_status("Error:StartSwiftEndpoints:#{se.name}")
-        log "#{head}: Cannot start Swift Endpoint #{se.name} - #{boom}"
-      end
+  def destroy_all_endpoints
+    backend.endpoints.each do |endpoint|
+      apply_to_endpoint("destroy_remote_endpoint", endpoint)
     end
-    if errors == 0
-      set_status("Success:StartSwiftEndpoints")
-    else
-      set_status("Error:StartSwiftEndpoints:#{errors}")
-    end
-  ensure
-    log "#{head}: DONE"
   end
 
-  def restart_swift_endpoint_apps
-    head = __method__
-    log "#{head}: START"
-    log "#{head}: Retart Swift Endpoint Apps #{backend.name}."
-    set_status("RestartingSwiftEndpoints")
-    errors = 0
-    for se in backend.swift_endpoints do
-      begin
-        set_status("RestartSwiftEndpoints:#{se.name}")
-        if se.deploy_swift_endpoint_job.nil?
-          se.create_deploy_swift_endpoint_job
-        end
-        log "#{head}: Restarting Remote App for Swift Endpoint #{se.name}."
-        job = DeploySwiftEndpointJobspec.new(se.deploy_swift_endpoint_job.id, se.name, "restart_remote_endpoint")
-        Delayed::Job.enqueue(job, :queue => "deploy-web")
-        set_status("Success:RestartSwiftEndpoints:#{se.name}")
-      rescue Exception => boom
-        errors += 1
-        set_status("Error:RestartSwiftEndpoints:#{se.name}")
-        log "#{head}: Cannot restart Swift Endpoint #{se.name} - #{boom}"
-      end
+  def load_impl
+    case backend.deployment_type
+      when "swift"
+        self.singleton_class.send(:include, DeploySwiftBackendJobImpl)
+      when "ssh"
+        self.singleton_class.send(:include, DeploySshBackendJobImpl)
     end
-    if errors == 0
-      set_status("Success:RestartSwiftEndpoints")
-    else
-      set_status("Error:RestartSwiftEndpoints:#{errors}")
-    end
-  ensure
-    log "#{head}: DONE"
   end
 
-  def stop_swift_endpoint_apps
-    head = __method__
-    log "#{head}: START"
-    log "#{head}: Stop Swift Endpoint Apps #{backend.name}."
-    set_status("StoppingSwiftEndpoints")
-    errors = 0
-    for se in backend.swift_endpoints do
-      begin
-        set_status("StartingSwiftEndpoints:#{se.name}")
-        if se.deploy_swift_endpoint_job.nil?
-          se.create_deploy_swift_endpoint_job
-        end
-        log "#{head}: Stopping Remote App for Swift Endpoint #{se.name}."
-        job = DeploySwiftEndpointJobspec.new(se.deploy_swift_endpoint_job.id, se.name, "stop_remote_endpoint")
-        Delayed::Job.enqueue(job, :queue => "deploy-web")
-        set_status("Success:StartSwiftEndpoints:#{se.name}")
-      rescue Exception => boom
-        set_status("Error:StartSwiftEndpoints:#{se.name}")
-        errors += 1
-        log "#{head}: Cannot stop Swift Endpoint #{se.name} - #{boom}"
-      end
+  def self.get_job(backend, action)
+    job = DeployBackendJob.where(:backend_id => backend.id).first
+    if job.nil?
+      job = DeployBackendJob.new(:backend => backend)
+      job.save
     end
-    if errors == 0
-      set_status("Success:StartSwiftEndpoints")
-    else
-      set_status("Error:StartSwiftEndpoints:#{errors}")
-    end
-  ensure
-    log "#{head}: DONE"
-  end
-
-  def destroy_swift_endpoint_apps
-    head = __method__
-    log "#{head}: START"
-    log "#{head}: Destroying Swift Endpoint Apps #{backend.name}."
-    set_status("DestroyingSwiftEndpoints")
-    errors = 0
-    for se in backend.swift_endpoints do
-      begin
-        set_status("DestroyingSwiftEndpoints:#{se.name}")
-        if se.deploy_swift_endpoint_job.nil?
-          se.create_deploy_swift_endpoint_job
-        end
-        log "#{head}: Destroying Remote App for Swift Endpoint #{se.name}."
-        job = DeploySwiftEndpointJobspec.new(se.deploy_swift_endpoint_job.id, se.name, "destroy_remote_endpoint")
-        Delayed::Job.enqueue(job, :queue => "deploy-web")
-        set_status("Success:DestroySwiftEndpoints:#{se.name}")
-      rescue Exception => boom
-        set_status("Error:DestroySwiftEndpoints:#{se.name}")
-        errors += 1
-        log "#{head}: Cannot destroy Swift Endpoint #{se.name} - #{boom}"
-      end
-    end
-    if errors == 0
-      set_status("Success:DestroySwiftEndpoints")
-    else
-      set_status("Error:DestroySwiftEndpoints:#{errors}")
-    end
-  ensure
-    log "#{head}: DONE"
-  end
-
-  def destroy_swift_endpoints
-    head = __method__
-    log "#{head}: START"
-    log "#{head}: Destroying Swift Endpoints #{backend.name}."
-    set_status("DestroyingSwiftEndpoints")
-    errors = 0
-    for se in backend.swift_endpoints do
-      begin
-        set_status("DestroyingSwiftEndpoints:#{se.name}")
-        if se.deploy_swift_endpoint_job.nil?
-          se.create_deploy_swift_endpoint_job
-        end
-        log "#{head}: Destroying Remote App for Swift Endpoint #{se.name}."
-        job = DeploySwiftEndpointJobspec.new(se.deploy_swift_endpoint_job.id, se.name, "destroy_swift_endpoint")
-        Delayed::Job.enqueue(job, :queue => "deploy-web")
-        set_status("Success:DestroySwiftEndpoints:#{se.name}")
-      rescue Exception => boom
-        set_status("Error:DestroySwiftEndpoints:#{se.name}")
-        errors += 1
-        log "#{head}: Cannot destroy Swift Endpoint #{se.name} - #{boom}"
-      end
-    end
-    if errors == 0
-      set_status("Success:DestroySwiftEndpoints")
-    else
-      set_status("Error:DestroySwiftEndpoints:#{errors}")
-    end
-  ensure
-    log "#{head}: DONE"
-  end
-
-  def status_swift_endpoint_apps
-    head = __method__
-    log "#{head}: START"
-    log "#{head}: Status Swift Endpoint Apps #{backend.name}."
-    set_status("RemoteStatus:Swift")
-    for se in backend.swift_endpoints do
-      begin
-        if se.deploy_swift_endpoint_job.nil?
-          se.create_deploy_swift_endpoint_job
-        end
-        log "#{head}: Status Remote App for Swift Endpoint #{se.name}."
-        job = DeploySwiftEndpointJobspec.new(se.deploy_swift_endpoint_job.id, se.name, "remote_endpoint_status")
-        Delayed::Job.enqueue(job, :queue => "deploy-web")
-      rescue Exception => boom
-        log "#{head}: Cannot get status Swift Endpoint #{se.name} - #{boom}"
-      end
-    end
-    set_status("Done:RemoteStatus:Swift")
-  ensure
-    log "#{head}: DONE"
-  end
-
-  def create_worker_endpoint_apps
-    head = __method__
-    log "#{head}: START"
-    log "#{head}: Creating Worker Endpoint Apps #{backend.name}."
-    set_status("CreatingWorkerEndpoints")
-    errors = 0
-    for se in backend.worker_endpoints do
-      begin
-        set_status("CreatingWorkerEndpoints:#{se.name}")
-        if se.deploy_worker_endpoint_job.nil?
-          se.create_deploy_worker_endpoint_job
-        end
-        log "#{head}: Creating Remote App for Worker Endpoint #{se.name}."
-        job = DeployWorkerEndpointJobspec.new(se.deploy_worker_endpoint_job.id, se.name, "create_remote_endpoint")
-        Delayed::Job.enqueue(job, :queue => "deploy-web")
-        set_status("Success:CreateWorkerEndpoints:#{se.name}")
-      rescue Exception => boom
-        set_status("Error:CreateWorkerEndpoints:#{se.name}")
-        errors += 1
-        log "#{head}: Error creating Worker Endpoint #{se.name} - #{boom}"
-      end
-    end
-    if errors == 0
-      set_status("Success:CreateWorkerEndpoints")
-    else
-      set_status("Error:CreateWorkerEndpoints:#{errors}")
-    end
-  ensure
-    log "#{head}: DONE"
-  end
-
-  def configure_worker_endpoint_apps
-    head = __method__
-    log "#{head}: START"
-    log "#{head}: Configuring Worker Endpoint Apps #{backend.name}."
-    set_status("ConfiguringWorkerEndpoints")
-    errors = 0
-    for se in backend.worker_endpoints do
-      begin
-        set_status("ConfiguringWorkerEndpoints:#{se.name}")
-        if se.deploy_worker_endpoint_job.nil?
-          se.create_deploy_worker_endpoint_job
-        end
-        log "#{head}: Configuring Remote App for Worker Endpoint #{se.name}."
-        job = DeployWorkerEndpointJobspec.new(se.deploy_worker_endpoint_job.id, se.name, "configure_remote_endpoint")
-        Delayed::Job.enqueue(job, :queue => "deploy-web")
-        set_status("Success:ConfigureWorkerEndpoints:#{se.name}")
-      rescue Exception => boom
-        set_status("Error:ConfigureWorkerEndpoints:#{se.name}")
-        errors += 1
-        log "#{head}: Cannot configure Worker Endpoint #{se.name} - #{boom}"
-      end
-    end
-    if errors == 0
-      set_status("Success:ConfigureWorkerEndpoints")
-    else
-      set_status("Error:ConfigureWorkerEndpoints:#{errors}")
-    end
-  ensure
-    log "#{head}: DONE"
-  end
-
-  def deploy_worker_endpoint_apps
-    head = __method__
-    log "#{head}: START"
-    log "#{head}: Deploying Worker Endpoint Apps for #{backend.name}."
-    set_status("DeployingWorkerEndpoints")
-    errors = 0
-    for se in backend.worker_endpoints do
-      begin
-        set_status("DeployingWorkerEndpoints:#{se.name}")
-        if se.deploy_worker_endpoint_job.nil?
-          se.create_deploy_worker_endpoint_job
-        end
-        log "#{head}: Deploying Remote App for Worker Endpoint #{se.name}."
-        job = DeployWorkerEndpointJobspec.new(se.deploy_worker_endpoint_job.id, se.name, "job_create_and_deploy_remote_endpoint")
-        Delayed::Job.enqueue(job, :queue => "deploy-web")
-        set_status("Success:DeployWorkerEndpoints:#{se.name}")
-      rescue Exception => boom
-        set_status("Error:DeployWorkerEndpoints:#{se.name}")
-        errors += 1
-        log "#{head}: Error Deploying Worker Endpoint #{se.name} - #{boom}"
-      end
-    end
-    if errors == 0
-      set_status("Success:ConfigureWorkerEndpoints")
-    else
-      set_status("Error:ConfigureWorkerEndpoints:#{errors}")
-    end
-  ensure
-    log "#{head}: DONE"
-  end
-
-  def start_worker_endpoint_apps
-    head = __method__
-    log "#{head}: START"
-    log "#{head}: Start Worker Endpoint Apps #{backend.name}."
-    set_status("StartingWorkerEndpoints")
-    errors = 0
-    for se in backend.worker_endpoints do
-      begin
-        set_status("StartingWorkerEndpoints:#{se.name}")
-        if se.deploy_worker_endpoint_job.nil?
-          se.create_deploy_worker_endpoint_job
-        end
-        log "#{head}: Starting Remote App for Worker Endpoint #{se.name}."
-        job = DeployWorkerEndpointJobspec.new(se.deploy_worker_endpoint_job.id, se.name, "start_remote_endpoint")
-        Delayed::Job.enqueue(job, :queue => "deploy-web")
-        set_status("Success:StartWorkerEndpoints:#{se.name}")
-      rescue Exception => boom
-        set_status("Error:StartWorkerEndpoints:#{se.name}")
-        errors += 1
-        log "#{head}: Cannot start Worker Endpoint #{se.name} - #{boom}"
-      end
-    end
-    if errors == 0
-      set_status("Success:StartWorkerEndpoints")
-    else
-      set_status("Error:StartWorkerEndpoints:#{errors}")
-    end
-  ensure
-    log "#{head}: DONE"
-  end
-
-  def restart_worker_endpoint_apps
-    head = __method__
-    log "#{head}: START"
-    log "#{head}: Restart Worker Endpoint Apps #{backend.name}."
-    set_status("RestartingWorkerEndpoints")
-    errors = 0
-    for se in backend.worker_endpoints do
-      begin
-        set_status("RestartingWorkerEndpoints:#{se.name}")
-        if se.deploy_worker_endpoint_job.nil?
-          se.create_deploy_worker_endpoint_job
-        end
-        log "#{head}: Restarting Remote App for Worker Endpoint #{se.name}."
-        job = DeployWorkerEndpointJobspec.new(se.deploy_worker_endpoint_job.id, se.name, "restart_remote_endpoint")
-        Delayed::Job.enqueue(job, :queue => "deploy-web")
-        set_status("Success:RestartWorkerEndpoints:#{se.name}")
-      rescue Exception => boom
-        set_status("Error:RestartWorkerEndpoints:#{se.name}")
-        errors += 1
-        log "#{head}: Cannot restart Worker Endpoint #{se.name} - #{boom}"
-      end
-    end
-    if errors == 0
-      set_status("Success:RestartWorkerEndpoints")
-    else
-      set_status("Error:RestartWorkerEndpoints:#{errors}")
-    end
-  ensure
-    log "#{head}: DONE"
-  end
-
-  def stop_worker_endpoint_apps
-    head = __method__
-    log "#{head}: START"
-    log "#{head}: Stop Worker Endpoint Apps #{backend.name}."
-    set_status("StopWorkerEndpoints")
-    errors = 0
-    for se in backend.worker_endpoints do
-      begin
-        set_status("StopingWorkerEndpoints:#{se.name}")
-        if se.deploy_worker_endpoint_job.nil?
-          se.create_deploy_worker_endpoint_job
-        end
-        log "#{head}: Stopping Remote App for Worker Endpoint #{se.name}."
-        job = DeployWorkerEndpointJobspec.new(se.deploy_worker_endpoint_job.id, se.name, "stop_remote_endpoint")
-        Delayed::Job.enqueue(job, :queue => "deploy-web")
-        set_status("Success:StopWorkerEndpoints:#{se.name}")
-      rescue Exception => boom
-        set_status("Error:StopWorkerEndpoints:#{se.name}")
-        errors += 1
-        log "#{head}: Cannot stop Worker Endpoint #{se.name} - #{boom}"
-      end
-    end
-    if errors == 0
-      set_status("Success:StopWorkerEndpoints")
-    else
-      set_status("Error:StopWorkerEndpoints:#{errors}")
-    end
-  ensure
-    log "#{head}: DONE"
-  end
-
-  def destroy_worker_endpoint_apps
-    head = __method__
-    log "#{head}: START"
-    log "#{head}: Destroying Worker Endpoint Apps #{backend.name}."
-    set_status("DestroyingWorkerEndpoints")
-    errors = 0
-    for se in backend.worker_endpoints do
-      begin
-        set_status("DestroyingWorkerEndpoints:#{se.name}")
-        if se.deploy_worker_endpoint_job.nil?
-          se.create_deploy_worker_endpoint_job
-        end
-        log "#{head}: Destroying Remote App for Worker Endpoint #{se.name}."
-        job = DeployWorkerEndpointJobspec.new(se.deploy_worker_endpoint_job.id, se.name, "destroy_remote_endpoint")
-        Delayed::Job.enqueue(job, :queue => "deploy-web")
-        set_status("Success:DestroyWorkerEndpoints:#{se.name}")
-      rescue Exception => boom
-        set_status("Error:DestroyWorkerEndpoints:#{se.name}")
-        errors += 1
-        log "#{head}: Cannot destroy Worker Endpoint #{se.name} - #{boom}"
-      end
-    end
-    if errors == 0
-      set_status("Success:DestroyWorkerEndpoints")
-    else
-      set_status("Error:DestroyWorkerEndpoints:#{errors}")
-    end
-  ensure
-    log "#{head}: DONE"
-  end
-
-  def destroy_worker_endpoints
-    head = __method__
-    log "#{head}: START"
-    log "#{head}: Destroying Worker Endpoints #{backend.name}."
-    set_status("DestroyingWorkerEndpoints")
-    errors = 0
-    for se in backend.worker_endpoints do
-      begin
-        set_status("DestroyingWorkerEndpoints:#{se.name}")
-        if se.deploy_worker_endpoint_job.nil?
-          se.create_deploy_worker_endpoint_job
-        end
-        log "#{head}: Destroying Remote App for Worker Endpoint #{se.name}."
-        job = DeployWorkerEndpointJobspec.new(se.deploy_worker_endpoint_job.id, se.name, "destroy_worker_endpoint")
-        Delayed::Job.enqueue(job, :queue => "deploy-web")
-        set_status("Success:DestroyWorkerEndpoints:#{se.name}")
-      rescue Exception => boom
-        set_status("Error:DestroyWorkerEndpoints:#{se.name}")
-        errors += 1
-        log "#{head}: Cannot destroy Worker Endpoint #{se.name} - #{boom}"
-      end
-    end
-    if errors == 0
-      set_status("Success:DestroyWorkerEndpoints")
-    else
-      set_status("Error:DestroyWorkerEndpoints:#{errors}")
-    end
-  ensure
-    log "#{head}: DONE"
-  end
-
-  def status_worker_endpoint_apps
-    head = __method__
-    log "#{head}: START"
-    log "#{head}: Status Worker Endpoint Apps #{backend.name}."
-    set_status("RemoteStatus:Worker")
-    for se in backend.worker_endpoints do
-      begin
-        if se.deploy_worker_endpoint_job.nil?
-          se.create_deploy_worker_endpoint_job
-        end
-        log "#{head}: Status Remote App for Worker Endpoint #{se.name}."
-        job = DeployWorkerEndpointJobspec.new(se.deploy_worker_endpoint_job.id, se.name, "remote_endpoint_status")
-        Delayed::Job.enqueue(job, :queue => "deploy-web")
-      rescue Exception => boom
-        log "#{head}: Cannot get status Worker Endpoint #{se.name} - #{boom}"
-      end
-    end
-    set_status("Done:RemoteStatus:Worker")
-  ensure
-    log "#{head}: DONE"
+    DeployBackendJobspec.new(job.id, action)
   end
 
 end

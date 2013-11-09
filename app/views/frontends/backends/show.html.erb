@@ -8,13 +8,11 @@
 <table class="table table-bordered">
   <thead>
   <tr>
-    <th>Master</th>
-    <th>Host</th>
-    <th>Port</th>
+    <th>Name</th>
+    <th>Hostnames</th>
+    <th>Proxy Addresses</th>
+    <th>Backend Addresses</th>
     <th>Type</th>
-    <th>Hostname</th>
-    <th>Server Name</th>
-    <th>Configured</th>
     <th>Servers</th>
     <th>Swifts</th>
     <th>Workers</th>
@@ -23,13 +21,11 @@
   <tbody>
   <% for be in [@backend] %>
       <tr>
-        <td><%= be.master_slug %></td>
-        <td><%= be.host %></td>
-        <td><%= be.port %></td>
-        <td><%= be.backend_type %></td>
-        <td><%= be.hostname %></td>
-        <td><%= be.server_name %></td>
-        <td id="backend_configured"><%= be.configured %></td>
+        <td><%= link_to be.name, frontend_backend_path(be.frontend, be) %></td>
+        <td><%= be.hostnames.join(" ") %></td>
+        <td><%= be.proxy_addresses.join(" ") %></td>
+        <td><%= be.backend_addresses.join(" ") %></td>
+        <td><%= be.deployment_type %></td>
         <td><%= be.server_endpoints.count %></td>
         <td><%= be.swift_endpoints.count %></td>
         <td><%= be.worker_endpoints.count %></td>

@@ -1,50 +1,57 @@
 class Frontend
   include MongoMapper::Document
 
-  key :host
-  key :hostip
-  key :host_type, :default => "ec2"
-  key :configured, Boolean, :default => false
-  key :log_level, Integer, :default => Logger::INFO
-
-  key :git_commit
-  key :listen_status
-  key :connection_status, Array
-  timestamps!
-
-  belongs_to :deploy_frontend_job, :dependent => :destroy
-  one :frontend_log, :autosave => false
-
-  one :frontend_key
-
   key :name
+  key :deployment_type  # "ha-proxy", "apache", "nginx", etc.
+
+  #
+  # ec2, unix, linode, etc.
+  #
+  key :provider_type
+
+  # Unix Attributes
+  key :remote_user, :default => "busme"
+  key :admin_user, :default => "uadmin"
+
+  key :start_command, :default => "script/start_frontend.sh"
+  key :stop_command, :default => "script/stop_frontend.sh"
+  key :restart_command, :default => "script/restart_frontend.sh"
+  key :configure_command, :default => "script/configure_frontend.sh"
+
+  key :git_commit, Array
+
+  #
+  # ssh stuff
+  #
+  # This user can create new users on the remote_host.
+  key :remote_host
+
+  # JSON String representing the variable configuration of the endpoint on the remote side.
+  # TODO: Should be encrypted.
+  key :remote_configuration_literal, :default => "{}"
+
+  belongs_to :installation
 
   many :backends, :dependent => :destroy, :autosave => false
+  many :endpoints, :autosave => false
+  many :server_endpoints, :autosave => false
+  many :swift_endpoints, :autosave => false
+  many :worker_endpoints, :autosave => false
 
-  belongs_to :installation, :autosave => false
 
-  before_validation :ensure_hostip_strip, :ensure_host, :ensure_name
+  validates_uniqueness_of :name
+  validate :must_be_json_hash
 
-  attr_accessible :host, :hostip, :host_type, :installation, :installation_id, :name
-
-  def ensure_hostip_strip
-    self.hostip.strip! if hostip
+  def must_be_json_hash
+    conf = remote_configuration
+    errors.add(:remote_configuration_literal, "Must be a hash") unless conf.is_a? Hash
+  rescue
+    errors.add(:remote_configuration_literal, "Must be valid JSON")
   end
 
-  def ensure_host
-    self.host = "#{hostip}" if host.nil?
-  end
+  validates_presence_of :installation
 
-  def ensure_name
-    self.name = "#{host}" if name.nil?
-  end
-
-  validates_uniqueness_of :host, :allow_nil => false
-  #validates_uniqueness_of :hostip, :allow_nil => true
-
-  def job_status
-    deploy_frontend_job.get_status if deploy_frontend_job
-  end
+  attr_accessible :installation, :installation_id, :name, :remote_host, :remote_user, :admin_user
 
   def git_repository
     installation.frontend_git_repository
@@ -58,51 +65,16 @@ class Frontend
     installation.frontend_git_name
   end
 
-  def server_endpoints
-    backends.all.reduce([]) {|t,be| t + be.server_endpoints}
-  end
-  def swift_endpoints
-    backends.all.reduce([]) {|t,be| t + be.swift_endpoints}
-  end
-  def worker_endpoints
-    backends.all.reduce([]) {|t,be| t + be.worker_endpoints}
+  # This will be encrypted at some point.
+  def remote_configuration
+    JSON.parse(remote_configuration_literal)
   end
 
-  class MyLogger < Logger
-    def initialize(log, opts = { })
-      super
-      @joblog = log
-    end
-
-    def to_a
-      @joblog.to_a
-    end
-
-    def segment(x, y)
-      @joblog.segment(x, y)
-    end
+  def remote_configuration=(json)
+    self.remote_configuration_literal = json.to_json
   end
 
-  def logger
-    if @my_logger
-      @my_logger.level = self.log_level
-      return @my_logger
-    end
-    if self.frontend_log.nil?
-      self.create_frontend_log
-    end
-    @my_logger           = MyLogger.new(self.frontend_log)
-    @my_logger.level     = self.log_level
-    @my_logger.formatter = Logger::Formatter.new
-    @my_logger.datetime_format = "%Y-%m-%dT%H:%M:%S."
-    return @my_logger
-  end
-
-  def log(s)
-    logger.info s
-  end
-
-  def key_exists?
-    frontend_key && frontend_key.exists?
+  def at_type
+    return self._type
   end
 end

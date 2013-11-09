@@ -4,9 +4,13 @@ module DeployHerokuOperations
   #  endpoint : Endpoint
 
   def heroku_app_name
-    endpoint.remote_name
+    endpoint.heroku_app_name
   end
-  
+
+  def heroku_api_key
+    endpoint.heroku_api_key
+  end
+
   def heroku_reset_api
     # We have to reset, because successive connection/SSL failures
     # do not resolve themselves. Ugg.

@@ -1,16 +1,15 @@
-class DeployBackendState
+class DeployInstallationState
   include MongoMapper::Document
 
   key :status
-  key :remote_status
-  key :instance_status
   key :log_level, Integer, :default => Logger::INFO
   timestamps!
 
-  belongs_to :backend
-  belongs_to :deploy_backend_log
+  belongs_to :installation, :autosave => false
+  belongs_to :deploy_installation_log
 
-  attr_accessible :backend, :backend_id
+  attr_accessible :installation, :installation_id
+
   class MyLogger < Logger
     def initialize(log, opts = { })
       super
@@ -31,10 +30,10 @@ class DeployBackendState
       @my_logger.level = self.log_level
       return @my_logger
     end
-    if self.deploy_backend_log.nil?
-      self.create_deploy_backend_log
+    if self.deploy_installation_log.nil?
+      self.create_deploy_installation_log
     end
-    @my_logger           = MyLogger.new(self.deploy_backend_log)
+    @my_logger           = MyLogger.new(self.deploy_installation_log)
     @my_logger.level     = self.log_level
     @my_logger.formatter = Logger::Formatter.new
     @my_logger.datetime_format = "%Y-%m-%dT%H:%M:%S."

@@ -1,9 +1,9 @@
-class WorkerEndpointRemoteLog < Logger::LogDevice
+class DeployBackendLog < Logger::LogDevice
   include MongoMapper::Document
 
   key :log_content, Array, :default => []
 
-  belongs_to :worker_endpoint, :autosave => false
+  belongs_to :deploy_backend_state, :autosave => false
 
   def write(msg)
     push(:log_content => msg)

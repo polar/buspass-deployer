@@ -11,6 +11,7 @@ class InstallationsController < ApplicationController
 
   def new
     @installation = Installation.new
+    @keynames = RemoteKey.all.map {|x| x.name}
   end
 
   def create
@@ -73,12 +74,10 @@ class InstallationsController < ApplicationController
 
   def install_frontends
     get_context!
-    if @installation.deploy_installation_job.nil?
-      @installation.create_deploy_installation_job
-      @installation.save
+    @installation.frontends.each do |frontend|
+      job = DeployFrontendJob.get_job(frontend, "deploy_remote_frontend")
+      Delayed::Job.enqueue(job, :queue => "deploy-web")
     end
-    job = DeployInstallationJobspec.new(@installation.deploy_installation_job.id, "install_frontends", nil)
-    Delayed::Job.enqueue(job, :queue => "deploy-web")
     flash[:notice] = "Job has been launched to install the installation frontends"
     if @installation.frontends.count > 1
       redirect_to installation_path(@installation)

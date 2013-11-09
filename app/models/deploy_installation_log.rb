@@ -1,9 +1,9 @@
-class EndpointLog < Logger::LogDevice
+class DeployInstallationLog < Logger::LogDevice
   include MongoMapper::Document
 
   key :log_content, Array, :default => []
 
-  belongs_to :deploy_endpoint_state, :autosave => false
+  belongs_to :deploy_installation_state, :autosave => false
 
   def write(msg)
     push(:log_content => msg)

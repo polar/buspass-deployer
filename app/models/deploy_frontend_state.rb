@@ -1,4 +1,4 @@
-class DeployBackendState
+class DeployFrontendState
   include MongoMapper::Document
 
   key :status
@@ -7,10 +7,11 @@ class DeployBackendState
   key :log_level, Integer, :default => Logger::INFO
   timestamps!
 
-  belongs_to :backend
-  belongs_to :deploy_backend_log
+  belongs_to :frontend, :autosave => false, :class_name => "Frontend1"
+  belongs_to :frontend_log, :class_name => "Frontend1Log"
 
-  attr_accessible :backend, :backend_id
+  attr_accessible :frontend, :frontend_id
+
   class MyLogger < Logger
     def initialize(log, opts = { })
       super
@@ -31,10 +32,10 @@ class DeployBackendState
       @my_logger.level = self.log_level
       return @my_logger
     end
-    if self.deploy_backend_log.nil?
-      self.create_deploy_backend_log
+    if self.endpoint_log.nil?
+      self.create_endpoint_log
     end
-    @my_logger           = MyLogger.new(self.deploy_backend_log)
+    @my_logger           = MyLogger.new(self.endpoint_log)
     @my_logger.level     = self.log_level
     @my_logger.formatter = Logger::Formatter.new
     @my_logger.datetime_format = "%Y-%m-%dT%H:%M:%S."

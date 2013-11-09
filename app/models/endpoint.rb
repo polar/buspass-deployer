@@ -1,14 +1,30 @@
 class Endpoint
   include MongoMapper::Document
 
+  key :name
+
   # The endpoint type, Heroku, Unix, etc.
   key :deployment_type
-
-  key :name
 
   # JSON String representing the variable configuration of the endpoint on the remote side.
   # TODO: Should be encrypted.
   key :remote_configuration_literal
+
+  # Heroku Attributes
+  key :heroku_app_name_store
+
+  def heroku_app_name
+    heroku_app_name_store || name
+  end
+
+  # Unix Attributes
+  key :remote_user, :default => "busme"
+  key :admin_user, :default => "uadmin"
+
+  key :start_command, :default => "script/start_endpoint.sh"
+  key :stop_command, :default => "script/stop_endpoint.sh"
+  key :restart_command, :default => "script/restart_endpoint.sh"
+  key :configure_command, :default => "script/configure_endpoint.sh"
 
   # Endpoints belong to Backends.
   belongs_to :backend

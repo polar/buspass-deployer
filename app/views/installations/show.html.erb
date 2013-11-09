@@ -5,6 +5,8 @@
   <tr>
     <th>Name</th>
     <td><%= @installation.name %></td>
+    <th>SSH Key</th>
+    <td><%= @installation.ssh_key_name %></td>
   </tr>
   </tbody>
 </table>
@@ -25,7 +27,7 @@
   <thead>
   <tr>
     <th>Frontend Name</th>
-    <th>Frontend IP</th>
+    <th>Remote Host</th>
     <th>Backends</th>
     <th>Server Endpoints</th>
     <th>Swift Endpoints</th>
@@ -37,7 +39,7 @@
   <% for fe in @installation.frontends do %>
   <tr>
     <td><%= link_to fe.name, frontend_path(fe) %></td>
-    <td><%= link_to fe.hostip, frontend_path(fe) %></td>
+    <td><%= link_to fe.remote_host, frontend_path(fe) %></td>
     <td><%= fe.backends.count %></td>
     <td><%= fe.server_endpoints.count %></td>
     <td><%= fe.swift_endpoints.count %></td>
@@ -48,7 +50,7 @@
   </tbody>
 </table>
 
-<%= link_to "New Frontend", new_frontend_path %>
+<%= link_to "New Frontend", new_frontend_path(:installation_id => @installation.id) %>
 
 <% for fe in @installation.frontends.order(:host) do %>
     <h4><%= fe.name %></h4>

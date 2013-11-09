@@ -153,4 +153,5 @@ BuspassDeployer::Application.routes.draw do
   end
   # For destroy
   resources :backends
+  resources :remote_keys, :except => [:edit, :update]
 end

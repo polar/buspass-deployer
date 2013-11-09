@@ -42,6 +42,9 @@ gem "heroku-api"
 gem "heroku-headless", :git => "git://github.com/polar/heroku-headless.git" # :path => "/home/polar/src/heroku-headless"
 
 
+gem "client_side_validations"
+gem "client_side_validations-mongo_mapper"
+
 group :assets do
   gem 'sass-rails'#,   '~> 3.2.4'
   gem 'coffee-rails'#, '~> 3.2.2'

@@ -5,6 +5,8 @@ class DeployInstallationJob
 
   key :status_content
 
+  belongs_to :deploy_installation_state, :autosave => false
+
   attr_accessible :installation, :installation_id
 
   def set_status(s)

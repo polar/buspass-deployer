@@ -5,7 +5,8 @@ class FrontendsController < ApplicationController
   end
 
   def new
-    @frontend = Frontend.new
+    @installation = Installation.find(params[:installation_id]) if params[:installation_id]
+    @frontend = Frontend.new(:installlation => @installation)
     @frontend_types = ["ec2"]
     @installations = Installation.all
   end
@@ -25,10 +26,13 @@ class FrontendsController < ApplicationController
   def create
     @frontend = Frontend.new(params[:frontend])
     if @frontend.valid?
-      @frontend.create_deploy_frontend_job()
       @frontend.save
       flash[:notice] = "Frontend created"
-      redirect_to frontends_path
+      if @frontend.installation.frontends.count > 1
+        redirect_to installation_path(@frontend.installation)
+      else
+        redirect_to frontend_path(@frontend)
+      end
     else
       flash[:error] = "Could not create frontend"
       @frontend_types = ["ec2"]
@@ -135,10 +139,17 @@ class FrontendsController < ApplicationController
       if @frontend.configured
         flash[:error] = "Already configured."
       else
-        if @frontend.key_exists?
-          jobspec = DeployFrontendJobspec.new(@frontend.deploy_frontend_job.id, @frontend.host, "configure_remote_frontend", nil, nil)
-          Delayed::Job.enqueue(jobspec, :queue => "deploy-web")
-          flash[:notice] = "Frontend is being configured on the remote end."
+        case @frontend.deployment_type
+          when "ec2"
+            if @frontend.remote_key && @frontend.remote_user
+              jobspec = DeployFrontendJob.get_job(@frontend, "configure_remote_frontend")
+              Delayed::Job.enqueue(jobspec, :queue => "deploy-web")
+              flash[:notice] = "Frontend is being configured on the remote end."
+            else
+              flash[:error] = "Frontend needs key and admin_user"
+            end
+          else
+            flash[:error] = "Unknown Frontend Type #{@frontend.deployment_type}"
         end
       end
       redirect_to frontend_backends_path(@frontend)
@@ -198,12 +209,21 @@ class FrontendsController < ApplicationController
     @frontend = Frontend.find(params[:id])
     if @frontend
       if request.method == "POST"
-        if @frontend.configured
-          flash[:error] = "Frontend is already installed and configured."
+        if @frontend.git_commit
+          flash[:error] = "Frontend is already installed."
         else
-          jobspec = DeployFrontendJobspec.new(@frontend.deploy_frontend_job.id, @frontend.host, "install_remote_frontend", nil, nil)
-          Delayed::Job.enqueue(jobspec, :queue => "deploy-web")
-          flash[:notice] = "Frontend is being installed on the remote end."
+          case @frontend.deployment_type
+            when "ec2"
+              if @frontend.remote_key && @frontend.admin_user
+                jobspec = DeployFrontendJob.get_job(@frontend, "create_remote_frontend")
+                Delayed::Job.enqueue(jobspec, :queue => "deploy-web")
+                flash[:notice] = "Frontend is being installed on the remote end."
+              else
+                flash[:error] = "Frontend needs key and admin_user"
+              end
+            else
+              flash[:error] = "Unknown Frontend Type #{@frontend.deployment_type}"
+          end
         end
       end
     end
@@ -214,9 +234,18 @@ class FrontendsController < ApplicationController
     @frontend = Frontend.find(params[:id])
     if @frontend
       if request.method == "POST"
-        jobspec = DeployFrontendJobspec.new(@frontend.deploy_frontend_job.id, @frontend.host, "full_upgrade_remote_frontend", nil, nil)
-        Delayed::Job.enqueue(jobspec, :queue => "deploy-web")
-        flash[:notice] = "Frontend is being upgraded on the remote end."
+        case @frontend.deployment_type
+          when "ec2"
+            if @frontend.remote_key && @frontend.admin_user
+              jobspec = DeployFrontendJob.get_job(@frontend, "deploy_to_remote_frontend")
+              Delayed::Job.enqueue(jobspec, :queue => "deploy-web")
+              flash[:notice] = "Frontend is being installed on the remote end."
+            else
+              flash[:error] = "Frontend needs key and admin_user"
+            end
+          else
+            flash[:error] = "Unknown Frontend Type #{@frontend.deployment_type}"
+        end
       end
     end
     redirect_to frontend_backends_path(@frontend)

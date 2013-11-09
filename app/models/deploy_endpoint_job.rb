@@ -13,7 +13,7 @@ class DeployEndpointJob
   end
 
   def log(s)
-    state.logger.log(s)
+    state.logger.log(@state.log_level, s)
   end
 
   def set_status(s, rs = nil)
@@ -81,10 +81,6 @@ class DeployEndpointJob
     self.send(__method__)
   end
 
-  #
-  # Ugg is there a better way?
-  # It seems that we only can tell if we haven't loaded the proper
-  # implementation yet until we call it.
   def load_impl
     case self.endpoint.deployment_type
       when "Heroku"
@@ -98,12 +94,12 @@ class DeployEndpointJob
     job = self.where(:endpoint_id => endpoint.id).first
     if job.nil?
       case endpoint.at_type
-        when "ServerEndpoint1"
-          job = DeployServerEndpoint1Job.new(:endpoint => endpoint)
-        when "SwiftEndpoint1"
-          job = DeploySwiftEndpoint1Job.new(:endpoint => endpoint)
-        when "WorkerEndpoint1"
-          job = DeployWorkerEndpoint1Job.new(:endpoint => endpoint)
+        when "ServerEndpoint"
+          job = DeployServerEndpointJob.new(:endpoint => endpoint)
+        when "SwiftEndpoint"
+          job = DeploySwiftEndpointJob.new(:endpoint => endpoint)
+        when "WorkerEndpoint"
+          job = DeployWorkerEndpointJob.new(:endpoint => endpoint)
       end
       if job
         job.save

@@ -3,7 +3,11 @@
 <%= form_for @installation, :validate => true do |f| %>
     <%= f.label :name, "Name" %>
     <%= f.text_field :name %>
+    <%= f.label :ssh_key_name, "SSH Key Name" %>
+    <%= f.select :ssh_key_name, @keynames %>
+    <br />
     <%= f.submit :class => "btn" %>
 <% end %>
+<%= link_to "Upload New Key", new_remote_key_path %>
 
 <%= link_to "All Installations", installations_path %>
