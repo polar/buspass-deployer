@@ -26,7 +26,6 @@
 
               <td><%= link_to (be.hostname), frontend_backend_path(fe, be) %></td>
               <td><%= link_to (be.server_name), frontend_backend_path(fe, be) %></td>
-              <td><%= link_to "#{be.swift_endpoints.count}", frontend_backend_swift_endpoints_path(fe, be) %></td>
             </tr>
         <% end %>
       </table>

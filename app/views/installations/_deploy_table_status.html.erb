@@ -35,11 +35,11 @@
             </td>
             <td><%= (be.listen_status.length > 0 ? "UP" :"DOWN") if be.listen_status %></td>
           </tr>
-          <% for se in be.swift_endpoints do %>
+          <% for se in be.server_endpoints do %>
               <tr>
-                <td>Swift Endpoint</td>
-                <td><%= link_to se.name, frontend_backend_swift_endpoint_path(fe,be,se) %></td>
-                <td><%= se.deploy_swift_endpoint_job.delayed_jobs.count if se.deploy_swift_endpoint_job %></td>
+                <td>Server Endpoint</td>
+                <td><%= link_to se.name, frontend_backend_server_endpoint_path(fe,be,se) %></td>
+                <td><%= se.deploy_server_endpoint_job.delayed_jobs.count if se.deploy_server_endpoint_job %></td>
                 <td>
                   <% for s in se.git_commit do %>
                       <div><%= s %></div>

@@ -1,0 +1,28 @@
+<%= form_for(@worker_endpoint, :url => frontend_backend_worker_endpoints_path(@frontend, @backend), :validate => true) do |f| %>
+    <% if @worker_endpoint.errors.any? %>
+        <div id="error_explanation">
+          <h2><%= pluralize(@worker_endpoint.errors.count, "error") %> prohibited this Worker endpoint from being saved:</h2>
+
+          <ul>
+            <% @worker_endpoint.errors.full_messages.each do |msg| %>
+                <li><%= msg %></li>
+            <% end %>
+          </ul>
+        </div>
+    <% end %>
+    <%= f.label :name %>
+    <%= f.text_field :name %>
+    <%= f.label :deployment_type, "Endpoint Type" %>
+    <%= f.select(:deployment_type, options_for_select(@deployment_types), :value => @worker_endpoint.deployment_type) %>
+    <%= f.label :heroku_app_name, "Heroku App Name"  %>
+    <%= f.text_field :heroku_app_name %>
+    <%= f.label :remote_user, "User Name (Heroku: N/A, Unix login)" %>
+    <%= f.text_field :remote_user %>
+    <%= f.label :remote_host, "Remote Name (Heroku Appname, Unix <Hostname|ip>)" %>
+    <%= f.text_field :remote_host %>
+    <%= f.label :n_servers, "N Workers" %>
+    <%= f.text_field :n_servers, :value => @worker_endpoint.n_servers %>
+    <br />
+    <br />
+    <%= f.submit "Create Worker Endpoint", :class => "btn" %>
+<% end %>

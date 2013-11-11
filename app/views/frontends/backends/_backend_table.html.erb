@@ -1,0 +1,16 @@
+<table class="table table-bordered">
+  <tbody>
+  <tr>
+    <th>Backend</th>
+    <td><%= @backend.name %></td>
+  </tr>
+  <tr>
+    <th>Hostnames</th>
+    <td><%= @backend.hostnames.map {|x| "<div>#{x}</div>"}.join(" ").html_safe %></td>
+  </tr>
+  <tr>
+    <th>Locations</th>
+    <td><%= @backend.locations.map {|x| "<div>#{x}</div>"}.join(" ").html_safe %></td>
+  </tr>
+  </tbody>
+</table>

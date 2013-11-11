@@ -7,7 +7,7 @@ class DeployEndpointJobspec < Struct.new(:endpoint_job_id, :action)
       return
     end
     job.set_status("Enqueued:#{action}")
-    job.log "Enqueued job to perform #{action} #{job.endpoint.spec}"
+    job.log "Enqueued job to perform #{action} #{job.endpoint.name}"
 
   end
 

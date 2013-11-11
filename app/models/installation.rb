@@ -9,10 +9,6 @@ class Installation
   key :server_endpoint_git_refspec, :default => "master"
   key :server_endpoint_git_name, :default => "buspass-web"
 
-  key :swift_endpoint_git_repository, :default => "git://github.com/polar/buspass-web.git"
-  key :swift_endpoint_git_refspec, :default => "master"
-  key :swift_endpoint_git_name, :default => "buspass-web"
-
   key :worker_endpoint_git_repository, :default => "git://github.com/polar/buspass-workers.git"
   key :worker_endpoint_git_refspec, :default => "master"
   key :worker_endpoint_git_name, :default => "buspass-workers"
@@ -27,7 +23,6 @@ class Installation
   many :backends, :autosave => false
   many :endpoints, :autosave => false
   many :server_endpoints, :autosave => false
-  many :swift_endpoints, :autosave => false
   many :worker_endpoints, :autosave => false
 
   validates_presence_of :name

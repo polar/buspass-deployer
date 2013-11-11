@@ -10,11 +10,8 @@
   <tr>
     <th>Name</th>
     <th>Hostnames</th>
-    <th>Proxy Addresses</th>
-    <th>Backend Addresses</th>
-    <th>Type</th>
+    <th>Locations</th>
     <th>Servers</th>
-    <th>Swifts</th>
     <th>Workers</th>
   </tr>
   </thead>
@@ -22,12 +19,9 @@
   <% for be in [@backend] %>
       <tr>
         <td><%= link_to be.name, frontend_backend_path(be.frontend, be) %></td>
-        <td><%= be.hostnames.join(" ") %></td>
-        <td><%= be.proxy_addresses.join(" ") %></td>
-        <td><%= be.backend_addresses.join(" ") %></td>
-        <td><%= be.deployment_type %></td>
+        <td><%= be.hostnames.map {|x| "<div>#{x}</div>"}.join(" ").html_safe %></td>
+        <td><%= be.locations.map {|x| "<div>#{x}</div>"}.join(" ").html_safe %></td>
         <td><%= be.server_endpoints.count %></td>
-        <td><%= be.swift_endpoints.count %></td>
         <td><%= be.worker_endpoints.count %></td>
       </tr>
   <% end %>
@@ -39,6 +33,7 @@
   <tbody>
   <tr>
     <td><%= button_to "Start Backend", start_frontend_backend_path(@frontend, @backend), :class => "btn btn-mini" %></td>
+    <td><%= button_to "Configure Backend", configure_frontend_backend_path(@frontend, @backend), :class => "btn btn-mini" %></td>
     <td><%= button_to "Restart Backend", restart_frontend_backend_path(@frontend, @backend), :class => "btn btn-mini" %></td>
     <td><%= button_to "Stop Backend", stop_frontend_backend_path(@frontend, @backend), :class => "btn btn-mini" %></td>
   </tr>
@@ -50,31 +45,15 @@
   <tbody>
   <tr>
     <td>Actions</td>
+    <td><%= link_to "New", new_frontend_backend_server_endpoint_path(@frontend, @backend), :class => "btn btn-mini" %></td>
     <td><%= button_to "Update Status", status_all_server_endpoint_apps_frontend_backend_path(@frontend, @backend), :class => "btn btn-mini" %></td>
-    <td><%= button_to "Create Apps", create_all_server_endpoint_apps_frontend_backend_path(@frontend, @backend), :class => "btn btn-mini" %></td>
-    <td><%= button_to "Config Apps", configure_all_server_endpoint_apps_frontend_backend_path(@frontend, @backend), :class => "btn btn-mini" %></td>
-    <td><%= button_to "Start Apps", start_all_server_endpoint_apps_frontend_backend_path(@frontend, @backend), :class => "btn btn-mini" %></td>
-    <td><%= button_to "Restart Apps", restart_all_server_endpoint_apps_frontend_backend_path(@frontend, @backend), :class => "btn btn-mini" %></td>
-    <td><%= button_to "Deploy Apps", deploy_all_server_endpoint_apps_frontend_backend_path(@frontend, @backend), :class => "btn btn-mini" %></td>
-    <td><%= button_to "Stop Apps", stop_all_server_endpoint_apps_frontend_backend_path(@frontend, @backend), :class => "btn btn-mini" %></td>
-    <td><%= button_to "Destroy Apps", destroy_all_server_endpoint_apps_frontend_backend_path(@frontend, @backend), :class => "btn btn-mini" %></td>
-  </tr>
-  </tbody>
-</table>
-
-<h3>Swift Endpoints</h3>
-<table class="table table-bordered">
-  <tbody>
-  <tr>
-    <td>Actions</td>
-    <td><%= button_to "Update Status", status_all_swift_endpoint_apps_frontend_backend_path(@frontend, @backend), :class => "btn btn-mini" %></td>
-    <td><%= button_to "Create Apps", create_all_swift_endpoint_apps_frontend_backend_path(@frontend, @backend), :class => "btn btn-mini" %></td>
-    <td><%= button_to "Config Apps", configure_all_swift_endpoint_apps_frontend_backend_path(@frontend, @backend), :class => "btn btn-mini" %></td>
-    <td><%= button_to "Start Apps", start_all_swift_endpoint_apps_frontend_backend_path(@frontend, @backend), :class => "btn btn-mini" %></td>
-    <td><%= button_to "Restart Apps", restart_all_swift_endpoint_apps_frontend_backend_path(@frontend, @backend), :class => "btn btn-mini" %></td>
-    <td><%= button_to "Deploy Apps", deploy_all_swift_endpoint_apps_frontend_backend_path(@frontend, @backend), :class => "btn btn-mini" %></td>
-    <td><%= button_to "Stop Apps", stop_all_swift_endpoint_apps_frontend_backend_path(@frontend, @backend), :class => "btn btn-mini" %></td>
-    <td><%= button_to "Destroy Apps", destroy_all_swift_endpoint_apps_frontend_backend_path(@frontend, @backend), :class => "btn btn-mini" %></td>
+    <td><%= button_to "Create", create_all_server_endpoint_apps_frontend_backend_path(@frontend, @backend), :class => "btn btn-mini" %></td>
+    <td><%= button_to "Configure", configure_all_server_endpoint_apps_frontend_backend_path(@frontend, @backend), :class => "btn btn-mini" %></td>
+    <td><%= button_to "Start", start_all_server_endpoint_apps_frontend_backend_path(@frontend, @backend), :class => "btn btn-mini" %></td>
+    <td><%= button_to "Restart", restart_all_server_endpoint_apps_frontend_backend_path(@frontend, @backend), :class => "btn btn-mini" %></td>
+    <td><%= button_to "Deploy", deploy_all_server_endpoint_apps_frontend_backend_path(@frontend, @backend), :class => "btn btn-mini" %></td>
+    <td><%= button_to "Stop", stop_all_server_endpoint_apps_frontend_backend_path(@frontend, @backend), :class => "btn btn-mini" %></td>
+    <td><%= button_to "Destroy", destroy_all_server_endpoint_apps_frontend_backend_path(@frontend, @backend), :class => "btn btn-mini" %></td>
   </tr>
   </tbody>
 </table>
@@ -84,22 +63,16 @@
   <tr>
     <th>Name</th>
     <th>Endpoint Type</th>
-    <th>Deploy Status</th>
-    <th>Remote Name</th>
-    <th>Remote Status</th>
+    <th>Proxy Address</th>
   </tr>
   </thead>
   <tbody>
-  <% for se in @backend.swift_endpoints %>
-  <tr id="endpoint_<%=se.id%>">
-    <td><%= link_to se.name, frontend_backend_swift_endpoint_path(@frontend, @backend, se) %></td>
-    <td><%= se.endpoint_type %></td>
-    <td class="deploy_status"><%= se.status %></td>
-    <td><%= se.remote_name %></td>
-    <td class="remote_status">
-      <%= render :partial => 'endpoint_remote_status', :locals => {:se => se} %>
-    </td>
-  </tr>
+  <% for se in @backend.server_endpoints %>
+      <tr id="endpoint_<%=se.id%>">
+        <td><%= link_to se.name, frontend_backend_server_endpoint_path(@frontend, @backend, se) %></td>
+        <td><%= se.deployment_type %></td>
+        <td><%= se.proxy_address %></td>
+      </tr>
   <% end %>
   </tbody>
 </table>
@@ -110,14 +83,15 @@
   <tbody>
   <tr>
     <td>Actions</td>
+    <td><%= link_to "New", new_frontend_backend_worker_endpoint_path(@frontend, @backend), :class => "btn btn-mini" %></td>
     <td><%= button_to "Update Status", status_all_worker_endpoint_apps_frontend_backend_path(@frontend, @backend), :class => "btn btn-mini" %></td>
-    <td><%= button_to "Create Apps", create_all_worker_endpoint_apps_frontend_backend_path(@frontend, @backend), :class => "btn btn-mini" %></td>
-    <td><%= button_to "Config Apps", configure_all_worker_endpoint_apps_frontend_backend_path(@frontend, @backend), :class => "btn btn-mini" %></td>
-    <td><%= button_to "Start Apps", start_all_worker_endpoint_apps_frontend_backend_path(@frontend, @backend), :class => "btn btn-mini" %></td>
-    <td><%= button_to "Restart Apps", restart_all_worker_endpoint_apps_frontend_backend_path(@frontend, @backend), :class => "btn btn-mini" %></td>
-    <td><%= button_to "Deploy Apps", deploy_all_worker_endpoint_apps_frontend_backend_path(@frontend, @backend), :class => "btn btn-mini" %></td>
-    <td><%= button_to "Stop Apps", stop_all_worker_endpoint_apps_frontend_backend_path(@frontend, @backend), :class => "btn btn-mini" %></td>
-    <td><%= button_to "Destroy Apps", destroy_all_worker_endpoint_apps_frontend_backend_path(@frontend, @backend), :class => "btn btn-mini" %></td>
+    <td><%= button_to "Create", create_all_worker_endpoint_apps_frontend_backend_path(@frontend, @backend), :class => "btn btn-mini" %></td>
+    <td><%= button_to "Config", configure_all_worker_endpoint_apps_frontend_backend_path(@frontend, @backend), :class => "btn btn-mini" %></td>
+    <td><%= button_to "Start", start_all_worker_endpoint_apps_frontend_backend_path(@frontend, @backend), :class => "btn btn-mini" %></td>
+    <td><%= button_to "Restart", restart_all_worker_endpoint_apps_frontend_backend_path(@frontend, @backend), :class => "btn btn-mini" %></td>
+    <td><%= button_to "Deploy", deploy_all_worker_endpoint_apps_frontend_backend_path(@frontend, @backend), :class => "btn btn-mini" %></td>
+    <td><%= button_to "Stop", stop_all_worker_endpoint_apps_frontend_backend_path(@frontend, @backend), :class => "btn btn-mini" %></td>
+    <td><%= button_to "Destroy", destroy_all_worker_endpoint_apps_frontend_backend_path(@frontend, @backend), :class => "btn btn-mini" %></td>
   </tr>
   </tbody>
 </table>

@@ -38,7 +38,6 @@ class Frontend
   many :backends, :dependent => :destroy, :autosave => false
   many :endpoints, :autosave => false
   many :server_endpoints, :autosave => false
-  many :swift_endpoints, :autosave => false
   many :worker_endpoints, :autosave => false
 
 
@@ -61,6 +60,18 @@ class Frontend
   validates_presence_of :installation
 
   attr_accessible :installation, :installation_id, :name, :remote_host, :remote_user, :admin_user
+
+  def allocated_backend_ports
+    backends.reduce([]) do |result, backend|
+      result + backend.local_backend_ports
+    end
+  end
+
+  def allocated_proxy_ports
+    backends.reduce([]) do |result, backend|
+      result + backend.local_proxy_ports
+    end
+  end
 
   def git_repository
     installation.frontend_git_repository

@@ -4,12 +4,14 @@ class DeployEndpointState
   key :status
   key :remote_status
   key :instance_status
+  key :log_level, Integer, :default => Logger::INFO
   timestamps!
 
   # Contains the first lines of the git commit log on the remote side.
   key :git_commit, Array
 
   belongs_to :endpoint
+  belongs_to :endpoint_log, :class_name => "DeployEndpointLog"
 
   class MyLogger < Logger
     def initialize(log, opts = { })

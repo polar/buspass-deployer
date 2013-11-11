@@ -5,10 +5,10 @@ class BackendsController < ApplicationController
   end
 
   def new
+    get_context
     @backend = Backend.new
-    @frontends = Frontend.all
-    @backend.frontend = Frontend.find(params[:frontend_id]) if params[:frontend_id]
-    @deployment_types = ["ssh", "swift"]
+    @backend.frontend = @frontend
+    @deployment_types = ["ssh", "swift", "server"]
     if @backend.frontend
       count = @backend.frontend.backends.count
       @backend.name = "#{@backend.frontend.name}-backend-#{count}"
@@ -16,9 +16,11 @@ class BackendsController < ApplicationController
   end
 
   def create
+    get_context
     params[:backend][:hostnames] = params[:backend][:hostnames].split(" ")
     params[:backend][:proxy_addresses] = params[:backend][:proxy_addresses].split(" ")
     params[:backend][:backend_addresses] = params[:backend][:backend_addresses].split(" ")
+    @backend.frontend = @frontend
     @backend = Backend.new(params[:backend])
     if @backend.valid?
       @backend.save
@@ -26,8 +28,7 @@ class BackendsController < ApplicationController
       redirect_to frontend_path(@backend.frontend)
     else
       flash[:error] = "Backend #{@backend.name} could not be created"
-      @frontends = Frontend.all
-      @deployment_types = ["ssh", "swift"]
+      @deployment_types = ["ssh", "swift", "server"]
       render :new
     end
   end

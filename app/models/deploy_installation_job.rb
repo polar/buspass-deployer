@@ -55,15 +55,6 @@ class DeployInstallationJob
       fe.deploy_backend_job.set_status(nil)
       fe.backend_log.clear
     end
-    for fe in installation.swift_endpoints do
-      if fe.deploy_swift_endpoint_job.nil?
-        fe.create_deploy_swift_endpoint_job
-      end
-      fe.deploy_swift_endpoint_job.set_status(nil)
-      fe.swift_endpoint_log.clear
-      fe.instance_status = nil
-      fe.save
-    end
     for fe in installation.worker_endpoints do
       if fe.deploy_worker_endpoint_job.nil?
         fe.create_deploy_worker_endpoint_job
@@ -82,10 +73,6 @@ class DeployInstallationJob
     end
     for fe in installation.backends do
       fe.listen_status = nil
-      fe.save
-    end
-    for fe in installation.swift_endpoints do
-      fe.remote_status = nil
       fe.save
     end
     for fe in installation.worker_endpoints do
@@ -331,21 +318,6 @@ class DeployInstallationJob
         be.deploy_backend_job.stop_worker_endpoint_apps
       rescue Exception => boom
         log "#{head}: Error in starting backend #{be.name} -- #{boom}"
-      end
-    end
-  ensure
-    log "#{head}: DONE"
-  end
-
-  def restart_swift_endpoints
-    head = __method__
-    log "#{head}: START"
-    for se in installation.swift_endpoints do
-      begin
-        log "#{head}: Restarting Swift Endpoint #{se.name}"
-        se.deploy_swift_endpoint_job.restart_remote_endpoint
-      rescue Exception => boom
-        log "#{head}: Error in Swift Endpoint #{se.name} -- #{boom}"
       end
     end
   ensure

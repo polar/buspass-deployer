@@ -47,7 +47,7 @@
     <th>Hostname</th>
     <th>Server Name</th>
     <th>Configured</th>
-    <th>Swift Endpoints</th>
+    <th>Server Endpoints</th>
   </tr>
   </thead>
   <tbody>
@@ -59,8 +59,7 @@
         <td><%= be.hostname %></td>
         <td><%= be.server_name %></td>
         <td><%= be.configured %></td>
-        <td><%= be.swift_endpoints.count %></td>
-      </tr>
+        <td><%= be.server_endpoints.count %></td>
   <% end %>
   </tbody>
 </table>

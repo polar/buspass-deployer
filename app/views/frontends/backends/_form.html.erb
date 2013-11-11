@@ -1,4 +1,4 @@
-<%= form_for(@backend, :validate => true) do |f| %>
+<%= form_for(@backend, :validate => true, :url => frontend_backends_path(@frontend) ) do |f| %>
     <% if @backend.errors.any? %>
         <div id="error_explanation">
           <h2><%= pluralize(@backend.errors.count, "error") %> prohibited this Backend from being saved:</h2>
@@ -12,16 +12,16 @@
     <% end %>
     <%= f.label :name %>
     <%= f.text_field :name, :class => "extra" %>
-    <%= f.label(:frontend_id) %>
-    <%= f.collection_select :frontend_id, @frontends, :id, :host %>
-    <%= f.label :deployment_type %>
-    <%= f.select :deployment_type, @deployment_types %>
     <%= f.label :hostnames, "Hostname Matchers ( busme.us syracuse-university.busme.us *.busme.us )" %>
     <%= f.text_field :hostnames, :value => @backend.hostnames.join(" ") %>
-    <%= f.label :proxy_addresses, "Proxy Addresses (e.g. unix:/tmp/thin.1.sock,  localhost:3000)" %>
-    <%= f.text_field :proxy_addresses, :value => @backend.proxy_addresses.join(" ") %>
-    <%= f.label :backend_addresses, "Backend Addresses (swiftiply connects) ( 123.323.111.22:4000 )" %>
-    <%= f.text_field :backend_addresses, :value => @backend.backend_addresses.join(" ") %>
+    <%= f.label :locations, "Location Matchers ( /syracuse-university )" %>
+    <%= f.text_field :locations, :value => @backend.locations.join(" ") %>
+    <%= f.label :ssh_proxy_address, "SSH Proxy Address (localhost:3000)" %>
+    <%= f.text_field :ssh_proxy_address %>
+    <%= f.label :swift_proxy_address, "Swift Proxy Address (localhost:3001)" %>
+    <%= f.text_field :swift_proxy_address %>
+    <%= f.label :swift_backend_address, "Swift Backend Address (0.0.0.0:4000)" %>
+    <%= f.text_field :swift_backend_address %>
     <%= f.label :remote_configuration_literal, "Runtime configuration (Swift) in JSON" %>
     <%= f.text_area :remote_configuration_literal %>
     <%= f.label :endpoint_configuration_literal, "Common Endpoint Configuration in JSON" %>

@@ -43,55 +43,66 @@ class Frontends::BackendsController < ApplicationController
   def new
     @frontend = Frontend.find(params[:frontend_id])
     if @frontend
-      proxy_ports = @frontend.backends.map do |backend|
-         backend.proxy_addresses.map do |addr|
-           match = /((.*):)?(.*)/ =~ addr
-           port = match[3].to_i
-         end
-      end.flatten
-
-      backend_ports = @frontend.backends.map do |backend|
-        backend.proxy_addresses.map do |addr|
-          match = /((.*):)?(.*)/ =~ addr
-          port = match[3].to_i
-        end
-      end.flatten
-
-      proxy_addresses = ["127.0.0.1:#{(proxy_ports.max || 2999) + 1}"]
-
-      backend_addresses = ["0.0.0.0:#{(backend_ports.max || 3999) + 1}"]
-
-      @deployment_types = ["swift", "ssh"]
-      @backend = Backend.new(
-          :name => "#{@frontend.name}-b#{Backend.count}",
+      @backend = @frontend.backends.build(
+          :name      => "#{@frontend.name}-b#{Backend.count}",
           :hostnames => [@frontend.remote_host, "*.#{@frontend.remote_host}"],
-          :frontend => @frontend,
-          :proxy_addresses => proxy_addresses,
-          :backend_addresses => backend_addresses,
       )
+      @backend.server_proxies.build(:proxy_type=> "SSH")
+      @backend.server_proxies.build(:proxy_type=> "Swift")
+      backend_proxy_init()
+    end
+  end
+
+  def backend_proxy_init
+    proxy_ports   = @frontend.allocated_proxy_ports
+    backend_ports = @frontend.allocated_backend_ports
+
+    ssh_proxy_port     = (proxy_ports.max || 2999) + 1
+    swift_proxy_port   = (proxy_ports + [ssh_proxy_port]).max + 1
+    swift_backend_port = (backend_ports.max || 3999) + 1
+    @backend.ssh_proxy_address  = "127.0.0.1:#{ssh_proxy_port}"
+
+    @backend.swift_proxy_address = "127.0.0.1:#{swift_proxy_port}"
+
+    @backend.swift_backend_address = "0.0.0.0:#{swift_backend_port}"
+  end
+
+  def edit
+    get_context!
+  end
+
+  def update
+    get_context!
+    params[:backend][:hostnames] = params[:backend][:hostnames].split(" ")
+    params[:backend][:locations] = params[:backend][:locations].split(" ")
+    if @backend.update_attributes(params[:backend])
+      flash[:notice] = "Backend updated, but not configured."
+      redirect_to frontend_backend_path(@frontend, @backend)
+    else
+      flash[:error] = "Cannot create backend."
+      @deployment_types = ["swift", "ssh", "server"]
+      render :edit
     end
   end
 
   def create
-    @frontend = Frontend.find(params[:frontend_id])
-    if @frontend
-      params[:backend][:frontend] = @frontend
-      params[:backend][:hostnames] = params[:backend][:hostnames].split(" ")
-      params[:backend][:locations] = params[:backend][:locations].split(" ")
-      params[:backend][:proxy_addresses] = params[:backend][:proxy_addresses].split(" ")
-      params[:backend][:backend_addresses] = params[:backend][:backend_addresses].split(" ")
-      @backend = Backend.new(params[:backend])
-      if @backend.valid?
-        @backend.save
-        flash[:notice] = "Backend created, but not configured."
-        redirect_to frontend_backend_path(@frontend, @backend)
-      else
-        flash[:error] = "Cannot create backend."
-        @deployment_types = ["swift", "ssh"]
-        render :new
-      end
+    get_context
+    @backend = Backend.new()
+    @backend.frontend = @frontend
+    @backend.server_proxies.build(:proxy_type=> "SSH")
+    @backend.server_proxies.build(:proxy_type=> "Swift")
+
+    params[:backend][:hostnames] = params[:backend][:hostnames].split(" ")
+    params[:backend][:locations] = params[:backend][:locations].split(" ")
+    @backend.attributes = params[:backend]
+    if @backend.valid?
+      @backend.save
+      flash[:notice] = "Backend #{@backend.name} is created"
+      redirect_to frontend_path(@backend.frontend)
     else
-      flash[:error] = "Frontend does not exist."
+      flash[:error] = "Backend #{@backend.name} could not be created"
+      backend_proxy_init()
+      render :new
     end
   end
 
@@ -264,94 +275,6 @@ class Frontends::BackendsController < ApplicationController
       #job.perform
     end
     redirect_to :back
-  end
-
-  def create_all_swift_endpoint_apps
-    get_context!
-    if @backend.deploy_backend_job.nil?
-      @backend.create_deploy_backend_job
-    end
-    job = DeployBackendJobspec.new(@backend.deploy_backend_job.id, @backend.name, "create_swift_endpoint_apps", nil)
-    Delayed::Job.enqueue(job, :queue => "deploy-web")
-    flash[:notice] = "Job has been launched to create all swift endpoints"
-    redirect_to frontend_backend_path(@frontend, @backend)
-  end
-
-  def configure_all_swift_endpoint_apps
-    get_context!
-    if @backend.deploy_backend_job.nil?
-      @backend.create_deploy_backend_job
-    end
-    job = DeployBackendJobspec.new(@backend.deploy_backend_job.id, @backend.name, "configure_swift_endpoint_apps", nil)
-    Delayed::Job.enqueue(job, :queue => "deploy-web")
-    flash[:notice] = "Job has been launched to configure all swift endpoints"
-    redirect_to frontend_backend_path(@frontend, @backend)
-  end
-
-  def deploy_all_swift_endpoint_apps
-    get_context!
-    if @backend.deploy_backend_job.nil?
-      @backend.create_deploy_backend_job
-    end
-    job = DeployBackendJobspec.new(@backend.deploy_backend_job.id, @backend.name, "deploy_swift_endpoint_apps", nil)
-    Delayed::Job.enqueue(job, :queue => "deploy-web")
-    flash[:notice] = "Job has been launched to deploy to all swift endpoints"
-    redirect_to frontend_backend_path(@frontend, @backend)
-  end
-
-  def destroy_all_swift_endpoint_apps
-    get_context!
-    if @backend.deploy_backend_job.nil?
-      @backend.create_deploy_backend_job
-    end
-    job = DeployBackendJobspec.new(@backend.deploy_backend_job.id, @backend.name, "destroy_swift_endpoint_apps", nil)
-    Delayed::Job.enqueue(job, :queue => "deploy-web")
-    flash[:notice] = "Job has been launched to destroy to all swift endpoints"
-    redirect_to frontend_backend_path(@frontend, @backend)
-  end
-
-  def start_all_swift_endpoint_apps
-    get_context!
-    if @backend.deploy_backend_job.nil?
-      @backend.create_deploy_backend_job
-    end
-    job = DeployBackendJobspec.new(@backend.deploy_backend_job.id, @backend.name, "start_swift_endpoint_apps", nil)
-    Delayed::Job.enqueue(job, :queue => "deploy-web")
-    flash[:notice] = "Job has been launched to start all swift endpoints"
-    redirect_to frontend_backend_path(@frontend, @backend)
-  end
-
-  def restart_all_swift_endpoint_apps
-    get_context!
-    if @backend.deploy_backend_job.nil?
-      @backend.create_deploy_backend_job
-    end
-    job = DeployBackendJobspec.new(@backend.deploy_backend_job.id, @backend.name, "restart_swift_endpoint_apps", nil)
-    Delayed::Job.enqueue(job, :queue => "deploy-web")
-    flash[:notice] = "Job has been launched to restart all swift endpoints"
-    redirect_to frontend_backend_path(@frontend, @backend)
-  end
-
-  def stop_all_swift_endpoint_apps
-    get_context!
-    if @backend.deploy_backend_job.nil?
-      @backend.create_deploy_backend_job
-    end
-    job = DeployBackendJobspec.new(@backend.deploy_backend_job.id, @backend.name, "stop_swift_endpoint_apps", nil)
-    Delayed::Job.enqueue(job, :queue => "deploy-web")
-    flash[:notice] = "Job has been launched to stop all swift endpoints"
-    redirect_to frontend_backend_path(@frontend, @backend)
-  end
-
-  def status_all_swift_endpoint_apps
-    get_context!
-    if @backend.deploy_backend_job.nil?
-      @backend.create_deploy_backend_job
-    end
-    job = DeployBackendJobspec.new(@backend.deploy_backend_job.id, @backend.name, "status_swift_endpoint_apps", nil)
-    Delayed::Job.enqueue(job, :queue => "deploy-web")
-    flash[:notice] = "Job has been launched to get status of swift endpoints"
-    redirect_to frontend_backend_path(@frontend, @backend)
   end
 
   def create_all_server_endpoint_apps
@@ -532,18 +455,29 @@ class Frontends::BackendsController < ApplicationController
 
   def partial_status
     get_context!
+    job = DeployBackendJob.where(:backend_id => @backend.id).first
+    if job
       index = params[:log_end].to_i
-      @logs = @backend.backend_log.segment(index, 100)
+      @logs = job.backend_log.segment(index, 100)
+    end
   end
 
   def clear_log
     get_context
     if @backend
-      @backend.backend_log.clear
-      @backend.backend_log.save
+      job = DeployBackendJob.where(:backend_id => @backend.id).first
+      if job
+        index = params[:log_end].to_i
+        job.backend_log.clear
+        job.backend_log.save
+      end
     else
-      @frontend.frontend_log.clear
-      @frontend.frontend_log.save
+      job = DeployFrontendJob.where(:frontend_id => @frontend.id).first
+      if job
+        index = params[:log_end].to_i
+        job.frontend_log.clear
+        job.frontend_log.save
+      end
     end
     redirect_to :back
   end

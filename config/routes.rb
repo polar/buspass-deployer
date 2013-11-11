@@ -5,11 +5,9 @@ BuspassDeployer::Application.routes.draw do
     member do
       get :edit_frontend_git
       get :edit_server_endpoint_git
-      get :edit_swift_endpoint_git
       get :edit_worker_endpoint_git
       put :update_frontend_git
       put :update_server_endpoint_git
-      put :update_swift_endpoint_git
       put :update_worker_endpoint_git
       post :install_frontends
       post :start_frontends
@@ -60,6 +58,7 @@ BuspassDeployer::Application.routes.draw do
         post :status
         get :status
         post :deconfigure
+
         post :create_all_server_endpoint_apps
         post :configure_all_server_endpoint_apps
         post :start_all_server_endpoint_apps
@@ -69,15 +68,7 @@ BuspassDeployer::Application.routes.draw do
         post :destroy_all_server_endpoint_apps
         post :stop_all_server_endpoint_apps
         post :status_all_server_endpoint_apps
-        post :create_all_swift_endpoint_apps
-        post :configure_all_swift_endpoint_apps
-        post :start_all_swift_endpoint_apps
-        post :restart_all_swift_endpoint_apps
-        post :deploy_all_swift_endpoint_apps
-        post :stop_all_swift_endpoint_apps
-        post :destroy_all_swift_endpoint_apps
-        post :stop_all_swift_endpoint_apps
-        post :status_all_swift_endpoint_apps
+
         post :create_all_worker_endpoint_apps
         post :configure_all_worker_endpoint_apps
         post :start_all_worker_endpoint_apps
@@ -87,27 +78,11 @@ BuspassDeployer::Application.routes.draw do
         post :destroy_all_worker_endpoint_apps
         post :stop_all_worker_endpoint_apps
         post :status_all_worker_endpoint_apps
+
         get  :partial_status
         post :clear_log
       end
       resources :server_endpoints, :controller => "frontends/backends/server_endpoint" do
-        member do
-          post   :clear_log
-          post   :create_app
-          post   :configure_app
-          post   :start_app
-          post   :restart_app
-          post   :stop_app
-          post   :deploy_app
-          delete :destroy_app
-          post   :remote_status
-          get    :partial_status
-          post   :get_logs
-          get    :remote_log
-          post   :truncate_remote_logs
-        end
-      end
-      resources :swift_endpoints, :controller => "frontends/backends/swift_endpoint" do
         member do
           post   :clear_log
           post   :create_app

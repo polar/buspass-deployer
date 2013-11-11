@@ -3,7 +3,7 @@ class Endpoint
 
   key :name
 
-  # The endpoint type, Heroku, Unix, etc.
+  # The endpoint type, Heroku, Heroku-Swift, Unix, Unix-Swift, etc.
   key :deployment_type
 
   # JSON String representing the variable configuration of the endpoint on the remote side.
@@ -14,12 +14,43 @@ class Endpoint
   key :heroku_app_name_store
 
   def heroku_app_name
-    heroku_app_name_store || name
+    heroku_app_name_store || name.downcase.gsub(/_+/, "-")
+  end
+
+  def heroku_app_name=(name)
+    n_name = name.downcase.gsub(/\s+/,"-")
+    self.heroku_app_name_store = n_name  if heroku_app_name != n_name
   end
 
   # Unix Attributes
   key :remote_user, :default => "busme"
   key :admin_user, :default => "uadmin"
+
+  key :remote_host
+
+  # For ServerEndpoint only.
+
+  key :proxy_address_store
+
+  def proxy_address
+    proxy_address_store ||
+        case at_type
+          when "ServerEndpoint"
+            case deployment_type
+              when "Heroku"
+                "https://#{heroku_app_name}.herokuapp.com"
+              when "Unix"
+                "http://#{remote_host}"
+            end
+          when "WorkerEndpoint"
+        end
+  end
+
+  def proxy_address=(addr)
+    self.proxy_address_store = addr  if self.proxy_address != addr
+  end
+
+  key :n_servers, Integer, :default => 1
 
   key :start_command, :default => "script/start_endpoint.sh"
   key :stop_command, :default => "script/stop_endpoint.sh"

@@ -46,7 +46,6 @@
     <th>Name</th>
     <th>Hostnames</th>
     <th colspan="2">Server Endpoints</th>
-    <th colspan="2">Swift Endpoints</th>
     <th colspan="2">Worker Endpoints</th>
     <th>Actions</th>
   </tr></thead>
@@ -57,8 +56,6 @@
         <td><%= be.server_endpoints.count %>
           <%= link_to "+", new_frontend_backend_server_endpoint_path(@frontend, be), :class => "btn btn-mini" %>
         </td><td><%= link_to "All", frontend_backend_server_endpoints_path(@frontend, be) %></td>
-        <td><%= be.server_endpoints.count %>
-          <%= link_to "+", new_frontend_backend_swift_endpoint_path(@frontend, be), :class => "btn btn-mini" %>
         </td><td><%= link_to "All", frontend_backend_swift_endpoints_path(@frontend, be) %></td>
         <td><%= be.worker_endpoints.count %>
           <%= link_to "+", new_frontend_backend_worker_endpoint_path(@frontend, be), :class => "btn btn-mini" %></td>
@@ -70,7 +67,6 @@
   <% end %></tbody>
 </table>
 
-<%= link_to "New Backend", new_backend_path(:frontend_id => @frontend.id) %> |
-<%= link_to "New Base Backend", new_base_frontend_backends_path(@frontend) %>
+<%= link_to "New Backend", new_frontend_backend_path(@frontend) %>
 <br />
 <%= link_to "All Frontends", frontends_path %>

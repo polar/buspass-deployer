@@ -1,0 +1,12 @@
+<script type="text/javascript">
+    // This displays the flash messages.
+    $(function() {
+        <%- flash.each do |name, msg| -%>
+        <%= "setFlash('#{name}', '#{escape_javascript msg}');".html_safe  %>
+        <%- end -%>
+        // Set the click on the buttons to clear the flash message
+        $("#notices .alert").on("click", ".close", function() {
+            clearFlash();
+        })
+    }) ;
+</script>

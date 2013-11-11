@@ -59,21 +59,9 @@ class InstallationsController < ApplicationController
     get_context!
   end
 
-  def edit_swift_endpoint_git
-    get_context!
-  end
-
   def update_server_endpoint_git
     get_context!
     args = params[:installation].slice(:server_endpoint_git_repository, :server_endpoint_git_refspec, :server_endpoint_git_name)
-    @installation.update_attributes(args)
-    @installation.save
-    redirect_to installation_path(@installation)
-  end
-
-  def update_swift_endpoint_git
-    get_context!
-    args = params[:installation].slice(:swift_endpoint_git_repository, :swift_endpoint_git_refspec, :swift_endpoint_git_name)
     @installation.update_attributes(args)
     @installation.save
     redirect_to installation_path(@installation)

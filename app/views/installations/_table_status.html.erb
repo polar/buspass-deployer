@@ -26,10 +26,10 @@
             <td><%= be.job_status %></td>
             <td><%= (be.listen_status.length > 0 ? "UP" :"DOWN") if be.listen_status %></td>
           </tr>
-          <% for se in be.swift_endpoints do %>
+          <% for se in be.server_endpoints do %>
               <tr>
                 <td>Swift Endpoint</td>
-                <td><%= link_to se.name, frontend_backend_swift_endpoint_path(fe,be,se) %></td>
+                <td><%= link_to se.name, frontend_backend_server_endpoint_path(fe,be,se) %></td>
                 <td><%= se.job_status %></td>
                 <td>
                   <% for s in se.remote_status do %>

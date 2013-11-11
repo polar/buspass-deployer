@@ -74,8 +74,6 @@
         <td><%= be.backend_addresses.join("\n") %></td>
         <td><%= be.server_endpoints.count %>
           <%= link_to "+", new_frontend_backend_server_endpoint_path(@frontend, be), :class => "btn btn-mini"  %></td>
-        <td><%= be.swift_endpoints.count %>
-        <%= link_to "+", new_frontend_backend_swift_endpoint_path(@frontend, be), :class => "btn btn-mini"  %></td>
         <td><%= be.worker_endpoints.count %>
         <%= link_to "+", new_frontend_backend_worker_endpoint_path(@frontend, be), :class => "btn btn-mini" %></td>
       </tr>

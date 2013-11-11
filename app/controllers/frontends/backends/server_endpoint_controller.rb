@@ -1,6 +1,5 @@
 class Frontends::Backends::ServerEndpointController < ApplicationController
 
-
   def index
     get_context
     if @backend
@@ -17,7 +16,11 @@ class Frontends::Backends::ServerEndpointController < ApplicationController
   def new
     get_context
     if @backend
-      @server_endpoint = ServerEndpoint.new_instance_for_backend(@backend)
+      @deployment_types = ["Heroku", "Unix", "Heroku-Swift", "Unix-Swift", "Unix-SSH"]
+      @server_endpoint = ServerEndpoint.new(
+          :backend => @backend,
+          :name => "#{@backend.name}-server#{ServerEndpoint.count}"
+      )
     else
       raise NotFoundError
     end
@@ -28,19 +31,13 @@ class Frontends::Backends::ServerEndpointController < ApplicationController
     if @backend
       @server_endpoint = ServerEndpoint.new(params[:server_endpoint])
       @server_endpoint.backend = @backend
-      if @server_endpoint.name.blank?
-        @server_endpoint.name = @server_enpoint.remote_name
-      end
-      if @server_endpoint.remote_name.blank?
-        @server_endpoint.name = @server_endpoint.name
-      end
+
       if @server_endpoint.valid?
         @server_endpoint.save
-        @server_endpoint.create_server_endpoint_log
-        @server_endpoint.create_deploy_server_endpoint_job
         flash[:notice] = "Endpoint #{@server_endpoint.name} created."
         redirect_to frontend_backend_server_endpoints_path
       else
+        @deployment_types = ["Heroku", "Unix", "Heroku-Swift", "Unix-Swift", "Unix-SSH"]
         render :new
       end
     else
@@ -68,67 +65,51 @@ class Frontends::Backends::ServerEndpointController < ApplicationController
 
   def clear_log
     get_context!
-    @server_endpoint.server_endpoint_log.clear
-    @server_endpoint.server_endpoint_log.save
+    if @server_endpoint_job
+      @server_endpoint_job.endpoint_log.clear
+      @server_endpoint_job.endpoint_log.save
+    end
     redirect_to frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint)
   end
 
   def create_app
     get_context!
-    if @server_endpoint.deploy_server_endpoint_job.nil?
-      @server_endpoint.create_deploy_server_endpoint_job
-    end
-    @server_endpoint.deploy_server_endpoint_job.reset_api
-    job = DeployServerEndpointJobspec.new(@server_endpoint.deploy_server_endpoint_job.id, @server_endpoint.name, "create_remote_endpoint")
+    job = DeployServerEndpointJob.get_job(@server_endpoint, "create_remote_endpoint")
     Delayed::Job.enqueue(job, :queue => "deploy-web")
-    flash[:notice] = "Endpoint App will be created if doesn't already exist."
+    flash[:notice] = "Server Endpoint #{@server_endpoint.name}  will be created if doesn't already exist."
     redirect_to frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint)
   end
 
   def destroy_app
     get_context!
-    if @server_endpoint.deploy_server_endpoint_job.nil?
-      @server_endpoint.create_deploy_server_endpoint_job
-    end
-    job = DeployServerEndpointJobspec.new(@server_endpoint.deploy_server_endpoint_job.id, @server_endpoint.name, "destroy_remote_endpoint")
+    job = DeployServerEndpointJob.get_job(@server_endpoint, "destroy_remote_endpoint")
     Delayed::Job.enqueue(job, :queue => "deploy-web")
-    flash[:notice] = "Endpoint App will be destroyed."
+    flash[:notice] = "Server Endpoint #{@server_endpoint.name}  will be destroyed."
     redirect_to frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint)
   end
 
   def deploy_app
     get_context!
-    if @server_endpoint.deploy_server_endpoint_job.nil?
-      @server_endpoint.create_deploy_server_endpoint_job
-    end
-    job = DeployServerEndpointJobspec.new(@server_endpoint.deploy_server_endpoint_job.id, @server_endpoint.name, "job_create_and_deploy_remote_endpoint")
+    job = DeployServerEndpointJob.get_job(@server_endpoint, "deploy_remote_endpoint")
     Delayed::Job.enqueue(job, :queue => "deploy-web")
-    flash[:notice] = "A job has been queued to deploy Server Endpoint. Check log."
+    flash[:notice] = "A job has been queued to deploy Server Endpoint #{@server_endpoint.name}. Check log."
     redirect_to frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint)
   end
 
   def remote_status
     get_context!
-    job = DeployServerEndpointJobspec.new(@server_endpoint.deploy_server_endpoint_job.id, @server_endpoint.name, "remote_endpoint_status")
+    job = DeployServerEndpointJob.get_job(@server_endpoint, "status_remote_endpoint")
     Delayed::Job.enqueue(job, :queue => "deploy-web")
-    flash[:notice] = "Remote Status is being updated."
-    if request.method == "POST"
-      redirect_to :back
-    else
-      redirect_to frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint)
-    end
+    flash[:notice] = "Remote Status for Server Endpoint #{@server_endpoint.name} is being updated."
+    redirect_to frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint)
   end
 
   def get_logs
     get_context!
-    if request.method == "POST"
-      job = DeployServerEndpointJobspec.new(@server_endpoint.deploy_server_endpoint_job.id, @server_endpoint.name, "logs_remote_endpoint")
-      Delayed::Job.enqueue(job, :queue => "deploy-web")
-      flash[:notice] = "Remote Logs will be updated."
-      redirect_to remote_log_frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint)
-    else
-      redirect_to remote_log_frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint)
-    end
+    job = DeployServerEndpointJobspec.new(@server_endpoint.deploy_server_endpoint_job.id, @server_endpoint.name, "logs_remote_endpoint")
+    Delayed::Job.enqueue(job, :queue => "deploy-web")
+    flash[:notice] = "Remote Logs for Server Endpoint #{@server_endpoint.name} will be updated."
+    redirect_to remote_log_frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint)
   end
 
   def remote_log
@@ -137,64 +118,42 @@ class Frontends::Backends::ServerEndpointController < ApplicationController
 
   def truncate_remote_logs
     get_context!
-    if request.method == "POST"
-      job = DeployServerEndpointJobspec.new(@server_endpoint.deploy_server_endpoint_job.id, @server_endpoint.name, "truncate_logs_remote_endpoint")
-      Delayed::Job.enqueue(job, :queue => "deploy-web")
-      flash[:notice] = "Remote Logs will be truncated."
-      redirect_to frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint)
-    else
-      redirect_to frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint)
-    end
+    job = DeployServerEndpointJob.get_job(@server_endpoint, "truncate_logs_remote_endpoint")
+    Delayed::Job.enqueue(job, :queue => "deploy-web")
+    flash[:notice] = "Remote Logs for Server Endpoint #{@server_endpoint.name} will be truncated."
+    redirect_to frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint)
   end
-
-
 
   def start_app
     get_context!
-    job = DeployServerEndpointJobspec.new(@server_endpoint.deploy_server_endpoint_job.id, @server_endpoint.name, "start_remote_endpoint")
+    job = DeployServerEndpointJob.get_job(@server_endpoint, "start_remote_endpoint")
     Delayed::Job.enqueue(job, :queue => "deploy-web")
-    flash[:notice] = "Endpoint App will be started."
-    if request.method == "POST"
-      redirect_to :back
-    else
-      redirect_to frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint)
-    end
+    flash[:notice] = "Server Endpoint #{@server_endpoint.name} will be started."
+    redirect_to frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint)
   end
 
   def restart_app
     get_context!
-    job = DeployServerEndpointJobspec.new(@server_endpoint.deploy_server_endpoint_job.id, @server_endpoint.name, "restart_remote_endpoint")
+    job = DeployServerEndpointJob.get_job(@server_endpoint, "restart_remote_endpoint")
     Delayed::Job.enqueue(job, :queue => "deploy-web")
-    flash[:notice] = "Endpoint App will be started."
-    if request.method == "POST"
-      redirect_to :back
-    else
-      redirect_to frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint)
-    end
+    flash[:notice] = "Server Endpoint #{@server_endpoint.name} will be restarted."
+    redirect_to frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint)
   end
 
   def configure_app
     get_context!
-    job = DeployServerEndpointJobspec.new(@server_endpoint.deploy_server_endpoint_job.id, @server_endpoint.name, "configure_remote_endpoint")
+    job = DeployServerEndpointJob.get_job(@server_endpoint, "configure_remote_endpoint")
     Delayed::Job.enqueue(job, :queue => "deploy-web")
-    flash[:notice] = "Endpoint App will be started."
-    if request.method == "POST"
-      redirect_to :back
-    else
-      redirect_to frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint)
-    end
+    flash[:notice] = "Server Endpoint #{@server_endpoint.name}  will be configured."
+    redirect_to frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint)
   end
 
   def stop_app
     get_context!
-    job = DeployServerEndpointJobspec.new(@server_endpoint.deploy_server_endpoint_job.id, @server_endpoint.name, "stop_remote_endpoint")
+    job = DeployServerEndpointJob.get_job(@server_endpoint, "stop_remote_endpoint")
     Delayed::Job.enqueue(job, :queue => "deploy-web")
-    flash[:notice] = "Endpoint App will be stopped."
-    if request.method == "POST"
-      redirect_to :back
-    else
-      redirect_to frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint)
-    end
+    flash[:notice] = "Server Endpoint #{@server_endpoint.name}  will be stopped."
+    redirect_to frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint)
   end
 
   protected
@@ -202,7 +161,12 @@ class Frontends::Backends::ServerEndpointController < ApplicationController
   def get_context
     @frontend = Frontend.find(params[:frontend_id])
     @backend = @frontend.backends.find(params[:backend_id]) if @frontend
-    @server_endpoint = @backend.server_endpoints.find(params[:id]) if @backend
+    if @backend
+      @server_endpoint = @backend.server_endpoints.find(params[:id])
+      if @server_endpoint
+        @server_endpoint_job = DeployServerEndpointJob.where(:server_endpoint_id => @server_endpoint.id).first
+      end
+    end
   end
 
   def get_context!

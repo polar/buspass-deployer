@@ -3,7 +3,7 @@
 <h1>Server Endpoint</h1>
 
 <%= link_to @server_endpoint.installation.name, installation_path(@server_endpoint.installation) %> >
-<%= link_to @server_endpoint.frontend.host, frontend_path(@server_endpoint.frontend) %> >
+<%= link_to @server_endpoint.frontend.remote_host, frontend_path(@server_endpoint.frontend) %> >
 <%= link_to @server_endpoint.backend.name, frontend_backend_path(@server_endpoint.frontend, @server_endpoint.backend) %>
 <table class="table table-bordered">
   <tbody>
@@ -14,13 +14,13 @@
   </tr>
   <tr>
     <th>Endpoint Type</th>
-    <td><%= @server_endpoint.endpoint_type %></td>
+    <td><%= @server_endpoint.deployment_type %></td>
     <td><%= @server_endpoint.remote_user %></td>
+    <td><%= @server_endpoint.remote_host %></td>
+    <td><%= @server_endpoint.proxy_address %></td>
     <td>Servers: <%= @server_endpoint.n_servers %></td>
   </tr>
   <tr>
-    <th>Remote Name</th>
-    <td><%= @server_endpoint.remote_name %></td>
     <td><%= button_to "Create App", create_app_frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint), :confirm => "Are you sure?", :class => "btn btn-mini" %></td>
     <td><%= button_to "Configure App", configure_app_frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint), :confirm => "Are you sure?", :class => "btn btn-mini" %></td>
     <td><%= button_to "Deploy App", deploy_app_frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint), :confirm => "Are you sure?", :class => "btn btn-mini" %></td>
@@ -33,11 +33,10 @@
   </tr>
   <tr>
     <th>Status</th>
-    <td id="endpoint_deploy_status"><%= @server_endpoint.status %></td>
     <td id="endpoint_git_status" colspan="5">
-      <% for s in @server_endpoint.git_commit do %>
+      <% for s in @server_endpoint_job.git_commit do %>
           <div><%= s %></div>
-      <% end if @server_endpoint.git_commit %>
+      <% end if @server_endpoint_job && @server_endpoint_job.git_commit %>
     </td>
   </tr>
   <tr>
@@ -60,31 +59,12 @@
   </tr>
   <tr>
     <th>Host IP</th>
-    <td><%= @frontend.hostip %></td>
+    <td><%= @frontend.external_ip %></td>
   </tr>
   </tbody>
 </table>
 
-<table class="table table-bordered">
-  <tbody>
-  <tr>
-    <th>Backend</th>
-    <td><%= link_to @backend.name, frontend_backend_server_endpoints_path(@frontend, @backend) %></td>
-  </tr>
-  <tr>
-    <th>Host</th>
-    <td><%= @backend.host %></td>
-  </tr>
-  <tr>
-    <th>Port</th>
-    <td><%= @backend.port %></td>
-  </tr>
-  <tr>
-    <th>Master</th>
-    <td><%= @backend.master_slug %></td>
-  </tr>
-  </tbody>
-</table>
+<%= render :partial => "frontends/backends/backend_table" %>
 
 
 <h3>Log

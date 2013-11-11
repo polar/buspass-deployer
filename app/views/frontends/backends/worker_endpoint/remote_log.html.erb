@@ -11,7 +11,6 @@
   <tbody>
   <tr>
     <td><%= @worker_endpoint.name %></td>
-    <td><%= @backend.master_slug %></td>
     <td><%= @backend.name %></td>
     <td><%= @frontend.name %></td>
   </tr>
@@ -27,8 +26,8 @@
   </div>
 </div>
 <p></p>
-<% if @worker_endpoint.worker_endpoint_remote_log %>
-    <% for line in @worker_endpoint.worker_endpoint_remote_log.to_a %>
+<% if @worker_endpoint_job && @worker_endpoint_job.endpoint_remote_log %>
+    <% for line in @worker_endpoint_job.endpoint_remote_log.to_a %>
     <div><%= line %></div>
     <%  end %>
 <% else %>
