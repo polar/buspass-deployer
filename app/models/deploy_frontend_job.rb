@@ -1,25 +1,19 @@
 class DeployFrontendJob
   include MongoMapper::Document
-  include DeployUnixOperations
 
   one :frontend, :autosave => false
-
   key :status_content
+  key :state_destroy, :default => false
 
-  def ssh_cert
-    if frontend.remote_key
-      if ! File.exists?(frontend.remote_key.ssh_key.file.path) && frontend.remote_key.key_encrypted_content
-         frontend.remote_key.decrypt_key_content_to_file
-      end
-      return frontend.remote_key.ssh_key.file.path
-    end
+  def installation
+    frontend.installation
   end
 
   def state
     return @state if @state
-    @state = DeployBackendState.where(:backend_id => backend.id).first
+    @state = DeployFrontendState.where(:frontend_id => frontend.id).first
     if @state.nil?
-      @state = DeployBackendState.new(:backend_id => backend.id)
+      @state = DeployFrontendState.new(:frontend_id => frontend.id)
       @state.save
     end
     @state
@@ -44,15 +38,6 @@ class DeployFrontendJob
       job.payload_object.is_a?(DeployFrontendJobspec) && job.payload_object.deploy_frontend_job_id == self.id
     end
   end
-
-  def ssh_cmd(cmd)
-    unix_ssh_cmd(frontend.remote_host, frontend.remote_key, frontend.remote_user, cmd)
-  end
-
-  def scp_cmd(path, remote_path)
-    unix_scp_cmd(frontend.remote_host, frontend.remote_key, frontend.remote_user, path, remote_path)
-  end
-
   def create_remote_frontend
     load_impl
     self.send(__method__)
@@ -99,13 +84,21 @@ class DeployFrontendJob
   end
 
   def load_impl
-    case self.endpoint.deployment_type
-      when "Heroku"
-        self.singleton_class.send(:include, DeployHerokuEndpointJobImpl)
-      when "Unix"
-        self.singleton_class.send(:include, DeployUnixEndpointJobImpl)
+    case self.frontend.deployment_type
+      when "ec2"
+        self.singleton_class.send(:include, DeployUnixFrontendJobImpl)
+      when "unix"
+        self.singleton_class.send(:include, DeployUnixFrontendJobImpl)
     end
   end
 
+  def self.get_job(frontend, action)
+    job = self.where(:frontend_id => frontend.id).first
+    if job.nil?
+      job = DeployFrontendJob.new(:frontend => frontend)
+      job.save
+    end
+    DeployFrontendJobspec.new(job.id, action)
+  end
 
 end

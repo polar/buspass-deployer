@@ -5,8 +5,8 @@
     <%= f.text_field :name %>
     <%= f.label :endpoint_type, "Endpoint Type" %>
     <%= f.select(:endpoint_type, options_for_select(["Heroku", "Unix"])) %>
-    <%= f.label :user_name, "User Name (Heroku: N/A, Unix login)" %>
-    <%= f.text_field :user_name, :value => "busme" %>
+    <%= f.label :remote_user, "User Name (Heroku: N/A, Unix login)" %>
+    <%= f.text_field :remote_user, :value => "busme" %>
     <%= f.label :remote_name, "Remote Name (Heroku Appname, Unix <Hostname|ip>[:ssh_port])" %>
     <%= f.text_field :remote_name %>
     <%= f.label :n_servers %>

@@ -4,9 +4,14 @@
   <tbody>
   <tr>
     <th>Name</th>
-    <td><%= @installation.name %></td>
+    <td><%= link_to @installation.name, edit_installation_path(@installation) %></td>
     <th>SSH Key</th>
     <td><%= @installation.ssh_key_name %></td>
+  </tr>
+  <tr>
+    <td colspan="4">
+      <%= @installation.remote_configuration_literal %>
+    </td>
   </tr>
   </tbody>
 </table>

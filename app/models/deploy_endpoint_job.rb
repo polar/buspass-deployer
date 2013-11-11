@@ -7,9 +7,26 @@ class DeployEndpointJob
 
   attr_accessible :endpoint, :endpoint_id
 
+  def backend
+    endpoint.backend
+  end
+
+  def frontend
+    backend.frontend
+  end
+
+  def installation
+    frontend.installation
+  end
+
   def state
     return @state if @state
     @state = DeployEndpointState.where(:endpoint_id => endpoint.id).first
+    if @state.nil?
+      @state = DeployEndpointState.new(:endpoint => endpoint)
+      @state.save
+    end
+    @state
   end
 
   def log(s)
@@ -90,21 +107,13 @@ class DeployEndpointJob
     end
   end
 
-  def self.get_job(endpoint)
+  def self.get_job(endpoint, action)
     job = self.where(:endpoint_id => endpoint.id).first
     if job.nil?
-      case endpoint.at_type
-        when "ServerEndpoint"
-          job = DeployServerEndpointJob.new(:endpoint => endpoint)
-        when "SwiftEndpoint"
-          job = DeploySwiftEndpointJob.new(:endpoint => endpoint)
-        when "WorkerEndpoint"
-          job = DeployWorkerEndpointJob.new(:endpoint => endpoint)
-      end
-      if job
-        job.save
-      end
+      job = DeployEndpointJob.new(:endpoint => endpoint)
+      job.save
     end
+    DeployEndpointJobspec.new(job.id, action)
   end
 
 end

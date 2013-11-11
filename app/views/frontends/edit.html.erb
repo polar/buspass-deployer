@@ -1,19 +1,2 @@
 <h1>Edit New Frontend</h1>
-
-<%= form_for @frontend, :validate => true do |f| %>
-    <%= f.label :installation_id %>
-    <%= f.collection_select(:installation_id, @installations, :id, :name, :disabled => true) %>
-    <%= f.label :name %>
-    <%= f.text_field :name %>
-    <%= f.label :remote_host %>
-    <%= f.text_field :remote_host %>
-    <%= f.label :remote_user %>
-    <%= f.text_field :remote_user %>
-    <%= f.label :admin_user %>
-    <%= f.text_field :admin_user %>
-    <%= f.label :deployment_type %>
-    <%= f.select(:deployment_type, @frontend_types, :disabled => true) %>
-    <br />
-    <br />
-    <%= f.submit :class => "btn" %>
-<% end %>
+<%= render :partial => 'form' %>

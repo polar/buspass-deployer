@@ -3,6 +3,7 @@ class Installation
 
   key :name
   key :ssh_key_name
+  key :remote_configuration_literal
 
   key :server_endpoint_git_repository, :default => "git://github.com/polar/buspass-web.git"
   key :server_endpoint_git_refspec, :default => "master"
@@ -31,5 +32,22 @@ class Installation
 
   validates_presence_of :name
   validates_uniqueness_of :name
+  validate :must_be_json_hash
+
+  def must_be_json_hash
+    conf = remote_configuration
+    errors.add(:remote_configuration_literal, "Must be a hash") unless conf.is_a? Hash
+  rescue
+    errors.add(:remote_configuration_literal, "Must be valid JSON")
+  end
+
+  # This will be encrypted at some point.
+  def remote_configuration
+    JSON.parse(remote_configuration_literal)
+  end
+
+  def remote_configuration=(json)
+    self.remote_configuration_literal = json.to_json
+  end
 
 end

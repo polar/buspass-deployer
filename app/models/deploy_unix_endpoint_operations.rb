@@ -4,7 +4,7 @@ module DeployUnixEndpointOperations
   # Requires Endpoint of the Unix subtype
   
   def user_name
-    endpoint.user_name
+    endpoint.remote_user
   end
   
   def remote_host
@@ -12,7 +12,7 @@ module DeployUnixEndpointOperations
   end
 
   def ssh_cert
-    endpoint.ssh_cert
+    endpoint.remote_key
   end
 
   def name

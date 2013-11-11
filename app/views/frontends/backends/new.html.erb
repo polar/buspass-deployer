@@ -1,20 +1,18 @@
 <H1>New Backend</H1>
 
 <%= form_for(@backend, :url => frontend_backends_path(@frontend), :validate => true) do |f| %>
-    <%= f.label(:master_slug, "Master") %>
-    <%= f.select(:master_slug, @master_slugs, :disabled => @disabled_master_slugs) %>
-    <%= f.label :frontend_address, "Frontend Address (frontend local address) Default 0.0.0.0" %>
-    <%= f.text_field :frontend_address %>
-    <%= f.label :server_name, "Server Name (frontend FQDN for this master if other than <master>.#{@frontend.name}, e.g. citytransit.com)" %>
-    <%= f.text_field :server_name %>
-    <%= f.label :cluster_address, "Cluster Address (frontend local address) Default (127.0.0.1)" %>
-    <%= f.text_field :cluster_address %>
-    <%= f.label :cluster_port, "Cluster Port (frontend local port)" %>
-    <%= f.text_field :cluster_port %>
-    <%= f.label :address, "Backend Address (Host/IP to which the web runner connects. Default 0.0.0.0)" %>
-    <%= f.text_field :address %>
-    <%= f.label :port, "Backend Port (port to which the web runner connects)" %>
-    <%= f.text_field :port %>
+    <%= f.label(:name, "Name") %>
+    <%= f.text_field :name %>
+    <%= f.label(:deployment_type, "Type") %>
+    <%= f.select :deployment_type, @deployment_types %>
+    <%= f.label :hostnames, "Hostnames (can be regexp)" %>
+    <%= f.text_field :hostnames, :value => @backend.hostnames.join(" ") %>
+    <%= f.label :locations, "Locations (after /, can be regexp)" %>
+    <%= f.text_field :locations, :value => @backend.locations.join(" ") %>
+    <%= f.label :proxy_addresses, "Proxy Addresses (should be localhost:port or socket depending on type)" %>
+    <%= f.text_field :proxy_addresses, :value => @backend.proxy_addresses.join(" ") %>
+    <%= f.label :backend_addresses, "Backend Name (Swift Only)" %>
+    <%= f.text_field :backend_addresses, :value => @backend.backend_addresses.join(" ") %>
     <br />
     <br />
     <%= f.submit %>

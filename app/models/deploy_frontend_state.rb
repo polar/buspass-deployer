@@ -2,13 +2,15 @@ class DeployFrontendState
   include MongoMapper::Document
 
   key :status
-  key :remote_status
-  key :instance_status
   key :log_level, Integer, :default => Logger::INFO
   timestamps!
 
-  belongs_to :frontend, :autosave => false, :class_name => "Frontend1"
-  belongs_to :frontend_log, :class_name => "Frontend1Log"
+  key :listen_status
+  key :connection_status
+  key :git_commit
+
+  belongs_to :frontend, :autosave => false
+  belongs_to :frontend_log
 
   attr_accessible :frontend, :frontend_id
 

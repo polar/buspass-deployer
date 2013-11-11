@@ -26,6 +26,9 @@ class Frontend
   # This user can create new users on the remote_host.
   key :remote_host
 
+  # Assigned by configuration.
+  key :external_ip
+
   # JSON String representing the variable configuration of the endpoint on the remote side.
   # TODO: Should be encrypted.
   key :remote_configuration_literal, :default => "{}"
@@ -38,6 +41,12 @@ class Frontend
   many :swift_endpoints, :autosave => false
   many :worker_endpoints, :autosave => false
 
+
+  before_validation :assign_upwards
+
+  def assign_upwards
+    self.name = self.name.gsub(/\s/, "_")
+  end
 
   validates_uniqueness_of :name
   validate :must_be_json_hash
@@ -67,7 +76,13 @@ class Frontend
 
   # This will be encrypted at some point.
   def remote_configuration
-    JSON.parse(remote_configuration_literal)
+    begin
+      installation_config = installation.remote_configuration
+    rescue
+
+    end
+    installation_config ||= {}
+    installation_config.merge JSON.parse(remote_configuration_literal)
   end
 
   def remote_configuration=(json)

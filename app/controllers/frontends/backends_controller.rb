@@ -1,12 +1,9 @@
 class Frontends::BackendsController < ApplicationController
 
   def index
+    get_context
     @frontend = Frontend.find(params[:frontend_id])
-    if @frontend
-      if @frontend.frontend_key.nil? || ! @frontend.frontend_key.exists?
-        flash[:error] = "You need to upload a PEM key for this frontend to manage it."
-      end
-    else
+    if @frontend.nil?
       flash[:error] = "Frontend not found. Stale URL?"
       if request.env["HTTP_REFERER"]
         redirect_to :back
@@ -17,22 +14,10 @@ class Frontends::BackendsController < ApplicationController
   end
 
   def show
-    @frontend = Frontend.find(params[:frontend_id])
-    if @frontend
-      @backend = @frontend.backends.find(params[:id])
-      if @backend
-
-      else
-        flash[:error] = "Backend not found."
-        redirect_to :back
-      end
-    else
-      flash[:error] = "Frontend not found."
-      redirect_to :back
-    end
+    get_context!
   end
 
-  def frontend_partial_status
+  def partial_status
     @frontend = Frontend.find(params[:frontend_id])
     if @frontend
       index = params[:log_end].to_i
@@ -40,20 +25,6 @@ class Frontends::BackendsController < ApplicationController
       @hostip = @frontend.hostip
       @remote_configured = "#{@frontend.configured}"
     end
-  end
-
-  def edit_software
-    @frontend = Frontend.find(params[:frontend_id])
-  end
-
-
-  def update_software
-    @frontend = Frontend.find(params[:frontend_id])
-    if @frontend
-      attrs = params[:frontend].slice("endpoint_git_repository", "endpoint_git_name", "endpoint_git_refspec")
-      @frontend.update_attributes(attrs)
-    end
-    redirect_to frontend_backends_path(@frontend)
   end
 
   def status_all
@@ -69,53 +40,34 @@ class Frontends::BackendsController < ApplicationController
     end
   end
 
-  def partial_status_all
-    @frontend = Frontend.find(params[:frontend_id])
-    index = params[:log_end].to_i
-    @logs = @frontend.frontend_log.segment(index, 100)
-    if @frontend.nil?
-      render :nothing => true
-    end
-  end
-
   def new
     @frontend = Frontend.find(params[:frontend_id])
     if @frontend
-      ports = (@frontend.backends.map {|x| x.cluster_port.to_i }.max || 2999) + 1
+      proxy_ports = @frontend.backends.map do |backend|
+         backend.proxy_addresses.map do |addr|
+           match = /((.*):)?(.*)/ =~ addr
+           port = match[3].to_i
+         end
+      end.flatten
 
+      backend_ports = @frontend.backends.map do |backend|
+        backend.proxy_addresses.map do |addr|
+          match = /((.*):)?(.*)/ =~ addr
+          port = match[3].to_i
+        end
+      end.flatten
+
+      proxy_addresses = ["127.0.0.1:#{(proxy_ports.max || 2999) + 1}"]
+
+      backend_addresses = ["0.0.0.0:#{(backend_ports.max || 3999) + 1}"]
+
+      @deployment_types = ["swift", "ssh"]
       @backend = Backend.new(
+          :name => "#{@frontend.name}-b#{Backend.count}",
+          :hostnames => [@frontend.remote_host, "*.#{@frontend.remote_host}"],
           :frontend => @frontend,
-          :frontend_address => "0.0.0.0",
-          :cluster_address => "127.0.0.1",
-          :cluster_port => (@frontend.backends.map {|x| x.cluster_port.to_i }.max || 2999) + 1,
-          :address => "0.0.0.0",
-          :port => (@frontend.backends.map {|x| x.port.to_i }.max || 3999) + 1,
-      )
-      @master_slugs = Master.order(:slug).map { |m| m.slug }
-      @disabled_master_slugs = Backend.where(:frontend_id => @frontend.id).all.map {|be| be.master_slug}
-    end
-  end
-
-  def new_base
-    @frontend = Frontend.find(params[:frontend_id])
-    if @frontend
-      ports = (@frontend.backends.map {|x| x.cluster_port.to_i }.max || 2999) + 1
-
-      if @frontend.backends.where(:hostname => @frontend.host).first.nil?
-        hostname = @frontend.host
-      end
-      if @frontend.backends.where(:server_name => "*.#{@frontend.host}").first.nil?
-        server_name = "*.#{@frontend.host}"
-      end
-      @backend = Backend.new(
-          :frontend => @frontend,
-          :frontend_address => "0.0.0.0",
-          :hostname => hostname,
-          :server_name => server_name,
-          :cluster_address => "127.0.0.1",
-          :cluster_port => (@frontend.backends.map {|x| x.cluster_port.to_i }.max || 2999) + 1,
-          :address => "0.0.0.0",
-          :port => (@frontend.backends.map {|x| x.port.to_i }.max || 3999) + 1,
+          :proxy_addresses => proxy_addresses,
+          :backend_addresses => backend_addresses,
       )
     end
   end
@@ -124,20 +76,19 @@ class Frontends::BackendsController < ApplicationController
     @frontend = Frontend.find(params[:frontend_id])
     if @frontend
       params[:backend][:frontend] = @frontend
+      params[:backend][:hostnames] = params[:backend][:hostnames].split(" ")
+      params[:backend][:locations] = params[:backend][:locations].split(" ")
+      params[:backend][:proxy_addresses] = params[:backend][:proxy_addresses].split(" ")
+      params[:backend][:backend_addresses] = params[:backend][:backend_addresses].split(" ")
       @backend = Backend.new(params[:backend])
       if @backend.valid?
         @backend.save
         flash[:notice] = "Backend created, but not configured."
-        @frontend.log "Created Backend #{@backend.name}."
-        redirect_to frontend_backends_path(@frontend)
+        redirect_to frontend_backend_path(@frontend, @backend)
       else
         flash[:error] = "Cannot create backend."
-        if params["submit"] = "Create Base Backend"
-          render :new_base
-        else
-          @master_slugs = Master.order(:slug).map { |m| m.slug }
-          render :new
-        end
+        @deployment_types = ["swift", "ssh"]
+        render :new
       end
     else
       flash[:error] = "Frontend does not exist."

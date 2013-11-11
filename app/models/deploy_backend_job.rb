@@ -84,6 +84,11 @@ class DeployBackendJob
     self.send(__method__)
   end
 
+  def status_remote_backend
+    load_impl
+    self.send(__method__)
+  end
+
   def destroy_remote_backend
     load_impl
     self.send(__method__)

@@ -2,10 +2,11 @@ class DeployBackendState
   include MongoMapper::Document
 
   key :status
-  key :remote_status
-  key :instance_status
   key :log_level, Integer, :default => Logger::INFO
   timestamps!
+
+  key :listen_status
+  key :connection_status
 
   belongs_to :backend
   belongs_to :deploy_backend_log

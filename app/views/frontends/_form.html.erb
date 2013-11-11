@@ -1,0 +1,32 @@
+<%= form_for @frontend, :validate => true do |f| %>
+    <% if @frontend.errors.any? %>
+        <div id="error_explanation">
+          <h2><%= pluralize(@frontend.errors.count, "error") %> prohibited this Frontend from being saved:</h2>
+
+          <ul>
+            <% @frontend.errors.full_messages.each do |msg| %>
+                <li><%= msg %></li>
+            <% end %>
+          </ul>
+        </div>
+    <% end %>
+    <%= f.label :installation_id %>
+    <%= f.collection_select(:installation_id, @installations, :id, :name) %>
+    <%= f.label :name %>
+    <%= f.text_field :name %>
+    <%= f.label :remote_host %>
+    <%= f.text_field :remote_host %>
+    <%= f.label :remote_user %>
+    <%= f.text_field :remote_user %>
+    <%= f.label :admin_user %>
+    <%= f.text_field :admin_user %>
+    <%= f.label :deployment_type %>
+    <%= f.select(:deployment_type, @frontend_types) %>
+    <%= f.label :remote_configuration_literal, "Remote Configuration" %>
+    <%= f.text_area :remote_configuration_literal%>
+    <br />
+    <br />
+    <div class="actions">
+      <%= f.submit :class => "btn" %>
+    </div>
+<% end %>

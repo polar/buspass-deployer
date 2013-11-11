@@ -2,7 +2,7 @@
 
 <h1>Backend</h1>
 <%= link_to @backend.installation.name, installation_path(@backend.installation) %> >
-<%= link_to @backend.frontend.host, frontend_path(@backend.frontend) %>
+<%= link_to "#{@backend.frontend.name}(#{@backend.frontend.remote_host})", frontend_path(@backend.frontend) %>
 
 
 <table class="table table-bordered">
@@ -34,36 +34,6 @@
   </tbody>
 </table>
 
-<table class="table table-bordered">
-  <thead>
-  <tr>
-    <th>Installation</th>
-    <th>Frontend Name</th>
-    <th>Host</th>
-    <th>Type</th>
-    <th>Host IP</th>
-    <th>Remote Configured</th>
-    <th>Backends</th>
-    <th>Total Endpoints</th>
-    <th>Total Workers</th>
-  </tr>
-  </thead>
-  <tbody>
-  <% for fe in [@frontend] do %>
-      <tr>
-        <td><%= link_to fe.installation.name, installation_path(fe.installation) %></td>
-        <td><%= link_to fe.name, frontend_path(fe) %></td>
-        <td><%= fe.host %></td>
-        <td><%= fe.host_type %></td>
-        <td><%= fe.hostip %></td>
-        <td><%= fe.configured %></td>
-        <td><%= fe.backends.count %></td>
-        <td><%= fe.swift_endpoints.count %></td>
-        <td><%= fe.worker_endpoints.count %></td>
-      </tr>
-  <% end %>
-  </tbody>
-</table>
 <h3>Frontend Background Operations</h3>
 <table class="table table-bordered">
   <tbody>

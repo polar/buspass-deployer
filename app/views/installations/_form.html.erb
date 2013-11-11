@@ -1,0 +1,10 @@
+<%= form_for @installation, :validate => true do |f| %>
+    <%= f.label :name, "Name" %>
+    <%= f.text_field :name %>
+    <%= f.label :ssh_key_name, "SSH Key Name" %>
+    <%= f.select :ssh_key_name, @keynames %>
+    <%= f.label :remote_configuration_literal, "Common Configuration" %>
+    <%= f.text_area :remote_configuration_literal %>
+    <br />
+    <%= f.submit :class => "btn" %>
+<% end %>

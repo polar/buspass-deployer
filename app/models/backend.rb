@@ -70,12 +70,19 @@ class Backend
   before_validation :assign_upwards
 
   def assign_upwards
+    self.name = self.name.gsub(/\s/, "_")
     self.installation = frontend.installation
   end
 
   # This will be encrypted at some point.
   def remote_configuration
-    JSON.parse(remote_configuration_literal)
+    begin
+      installation_config = installation.remote_configuration
+    rescue
+
+    end
+    installation_config ||= {}
+    installation_config.merge JSON.parse(remote_configuration_literal)
   end
 
   def remote_configuration=(json)

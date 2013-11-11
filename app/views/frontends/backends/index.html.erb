@@ -6,12 +6,9 @@
   <tr>
     <th>Installation</th>
     <th>Frontend Name</th>
-    <th>Host</th>
+    <th>Remote Host</th>
     <th>Type</th>
-    <th>Key</th>
-    <th>Host IP</th>
-    <th>Host Configured</th>
-    <th>Actions</th>
+    <th>External IP</th>
   </tr>
   </thead>
   <tbody>
@@ -19,12 +16,9 @@
       <tr>
         <td><%= link_to fe.installation.name, installation_path(fe.installation) %></td>
         <td><%= link_to fe.name, frontend_path(fe) %></td>
-        <td><%= fe.host %></td>
-        <td><%= fe.host_type %></td>
-        <td><%= fe.frontend_key.name if fe.frontend_key && fe.frontend_key.exists? %></td>
-        <td id="frontend_hostip"><%= fe.hostip %></td>
-        <td id="frontend_configured"><%= fe.configured %></td>
-        <td><%= link_to "Upload Key", upload_key_frontend_path(fe), :class => "btn btn-mini" %></td>
+        <td><%= fe.remote_host %></td>
+        <td><%= fe.deployment_type %></td>
+        <td id="frontend_hostip"><%= fe.external_ip %></td>
       </tr>
   <% end %>
   </tbody>
@@ -63,12 +57,11 @@
 <table class="table table-bordered">
   <thead>
   <tr>
-    <th>Master</th>
-    <th>Host</th>
-    <th>Port</th>
-    <th><div>Hostname</div>
-    <div>Server Name</div></th>
+    <th>Hostnames</th>
+    <th>Proxy Addresses</th>
+    <th>Backend Addresses</th>
     <th>Frontend Configured</th>
+    <th>Server Endpoints</th>
     <th>Swift Endpoints</th>
     <th>Worker Endpoints</th>
   </tr>
@@ -76,11 +69,11 @@
   <tbody>
   <% for be in @frontend.backends %>
       <tr>
-        <td><%= be.master_slug ? be.master_slug : "*" %></td>
-        <td><%= be.host %></td>
-        <td><%= be.port %></td>
-        <td><div><%= be.hostname %></div><div><%= be.server_name %></div></td>
-        <td><%= be.configured %></td>
+        <td><%= be.hostnames.join("\n") %></td>
+        <td><%= be.proxy_addresses.join("\n") %></td>
+        <td><%= be.backend_addresses.join("\n") %></td>
+        <td><%= be.server_endpoints.count %>
+          <%= link_to "+", new_frontend_backend_server_endpoint_path(@frontend, be), :class => "btn btn-mini"  %></td>
         <td><%= be.swift_endpoints.count %>
         <%= link_to "+", new_frontend_backend_swift_endpoint_path(@frontend, be), :class => "btn btn-mini"  %></td>
         <td><%= be.worker_endpoints.count %>
@@ -100,7 +93,6 @@
 </table>
 
 <%= link_to "New Backend", new_frontend_backend_path(@frontend) %>
-<%= link_to "New Base Backend", new_base_frontend_backends_path(@frontend) %>
 
 <h3>Log
 <%= button_to "Clear", clear_log_frontend_path(@frontend), :class => "btn" %>  </h3>

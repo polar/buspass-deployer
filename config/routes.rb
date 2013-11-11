@@ -27,24 +27,16 @@ BuspassDeployer::Application.routes.draw do
 
   resources :frontends do
     member do
-      post   :configure
-      post   :deconfigure
-      post   :start
-      post   :stop
-      post   :install
-      post   :upgrade
-      get    :upload_key
-      put    :store_key
-      post   :full_configure
-      delete :destroy_backends
-      post :clear_log
-      post :create_all_endpoint_apps
-      post :configure_all_endpoint_apps
-      post :start_all_endpoint_apps
-      post :restart_all_endpoint_apps
-      post :stop_all_endpoint_apps
-      post :deploy_all_endpoint_apps
-      post :destroy_all_endpoint_apps
+      post   :create_remote
+      post   :configure_remote
+      post   :deconfigure_remote
+      post   :start_remote
+      post   :stop_remote
+      post   :deploy_to_remote
+      post   :restart_remote
+      post   :destroy_remote
+      post   :clear_log
+      post   :restart_all_endpoint_apps
     end
     resources :backends, :controller => "frontends/backends" do
       collection do
