@@ -2,7 +2,7 @@
   <tbody>
   <tr>
     <th>Backend</th>
-    <td><%= @backend.name %></td>
+    <td><%= link_to @backend.name, frontend_backend_path(@backend.frontend, @backend) %></td>
   </tr>
   <tr>
     <th>Hostnames</th>

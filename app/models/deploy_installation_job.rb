@@ -1,375 +1,204 @@
-class DeployInstallationJob
-  include MongoMapper::Document
+class DeployInstallationJob < DeployJob
 
-  one :installation, :autosave => false
-
-  key :status_content
-
-  belongs_to :deploy_installation_state, :autosave => false
-
-  attr_accessible :installation, :installation_id
-
-  def set_status(s)
-    self.status_content = s
-    save
-    log("status: #{s}")
-  end
-
-  def get_status
-    status_content
-  end
-
-  def log(s)
-    installation.log(s)
-  end
-
-  def to_a()
-    reload
-    log_content
-  end
-
-  def segment(i, n)
-    log_content.drop(i).take(n)
-  end
-
-  def delayed_jobs
-    Delayed::Job.where(:queue => "deploy-web", :failed_at => nil).select do |job|
-      job.payload_object.is_a?(DeployInstallationJobspec) && job.payload_object.deploy_installation_job_id == self.id
-    end
-  end
-
-  def null_all_statuses
-    set_status(nil)
-    installation.installation_log.clear
-    for fe in installation.frontends do
-      if fe.deploy_frontend_job.nil?
-        fe.create_deploy_frontend_job
-      end
-      fe.deploy_frontend_job.set_status(nil)
-      fe.frontend_log.clear
-    end
-    for fe in installation.backends do
-      if fe.deploy_backend_job.nil?
-        fe.create_deploy_backend_job
-      end
-      fe.deploy_backend_job.set_status(nil)
-      fe.backend_log.clear
-    end
-    for fe in installation.worker_endpoints do
-      if fe.deploy_worker_endpoint_job.nil?
-        fe.create_deploy_worker_endpoint_job
-      end
-      fe.deploy_worker_endpoint_job.set_status(nil)
-      fe.worker_endpoint_log.clear
-      fe.instance_status
-      fe.save
-    end
-  end
-
-  def null_remote_statuses
-    for fe in installation.frontends do
-      fe.listen_status = nil
-      fe.save
-    end
-    for fe in installation.backends do
-      fe.listen_status = nil
-      fe.save
-    end
-    for fe in installation.worker_endpoints do
-      fe.remote_status = nil
-      fe.save
-    end
-  end
-
-  def install_frontends
+  def create_installation
     head = __method__
     log "#{head}: START"
-    for fe in installation.frontends do
-      if fe.deploy_frontend_job.nil?
-        fe.create_deploy_frontend_job
-      end
-      begin
-        log "#{head}: Installing frontend #{fe.name}"
-        fe.deploy_frontend_job.install_remote_frontend
-      rescue Exception => boom
-        log "#{head}: Error in installing frontend #{fe.name} -- #{boom}"
-      end
+    set_status("#{head}")
+    for x in installation.frontends do
+      job = DeployFrontendJob.get_job(x, "create_remote_frontend")
+      log "#{head}: create_remnote_frontend #{x.name}"
+      Delayed::Job.enqueue(job, :queue => "deploy-web")
     end
-  ensure
+    for x in installation.backends do
+      job = DeployBackendJob.get_job(x, "create_remote_backend")
+      log "#{head}: create_remnote_backend #{x.name}"
+      Delayed::Job.enqueue(job, :queue => "deploy-web")
+    end
+    for x in installation.endpoints do
+      job = DeployEndpointJob.get_job(x, "create_remote_endpoint")
+      log "#{head}: create_remnote_endpoint #{x.name}"
+      Delayed::Job.enqueue(job, :queue => "deploy-web")
+    end
+    set_status("Success:#{head}")
     log "#{head}: DONE"
   end
 
-  def upgrade_frontends
+  def configure_installation
     head = __method__
     log "#{head}: START"
-    for fe in @installation.frontends do
-      if fe.deploy_frontend_job.nil?
-        fe.create_deploy_frontend_job
-      end
-      begin
-        fe.deploy_frontend_job.upgrade_remote_frontend
-      rescue Exception => boom
-        log "#{head}: Error in installing frontend #{fe.name} -- #{boom}"
-      end
+    set_status("#{head}")
+    for x in installation.frontends do
+      job = DeployFrontendJob.get_job(x, "configure_remote_frontend")
+      log "#{head}: configure_remnote_frontend #{x.name}"
+      Delayed::Job.enqueue(job, :queue => "deploy-web")
     end
-  ensure
+    for x in installation.backends do
+      job = DeployBackendJob.get_job(x, "configure_remote_backend")
+      log "#{head}: configure_remnote_backend #{x.name}"
+      Delayed::Job.enqueue(job, :queue => "deploy-web")
+    end
+    for x in installation.endpoints do
+      job = DeployEndpointJob.get_job(x, "configure_remote_endpoint")
+      log "#{head}: configure_remnote_endpoint #{x.name}"
+      Delayed::Job.enqueue(job, :queue => "deploy-web")
+    end
+    set_status("Success:#{head}")
     log "#{head}: DONE"
   end
 
-  def configure_frontends
+  def deploy_to_installation
     head = __method__
     log "#{head}: START"
-    for fe in @installation.frontends do
-      if fe.deploy_frontend_job.nil?
-        fe.create_deploy_frontend_job
-      end
-      begin
-        fe.deploy_frontend_job.configure_remote_frontend
-      rescue Exception => boom
-        log "#{head}: Error in installing frontend #{frontend.name} -- #{boom}"
-      end
+    set_status("#{head}")
+    for x in installation.frontends do
+      job = DeployFrontendJob.get_job(x, "deploy_to_remote_frontend")
+      log "#{head}: deploy_to_remnote_frontend #{x.name}"
+      Delayed::Job.enqueue(job, :queue => "deploy-web")
     end
-  ensure
-    log "#{head}: DONE"
-  end
-
-  def deconfigure_frontends
-    head = __method__
-    log "#{head}: START"
-    for fe in @installation.frontends do
-      if fe.deploy_frontend_job.nil?
-        fe.create_deploy_frontend_job
-      end
-      begin
-        fe.deploy_frontend_job.deconfigure_remote_frontend
-      rescue Exception => boom
-        log "#{head}: Error in installing frontend #{fe.name} -- #{boom}"
-      end
+    for x in installation.backends do
+      job = DeployBackendJob.get_job(x, "deploy_to_remote_backend")
+      log "#{head}: deploy_to_remote_backend #{x.name}"
+      Delayed::Job.enqueue(job, :queue => "deploy-web")
     end
-  ensure
-    log "#{head}: DONE"
-  end
-
-  def start_frontends
-    head = __method__
-    log "#{head}: START"
-    for fe in @installation.frontends do
-      if fe.deploy_frontend_job.nil?
-        fe.create_deploy_frontend_job
-      end
-      begin
-        fe.deploy_frontend_job.start_remote_frontend
-      rescue Exception => boom
-        log "#{head}: Error in installing frontend #{fe.name} -- #{boom}"
-      end
+    for x in installation.endpoints do
+      job = DeployEndpointJob.get_job(x, "deploy_to_remote_endpoint")
+      log "#{head}: deploy_to_remote_endpoint #{x.name}"
+      Delayed::Job.enqueue(job, :queue => "deploy-web")
     end
-  ensure
-    log "#{head}: DONE"
-  end
-
-  def stop_frontends
-    head = __method__
-    log "#{head}: START"
-    for fe in @installation.frontends do
-      if fe.deploy_frontend_job.nil?
-        fe.create_deploy_frontend_job
-      end
-      begin
-        fe.deploy_frontend_job.stop_remote_frontend
-      rescue Exception => boom
-        log "#{head}: Error in installing frontend #{fe.name} -- #{boom}"
-      end
-    end
-  ensure
-    log "#{head}: DONE"
-  end
-
-  def upgrade_installation
-    head = __method__
-    log "#{head}: START"
-    set_status("UpgradeInstallation:Frontends:#{installation.frontends.count}")
-    log "#{head}: ENVIRONMENT #{ENV.inspect}"
-    Open3.popen2e("ps alx") do |stdin, out|
-      out.each do |line|
-        log "#{head}: #{line}"
-      end
-    end
-    null_all_statuses
-    null_remote_statuses
-    for fe in installation.frontends do
-      if fe.deploy_frontend_job.nil?
-        fe.create_deploy_frontend_job
-      end
-      begin
-        log "#{head}: stop_remote_frontend #{fe.name}"
-        fe.deploy_frontend_job.stop_remote_frontend
-        log "#{head}: upgrade_remote_frontend #{fe.name}"
-        job = DeployFrontendJobspec.new(fe.deploy_frontend_job.id, fe.host, "full_upgrade_remote_frontend", nil, nil)
-        Delayed::Job.enqueue(job, :queue => "deploy-web")
-        #fe.deploy_frontend_job.upgrade_remote_frontend
-      rescue Exception => boom
-        log "#{head}: Error in installing frontend #{fe.name} -- #{boom}"
-      end
-    end
-    backends = installation.backends
-    set_status("UpgradeInstallation:Backends:#{backends.count}")
-    for be in backends do
-      if be.deploy_backend_job.nil?
-        be.create_deploy_backend_job
-      end
-      begin
-        log "#{head}: deploy_swift_endpoint_apps #{be.name}"
-        job = DeployBackendJobspec.new(be.deploy_backend_job.id, be.name, "deploy_swift_endpoint_apps", nil)
-        Delayed::Job.enqueue(job, :queue => "deploy-web")
-        #be.deploy_backend_job.deploy_swift_endpoint_apps
-        log "#{head}: deploy_worker_endpoint_apps #{be.name}"
-        job = DeployBackendJobspec.new(be.deploy_backend_job.id, be.name, "deploy_worker_endpoint_apps", nil)
-        Delayed::Job.enqueue(job, :queue => "deploy-web")
-        #be.deploy_backend_job.deploy_worker_endpoint_apps
-      rescue Exception => boom
-        log "#{head}: Error in deploying backend #{be.name} -- #{boom}"
-      end
-    end
-    set_status("Done:UpgradeInstallation")
-  ensure
+    set_status("Success:#{head}")
     log "#{head}: DONE"
   end
 
   def start_installation
     head = __method__
     log "#{head}: START"
-    set_status("Start:Frontend")
-    for fe in installation.frontends do
-      if fe.deploy_frontend_job.nil?
-        fe.create_deploy_frontend_job
-      end
-      begin
-        log "#{head}: start_remote_frontend #{fe.name}"
-        fe.deploy_frontend_job.start_remote_frontend
-      rescue Exception => boom
-        log "#{head}: Error in starting frontend #{fe.name} -- #{boom}"
-      end
+    set_status("#{head}")
+    for x in installation.frontends do
+      job = DeployFrontendJob.get_job(x, "start_remote_frontend")
+      log "#{head}: start_remote_frontend #{x.name}"
+      Delayed::Job.enqueue(job, :queue => "deploy-web")
     end
-    set_status("Start:Backends")
-    for fe in installation.frontends do
-      for be in fe.backends do
-        if be.deploy_backend_job.nil?
-          be.create_deploy_backend_job
-        end
-        begin
-          if ! be.configured
-            log "#{head}: configure_remote_backend #{be.name}"
-            fe.deploy_frontend_job.configure_remote_backend(be)
-          end
-          log "#{head}: start_remote_backend #{be.name}"
-          set_status("Start:Backend:#{be.name}")
-          fe.deploy_frontend_job.start_remote_backend(be)
-        rescue Exception => boom
-          log "#{head}: Error in starting backend #{be.name} -- #{boom}"
-        end
-      end
+    for x in installation.backends do
+      job = DeployBackendJob.get_job(x, "start_remote_backend")
+      log "#{head}: start_remote_backend #{x.name}"
+      Delayed::Job.enqueue(job, :queue => "deploy-web")
     end
-    set_status("Start:Endpoints")
-    for be in installation.backends do
-      begin
-        log "#{head}: start_swift_endpoint_apps #{be.name}"
-        set_status("Start:Endpoints:Swift")
-        be.deploy_backend_job.start_swift_endpoint_apps
-        log "#{head}: start_worker_endpoint_apps #{be.name}"
-        set_status("Start:Endpoints:Worker")
-        be.deploy_backend_job.start_worker_endpoint_apps
-      rescue Exception => boom
-        log "#{head}: Error in starting backend #{be.name} -- #{boom}"
-      end
+    for x in installation.endpoints do
+      job = DeployEndpointJob.get_job(x, "start_remote_endpoint")
+      log "#{head}: start_remote_endpoint #{x.name}"
+      Delayed::Job.enqueue(job, :queue => "deploy-web")
     end
-    set_status("Done:Start")
-  ensure
+    set_status("Success:#{head}")
+    log "#{head}: DONE"
+  end
+
+  def restart_installation
+    head = __method__
+    log "#{head}: START"
+    set_status("#{head}")
+    for x in installation.frontends do
+      job = DeployFrontendJob.get_job(x, "restart_remote_frontend")
+      log "#{head}: restart_remote_frontend #{x.name}"
+      Delayed::Job.enqueue(job, :queue => "deploy-web")
+    end
+    for x in installation.backends do
+      job = DeployBackendJob.get_job(x, "restart_remote_backend")
+      log "#{head}: restart_remote_backend #{x.name}"
+      Delayed::Job.enqueue(job, :queue => "deploy-web")
+    end
+    for x in installation.endpoints do
+      job = DeployEndpointJob.get_job(x, "restart_remote_endpoint")
+      log "#{head}: restart_remote_endpoint #{x.name}"
+      Delayed::Job.enqueue(job, :queue => "deploy-web")
+    end
+    set_status("Success:#{head}")
     log "#{head}: DONE"
   end
 
   def stop_installation
     head = __method__
     log "#{head}: START"
-    for fe in installation.frontends do
-      if fe.deploy_frontend_job.nil?
-        fe.create_deploy_frontend_job
-      end
-      begin
-        log "#{head}: stop_remote_frontend #{fe.name}"
-        fe.deploy_frontend_job.stop_remote_frontend
-      rescue Exception => boom
-        log "#{head}: Error in starting frontend #{fe.name} -- #{boom}"
-      end
+    set_status("#{head}")
+    for x in installation.frontends do
+      job = DeployFrontendJob.get_job(x, "stop_remote_frontend")
+      log "#{head}: stop_remote_frontend #{x.name}"
+      Delayed::Job.enqueue(job, :queue => "deploy-web")
     end
-    for be in installation.backends do
-      if be.deploy_backend_job.nil?
-        be.create_deploy_backend_job
-      end
-      begin
-        if ! be.configured
-          log "#{head}: configure_remote_backend #{be.name}"
-          be.deploy_backend_job.configure_remote_backend
-        end
-        log "#{head}: stop_remote_backend #{be.name}"
-        be.deploy_backend_job.stop_remote_backend
-        log "#{head}: stop_swift_endpoint_apps #{be.name}"
-        be.deploy_backend_job.stop_swift_endpoint_apps
-        log "#{head}: stop_worker_endpoint_apps #{be.name}"
-        be.deploy_backend_job.stop_worker_endpoint_apps
-      rescue Exception => boom
-        log "#{head}: Error in starting backend #{be.name} -- #{boom}"
-      end
+    for x in installation.backends do
+      job = DeployBackendJob.get_job(x, "stop_remote_backend")
+      log "#{head}: stop_remote_backend #{x.name}"
+      Delayed::Job.enqueue(job, :queue => "deploy-web")
     end
-  ensure
+    for x in installation.endpoints do
+      job = DeployEndpointJob.get_job(x, "stop_remote_endpoint")
+      log "#{head}: stop_remote_endpoint #{x.name}"
+      Delayed::Job.enqueue(job, :queue => "deploy-web")
+    end
+    set_status("Success:#{head}")
     log "#{head}: DONE"
   end
 
-  def restart_worker_endpoints
+  def status_installation
     head = __method__
     log "#{head}: START"
-    for se in installation.worker_endpoints do
-      begin
-        log "#{head}: Restarting Worker Endpoint #{se.name}"
-        se.deploy_worker_endpoint_job.restart_remote_endpoint
-      rescue Exception => boom
-        log "#{head}: Error in starting Worker Endpoint #{se.name} -- #{boom}"
-      end
+    set_status("#{head}")
+    for x in installation.frontends do
+      job = DeployFrontendJob.get_job(x, "status_remote_frontend")
+      log "#{head}: status_remote_frontend #{x.name}"
+      Delayed::Job.enqueue(job, :queue => "deploy-web")
     end
-  ensure
+    for x in installation.backends do
+      job = DeployBackendJob.get_job(x, "status_remote_backend")
+      log "#{head}: status_remote_backend #{x.name}"
+      Delayed::Job.enqueue(job, :queue => "deploy-web")
+    end
+    for x in installation.endpoints do
+      job = DeployEndpointJob.get_job(x, "status_remote_endpoint")
+      log "#{head}: status_remote_endpoint #{x.name}"
+      Delayed::Job.enqueue(job, :queue => "deploy-web")
+    end
+    set_status("Success:#{head}")
     log "#{head}: DONE"
   end
 
-  def remote_status_installation
+  def destroy_installation
     head = __method__
     log "#{head}: START"
-    set_status("RemoteStatus:Frontends")
-    for fe in installation.frontends do
-      if fe.deploy_frontend_job.nil?
-        fe.create_deploy_frontend_job
+    set_status("#{head}")
+    if state.state_destroy
+      if installation.frontends.count == 0 &&
+        installation.backends.count == 0 &&
+            installation.endpoints.count == 0
+        log "#{head}: destroyed"
+        installation.destroy
+      else
+        log "#{head}: reschedule  - frontends #{installation.frontends.count} backends #{installation.backends.count} endpoints #{installation.endpoints.count}"
+        Delayed::Job.enqueue(self, :queue => "deploy-web")
       end
-      begin
-        log "#{head}: status_remote_frontend #{fe.name}"
-        fe.deploy_frontend_job.status_remote_frontend
-      rescue Exception => boom
-        log "#{head}: Error in starting frontend #{fe.name} -- #{boom}"
-      end
+      return
+    else
+      state.state_destroy = true
+      save
     end
-    set_status("RemoteStatus:Backends")
-    for be in installation.backends do
-      if be.deploy_backend_job.nil?
-        be.create_deploy_backend_job
-      end
-      begin
-        log "#{head}: status_swift_endpoint_apps #{be.name}"
-        be.deploy_backend_job.status_swift_endpoint_apps
-        log "#{head}: status_worker_endpoint_apps #{be.name}"
-        be.deploy_backend_job.status_worker_endpoint_apps
-      rescue Exception => boom
-        log "#{head}: Error in starting backend #{be.name} -- #{boom}"
-      end
+
+    for x in installation.frontends do
+      job = DeployFrontendJob.get_job(x, "destroy_remote_frontend")
+      log "#{head}: destroy_remote_frontend #{x.name}"
+      Delayed::Job.enqueue(job, :queue => "deploy-web")
     end
-    set_status("Done:RemoteStatus")
-  ensure
+    for x in installation.backends do
+      job = DeployBackendJob.get_job(x, "destroy_remote_backend")
+      log "#{head}: destroy_remote_backend #{x.name}"
+      Delayed::Job.enqueue(job, :queue => "deploy-web")
+    end
+    for x in installation.endpoints do
+      job = DeployEndpointJob.get_job(x, "destroy_remote_endpoint")
+      log "#{head}: destroy_remote_endpoint #{x.name}"
+      Delayed::Job.enqueue(job, :queue => "deploy-web")
+    end
+    log "#{head}: Intial Reschedule  - frontends #{installation.frontends.count} backends #{installation.backends.count} endpoints #{installation.endpoints.count}"
+    Delayed::Job.enqueue(self, :queue => "deploy-web")
+    set_status("Success:#{head}")
     log "#{head}: DONE"
   end
 

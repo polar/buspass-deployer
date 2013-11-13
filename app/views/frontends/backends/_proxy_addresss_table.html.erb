@@ -1,0 +1,20 @@
+<table class="table table-bordered">
+  <thead>
+  <tr>
+    <th>Type</th>
+    <th>Proxy Address</th>
+    <th>Backend Address</th>
+    <th>Server Endpoint</th>
+  </tr>
+  </thead>
+  <tbody>
+  <% for proxy in @backend.server_proxies do %>
+      <tr>
+        <td><%= proxy.proxy_type %></td>
+        <td><%= proxy.proxy_address %></td>
+        <td><%= proxy.backend_address %></td>
+        <td><%= link_to proxy.server_endpoint.name, frontend_backend_server_endpoint_path(@frontend, @backend, proxy.server_endpoint) if proxy.server_endpoint %></td>
+      </tr>
+  <% end %>
+  </tbody>
+</table>

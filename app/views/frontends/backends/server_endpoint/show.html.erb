@@ -9,7 +9,9 @@
   <tbody>
   <tr>
     <th>Name</th>
-    <td><%= @server_endpoint.name %></td><td><%= button_to "Delete", frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint), :method => :delete, :confirm => "Are you sure?", :class => "btn btn-mini" %></td>
+    <td><%= @server_endpoint.name %></td>
+    <td><%= link_to "Edit", edit_frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint), :class => "btn btn-mini" %></td>
+    <td><%= button_to "Delete", frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint), :method => :delete, :confirm => "Are you sure?", :class => "btn btn-mini" %></td>
 
   </tr>
   <tr>
@@ -32,7 +34,9 @@
 
   </tr>
   <tr>
-    <th>Status</th>
+    <th>Job Status</th>
+    <td id="endpoint_status"><%= @server_endpoint_job.status if @server_endpoint_job %></td>
+    <td>Git Status</td>
     <td id="endpoint_git_status" colspan="5">
       <% for s in @server_endpoint_job.git_commit do %>
           <div><%= s %></div>
@@ -70,7 +74,7 @@
 <h3>Log
   <%= button_to "Clear", clear_log_frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint), :class => "btn" %>  </h3>
 <div id="log">
-  <% for l in @server_endpoint.logger.to_a do %>
+  <% for l in @server_endpoint_job.endpoint_log.to_a do %>
       <div><%= l %></div>
-  <% end %>
+  <% end if @server_endpoint_job %>
 </div>

@@ -44,6 +44,17 @@ class InstallationsController < ApplicationController
     end
   end
 
+  def destroy
+    get_context!
+    if @installation
+      @installation.destroy
+      flash[:notice] = "Installation #{@installation.name} has been destroyed."
+    else
+      flash[:error] = "Installation not found. Stale URL?"
+    end
+    redirect_to installations_path
+  end
+
   def edit_frontend_git
     get_context!
   end
@@ -78,10 +89,38 @@ class InstallationsController < ApplicationController
     redirect_to installation_path(@installation)
   end
 
-  def install_frontends
+  def create_all
     get_context!
     @installation.frontends.each do |frontend|
-      job = DeployFrontendJob.get_job(frontend, "deploy_remote_frontend")
+      job = DeployFrontendJob.get_job(frontend, "create_installation")
+      Delayed::Job.enqueue(job, :queue => "deploy-web")
+    end
+    flash[:notice] = "Job has been launched to create the installation"
+    if @installation.frontends.count > 1
+      redirect_to installation_path(@installation)
+    else
+      redirect_to frontend_backends_path(@installation.frontends.first)
+    end
+  end
+
+  def configure_all
+    get_context!
+    @installation.frontends.each do |frontend|
+      job = DeployFrontendJob.get_job(frontend, "configure_installation")
+      Delayed::Job.enqueue(job, :queue => "deploy-web")
+    end
+    flash[:notice] = "Job has been launched to configure the installation"
+    if @installation.frontends.count > 1
+      redirect_to installation_path(@installation)
+    else
+      redirect_to frontend_backends_path(@installation.frontends.first)
+    end
+  end
+
+  def start_all
+    get_context!
+    @installation.frontends.each do |frontend|
+      job = DeployFrontendJob.get_job(frontend, "start_installation")
       Delayed::Job.enqueue(job, :queue => "deploy-web")
     end
     flash[:notice] = "Job has been launched to install the installation frontends"
@@ -92,56 +131,53 @@ class InstallationsController < ApplicationController
     end
   end
 
-  def start_frontends
+  def deploy_all
     get_context!
-    if @installation.deploy_installation_job.nil?
-      @installation.create_deploy_installation_job
+    @installation.frontends.each do |frontend|
+      job = DeployFrontendJob.get_job(frontend, "deploy_to_installation")
+      Delayed::Job.enqueue(job, :queue => "deploy-web")
     end
-    job = DeployInstallationJobspec.new(@installation.deploy_installation_job.id, "start_frontends", nil)
-    Delayed::Job.enqueue(job, :queue => "deploy-web")
-    flash[:notice] = "Job has been launched to start the installation frontends"
-    redirect_to installation_path(@installation)
+    flash[:notice] = "Job has been launched to deploy the installation"
+    if @installation.frontends.count > 1
+      redirect_to installation_path(@installation)
+    else
+      redirect_to frontend_backends_path(@installation.frontends.first)
+    end
   end
 
-  def upgrade
+  def stop_all
     get_context!
-    if @installation.deploy_installation_job.nil?
-      @installation.create_deploy_installation_job
+    @installation.frontends.each do |frontend|
+      job = DeployFrontendJob.get_job(frontend, "stop_installation")
+      Delayed::Job.enqueue(job, :queue => "deploy-web")
     end
-   # @installation.deploy_installation_job.null_all_statuses
-    job = DeployInstallationJobspec.new(@installation.deploy_installation_job.id, "upgrade_installation", nil)
-    Delayed::Job.enqueue(job, :queue => "deploy-web")
-    flash[:notice] = "Job has been launched to upgrade the installation"
-    redirect_to status_installation_path(@installation)
+    flash[:notice] = "Job has been launched to install the installation frontends"
+    if @installation.frontends.count > 1
+      redirect_to installation_path(@installation)
+    else
+      redirect_to frontend_backends_path(@installation.frontends.first)
+    end
   end
 
-  def start
+  def destroy_all
     get_context!
-    if @installation.deploy_installation_job.nil?
-      @installation.create_deploy_installation_job
+    @installation.frontends.each do |frontend|
+      job = DeployFrontendJob.get_job(frontend, "destroy_installation")
+      Delayed::Job.enqueue(job, :queue => "deploy-web")
     end
-    @installation.deploy_installation_job.null_all_statuses
-    job = DeployInstallationJobspec.new(@installation.deploy_installation_job.id, "start_installation", nil)
-    Delayed::Job.enqueue(job, :queue => "deploy-web")
-    flash[:notice] = "Job has been launched to start the installation"
-    redirect_to status_installation_path(@installation)
-  end
-
-  def stop
-    get_context!
-    if @installation.deploy_installation_job.nil?
-      @installation.create_deploy_installation_job
+    flash[:notice] = "Job has been launched to destroy the installation"
+    if @installation.frontends.count > 1
+      redirect_to installation_path(@installation)
+    else
+      redirect_to frontend_backends_path(@installation.frontends.first)
     end
-    job = DeployInstallationJobspec.new(@installation.deploy_installation_job.id, "stop_installation", nil)
-    Delayed::Job.enqueue(job, :queue => "deploy-web")
-    flash[:notice] = "Job has been launched to stop the installation"
-    redirect_to status_installation_path(@installation)
   end
 
   def clear_log
     get_context!
-    @installation.installation_log.clear
-    @installation.installation_log.save
+    if @installation_job
+      @installation_job.loggerl.clear
+    end
     redirect_to :back
   end
 
@@ -156,43 +192,16 @@ class InstallationsController < ApplicationController
   def partial_status
     get_context!
     index = params[:log_end].to_i
-    @logs = @installation.installation_log.segment(index, 100)
-  end
-
-  def partial_deploy_status
-    get_context!
-    index = params[:log_end].to_i
-    @logs = @installation.installation_log.segment(index, 100)
-  end
-
-  def ping_remote_status
-    get_context!
-    if @installation.deploy_installation_job.nil?
-      @installation.create_deploy_installation_job
+    if @installation_job
+       @logs = @installation_job.logger.segment(index, 100)
     end
-    @installation.deploy_installation_job.null_all_statuses
-    @installation.deploy_installation_job.null_remote_statuses
-    job = DeployInstallationJobspec.new(@installation.deploy_installation_job.id, "remote_status_installation", nil)
-    Delayed::Job.enqueue(job, :queue => "deploy-web")
-    flash[:notice] = "Job has been launched to update the remote status."
-    redirect_to status_installation_path(@installation)
-  end
-
-  def destroy
-    get_context!
-    if @installation
-      @installation.destroy
-      flash[:notice] = "Installation #{@installation.name} has been destroyed."
-    else
-      flash[:error] = "Installation not found. Stale URL?"
-    end
-    redirect_to installations_path
   end
 
   protected
 
   def get_context
     @installation = Installation.find(params[:id])
+    @isntallation_job = DeployInstallationJob.where(:installation_id => @installation) if @installation
   end
 
   def get_context!

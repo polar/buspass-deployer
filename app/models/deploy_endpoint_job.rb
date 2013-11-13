@@ -1,11 +1,4 @@
-class DeployEndpointJob
-  include MongoMapper::Document
-
-  key :status_content
-
-  belongs_to :endpoint
-
-  attr_accessible :endpoint, :endpoint_id
+class DeployEndpointJob < DeployJob
 
   def backend
     endpoint.backend
@@ -19,28 +12,24 @@ class DeployEndpointJob
     frontend.installation
   end
 
-  def state
-    return @state if @state
-    @state = DeployEndpointState.where(:endpoint_id => endpoint.id).first
-    if @state.nil?
-      @state = DeployEndpointState.new(:endpoint => endpoint)
-      @state.save
-    end
-    @state
+  def endpoint_log
+    state.endpoint_log
   end
 
-  def log(s)
-    state.logger.log(@state.log_level, s)
+  def git_commit
+    state.git_commit
   end
 
-  def set_status(s, rs = nil)
-    self.status_content = s
-    save
-    state.status = s
-    state.remote_status = rs if rs
-    state.save
-    log("status: #{s}")
-    log("remote status: #{rs.inspect}") if rs
+  def status
+    status_content
+  end
+
+  def remote_status
+    state.remote_status
+  end
+
+  def instance_status
+    state.instance_status
   end
 
   def create_remote_endpoint
@@ -110,10 +99,17 @@ class DeployEndpointJob
   def self.get_job(endpoint, action)
     job = self.where(:endpoint_id => endpoint.id).first
     if job.nil?
-      job = DeployEndpointJob.new(:endpoint => endpoint)
+      case endpoint.at_type
+        when "ServerEndpoint"
+          job = DeployServerEndpointJob.new(:endpoint => endpoint)
+          job_spec = DeployServerEndpointJobspec.new(job.id, action, endpoint.name)
+        when "WorkerEndpoint"
+          job = DeployWorkerEndpointJob.new(:endpoint => endpoint)
+          job_spec = DeployWorkerEndpointJobspec.new(job.id, action, endpoint.name)
+      end
       job.save
     end
-    DeployEndpointJobspec.new(job.id, action)
+    jobspec
   end
 
 end

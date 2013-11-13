@@ -1,13 +1,6 @@
-class DeployBackendJob
-  include MongoMapper::Document
+class DeployBackendJob < DeployJob
 
-  key :status_content
-
-  key :state_destroy, Boolean, :default => false
-
-  belongs_to :backend
-
-  attr_accessible :backend, :backend_id
+  key :listen_status, Array
 
   def ssh_cert
     if @ssh_cert
@@ -20,32 +13,18 @@ class DeployBackendJob
     @ssh_cert = remote_key.ssh_key.file.path
   end
 
+  def delayed_jobs
+    Delayed::Job.where(:queue => "deploy-web").reduce([]) do |result, x|
+      if x.payload_object.is_a?(DeployBackendJobspec) && x.payload_object.backend_job_id == self.id
+        result + [x]
+      else
+        result
+      end
+    end
+  end
+
   def frontend
     backend.frontend
-  end
-
-  def state
-    return @state if @state
-    @state = DeployBackendState.where(:backend_id => backend.id).first
-    if @state.nil?
-      @state = DeployBackendState.new(:backend_id => backend.id)
-      @state.save
-    end
-    @state
-  end
-
-  def log(s)
-    state.logger.log(@state.log_level, s)
-  end
-
-  def set_status(s, rs = nil)
-    self.status_content = s
-    save
-    state.status = s
-    state.remote_status = rs if rs
-    state.save
-    log("status: #{s}")
-    log("remote status: #{rs.inspect}") if rs
   end
 
   # We are assuming

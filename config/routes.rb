@@ -6,19 +6,23 @@ BuspassDeployer::Application.routes.draw do
       get :edit_frontend_git
       get :edit_server_endpoint_git
       get :edit_worker_endpoint_git
+
       put :update_frontend_git
       put :update_server_endpoint_git
       put :update_worker_endpoint_git
-      post :install_frontends
-      post :start_frontends
-      post :upgrade
-      post :start
-      post :stop
+
+      post :create_all
+      post :deploy_all
+      post :start_all
+      post :stop_all
+      post :destroy_all
+
       post :clear_log
-      get  :status
       get  :partial_status
       post :ping_remote_status
-      get :deploy_status
+
+      get  :job_status
+      get  :deploy_status
       get  :partial_deploy_status
     end
   end
@@ -35,19 +39,19 @@ BuspassDeployer::Application.routes.draw do
       post   :destroy_remote
       post   :clear_log
       post   :restart_all_endpoint_apps
+      get    :partial_status
     end
     resources :backends, :controller => "frontends/backends" do
       collection do
-        get :new_base
         post :start_all
         post :restart_all
         post :stop_all
         post :status_all
-        get :status_all
-        get :partial_status_all
+        get  :status_all
         get  :edit_software
         post :update_software
-        get  :frontend_partial_status
+
+        get :partial_status
         post :clear_log
       end
       member do
@@ -121,4 +125,5 @@ BuspassDeployer::Application.routes.draw do
   # For destroy
   resources :backends
   resources :remote_keys, :except => [:edit, :update]
+  resources :delayed_jobs, :only => [:index, :destroy]
 end

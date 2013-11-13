@@ -2,14 +2,15 @@
 
 <h1>Worker Endpoint</h1>
 
-<%= link_to @worker_endpoint.installation.name, installation_path(@worker_endpoint.installation) %> >
-<%= link_to @worker_endpoint.frontend.remote_host, frontend_path(@worker_endpoint.frontend) %> >
-<%= link_to @worker_endpoint.backend.name, frontend_backend_path(@worker_endpoint.frontend, @worker_endpoint.backend) %>
+<%= link_to @installation.name, installation_path(@installation) %> >
+<%= link_to "#{@frontend.name}(#{@rontend.remote_host})", frontend_path(@wfrontend) %> >
+<%= link_to @worker_endpoint.backend.name, frontend_backend_path(@frontend, @backend) %>
 <table class="table table-bordered">
   <tbody>
   <tr>
     <th>Name</th>
-    <td><%= @worker_endpoint.name %></td><td><%= button_to "Delete", frontend_backend_worker_endpoint_path(@frontend, @backend, @worker_endpoint), :method => :delete, :confirm => "Are you sure?", :class => "btn btn-mini" %></td>
+    <td><%= @worker_endpoint.name %></td>
+    <td><%= button_to "Delete", frontend_backend_worker_endpoint_path(@frontend, @backend, @worker_endpoint), :method => :delete, :confirm => "Are you sure?", :class => "btn btn-mini" %></td>
 
   </tr>
   <tr>
@@ -32,7 +33,9 @@
 
   </tr>
   <tr>
-    <th>Status</th>
+    <th>Job Status</th>
+    <td id="endpoint_status"><%= @worker_endpoint_job.status if @worker_endpoint_job %></td>
+    <td>Git Status</td>
     <td id="endpoint_git_status" colspan="5">
       <% for s in @worker_endpoint_job.git_commit do %>
           <div><%= s %></div>
@@ -70,7 +73,7 @@
 <h3>Log
   <%= button_to "Clear", clear_log_frontend_backend_worker_endpoint_path(@frontend, @backend, @worker_endpoint), :class => "btn" %>  </h3>
 <div id="log">
-  <% for l in @worker_endpoint.logger.to_a do %>
+  <% for l in @worker_endpoint_job.logger.to_a do %>
       <div><%= l %></div>
-  <% end %>
+  <% end if @worker_endpoint_job %>
 </div>

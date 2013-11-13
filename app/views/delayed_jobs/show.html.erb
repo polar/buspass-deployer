@@ -1,0 +1,29 @@
+<table class="table table-striped">
+  <tr>
+    <th>Queue</th>
+    <th>Priority</th>
+    <th>Locked By</th>
+    <th>Locked At</th>
+    <th>Run At</th>
+    <th>Attempts</th>
+    <th>Failed At</th>
+    <th>Last Error</th>
+    <th>Payload Object</th>
+
+  </tr>
+
+  <% [@delayed_job].each do |job| %>
+      <tr>
+        <td><%= job.queue -%></td>
+        <td><%= job.priority -%></td>
+        <td><%= job.locked_by-%></td>
+        <td><%= job.locked_at.strftime("%D %T %Z") if job.locked_at-%></td>
+        <td><%= job.run_at.strftime("%D %T %Z") if job.run_at -%></td>
+        <td><%= job.attempts -%></td>
+        <td><%= job.failed_at -%></td>
+        <td><%= job.last_error %></td>
+        <td><%= job.payload_object -%></td>
+      </tr>
+  <% end %>
+</table>
+<%= link_to 'Back', delayed_jobs_path %>

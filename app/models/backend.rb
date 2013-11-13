@@ -33,7 +33,7 @@ class Backend
   key :locations, Array
 
   # Embedded
-  many :server_proxies
+  many :server_proxies, :dependent => :destroy
 
   def local_proxy_ports
     server_proxies.reduce([]) do |result, proxy|

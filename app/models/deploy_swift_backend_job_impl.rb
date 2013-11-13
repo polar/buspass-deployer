@@ -66,13 +66,13 @@ class DeploySwiftBackendJobImpl
     user = frontend.remote_user
     dir  = frontend.git_name
 
-    if !state_destroy
+    if !state.state_destroy
       log "#{head}: Destroy Remote Backend #{backend.name} on Frontend #{frontend.name}"
       log "#{head}: Stop Remote Backend #{backend.name} on Frontend #{frontend.name}"
       set_status("Stop")
       result = unix_ssh_cmd(host, remote_key, user, "bash -login -c \"cd #{dir}; script/stop_backend.sh --name #{backend.name}\"")
       set_status("Success:Stop")
-      self.state_destroy = true
+      state.state_destroy = true
       deconfigure_remote_backend
       set_status("Destroy")
       destroy_all_endpoints

@@ -1,4 +1,7 @@
-<%= form_for(@server_endpoint, :url => frontend_backend_server_endpoints_path(@frontend, @backend), :validate => true) do |f| %>
+<%= form_for(@server_endpoint,
+    :url => @server_endpoint.new? ? frontend_backend_server_endpoints_path(@frontend, @backend) :
+                                    frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint),
+    :validate => true) do |f| %>
     <% if @server_endpoint.errors.any? %>
         <div id="error_explanation">
           <h2><%= pluralize(@server_endpoint.errors.count, "error") %> prohibited this Server endpoint from being saved:</h2>
@@ -11,18 +14,20 @@
         </div>
     <% end %>
     <%= f.label :name %>
-    <%= f.text_field :name %>
+    <%= f.text_field :name, :class => "input-xlarge"  %>
     <%= f.label :deployment_type, "Endpoint Type" %>
-    <%= f.select(:deployment_type, options_for_select(@deployment_types), :value => @server_endpoint.deployment_type) %>
+    <%= f.select :deployment_type, options_for_select(@deployment_types), {}, {:disabled => @server_endpoint.persisted?} %>
     <%= f.label :heroku_app_name, "Heroku App Name"  %>
-    <%= f.text_field :heroku_app_name %>
+    <%= f.text_field :heroku_app_name, :class => "input-xlarge" %>
     <%= f.label :remote_user, "SSH User Name (Heroku: N/A, Unix login)" %>
-    <%= f.text_field :remote_user, :value => "busme" %>
+    <%= f.text_field :remote_user, :class => "input-xlarge"  %>
     <%= f.label :remote_host, "SSH Remote Host (Heroku N/A, Unix <Hostname|ip>)" %>
-    <%= f.text_field :remote_host %>
+    <%= f.text_field :remote_host, :class => "input-xlarge"  %>
+    <%= f.label :proxy_address, "Proxy URL (Heroku N/A, Unix (http://192.158.33.44:5000)" %>
+    <%= f.text_field :proxy_address, :class => "input-xxlarge"  %>
     <%= f.label :n_servers %>
     <%= f.text_field :n_servers, :value => @server_endpoint.n_servers %>
     <br />
     <br />
-    <%= f.submit "Create Server Endpoint", :class => "btn" %>
+    <%= f.submit :class => "btn" %>
 <% end %>

@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-class FrontendKeyFileUploader < CarrierWave::Uploader::Base
+class RemoteKeyFileUploader < CarrierWave::Uploader::Base
 
   # Include RMagick or MiniMagick support:
   # include CarrierWave::RMagick

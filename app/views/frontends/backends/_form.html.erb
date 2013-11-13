@@ -1,4 +1,6 @@
-<%= form_for(@backend, :validate => true, :url => frontend_backends_path(@frontend) ) do |f| %>
+<%= form_for(@backend, :validate => true,
+             :url => @backend.new? ? frontend_backends_path(@frontend)
+              : frontend_backend_path(@frontend, @backend) ) do |f| %>
     <% if @backend.errors.any? %>
         <div id="error_explanation">
           <h2><%= pluralize(@backend.errors.count, "error") %> prohibited this Backend from being saved:</h2>

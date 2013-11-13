@@ -44,13 +44,13 @@ class DeploySshBackendJobImpl
   end
 
   def destroy_remote_backend
-    if !state_destroy
+    if !state.state_destroy
       log "#{head}: Destroy Remote Backend #{backend.name} on Frontend #{frontend.name}"
       log "#{head}: Stop Remote Backend #{backend.name} on Frontend #{frontend.name}"
       set_status("Stop")
       result = unix_ssh("bash -login -c \"cd #{dir}; #{backend.stop_command} #{backend.name}\"")
       set_status("Success:Stop")
-      self.state_destroy = true
+      state.state_destroy = true
       deconfigure_remote_backend
       set_status("Destroy")
       destroy_all_endpoints

@@ -1,0 +1,8 @@
+<tr>
+  <td>Backend</td>
+  <td><%= link_to @backend.name, frontend_backend_path(@frontend, @backend) %></td>
+  <td><%= @backend_job.delayed_jobs.count if @backend_job %></td>
+  <td>N/A
+  </td>
+  <td><%= (@backend_job.listen_status.length > 0 ? "UP" :"DOWN") if @backend_job.listen_status %></td>
+</tr>

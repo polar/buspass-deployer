@@ -7,7 +7,7 @@ class FrontendsController < ApplicationController
   def new
     @installation = Installation.find(params[:installation_id]) if params[:installation_id]
     @frontend = Frontend.new(:installlation => @installation)
-    @frontend_types = ["ec2", "unix"]
+    @frontend_types = ["nginx"]
     @installations = Installation.all
   end
 
@@ -69,6 +69,22 @@ class FrontendsController < ApplicationController
       flash[:error] = "Cannot find Frontend"
       redirect_to installations_path
     end
+  end
+
+  def create_remote
+    @frontend = Frontend.find(params[:id])
+    if @frontend
+      if @frontend.remote_key && @frontend.admin_user
+        jobspec = DeployFrontendJob.get_job(@frontend, "create_remote_frontend")
+        Delayed::Job.enqueue(jobspec, :queue => "deploy-web")
+        flash[:notice] = "A job has been submitted to create the frontend"
+      else
+        flash[:error] = "Frontend needs key and admin_user"
+      end
+    else
+      flash[:error] = "Cannot find Frontend"
+    end
+    redirect_to frontend_path(@frontend)
   end
 
   def configure_remote
@@ -180,17 +196,24 @@ class FrontendsController < ApplicationController
     flash[:notice] = "Frontend #{@frontend.name}'s '#{@frontend.endpoints.count} endpoints are being restarted."
   end
 
+  def partial_status
+    index = params[:log_end].to_i
+    if @frontend_job
+      @logs = @frontend_job.logger.segment(index, 100)
+      @status = @frontend_job.remote_status
+    end
+  end
+
   def clear_log
     get_context!
-    @log = FrontendLog.where(:frontend_id => @frontend.id).first
-    @log.clear
-    @log.save
+    @frontend_job.logger.clear if @frotend_job
   end
 
   protected
 
   def get_context
     @frontend = Frontend.find(params[:id])
+    @frontend_job = DeployFrontendJob.where(:frontend_id => @frontend) if @frontend
   end
 
   def get_context!

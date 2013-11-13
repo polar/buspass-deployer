@@ -13,14 +13,36 @@ class Frontends::Backends::ServerEndpointController < ApplicationController
     get_context!
   end
 
+  def num(name)
+    match = /.*([0-9]+)/.match(name)
+    if match
+      n = match[1].to_i
+    else
+      0
+    end
+  end
+
   def new
     get_context
     if @backend
       @deployment_types = ["Heroku", "Unix", "Heroku-Swift", "Unix-Swift", "Unix-SSH"]
+      names = ServerEndpoint.where(:name => /#{@backend.name}-server/).map {|x| x.name}
+      last_name = names.sort {|x,y| num(x) <=> num(y) }.last
+      n = num(last_name) + 1
+      name = "#{@backend.name}-server#{n}"
       @server_endpoint = ServerEndpoint.new(
           :backend => @backend,
-          :name => "#{@backend.name}-server#{ServerEndpoint.count}"
+          :name => name
       )
+    else
+      raise NotFoundError
+    end
+  end
+
+  def edit
+    get_context
+    if @backend
+      @deployment_types = ["Heroku", "Unix", "Heroku-Swift", "Unix-Swift", "Unix-SSH"]
     else
       raise NotFoundError
     end
@@ -45,6 +67,17 @@ class Frontends::Backends::ServerEndpointController < ApplicationController
     end
   end
 
+  def update
+    get_context
+    if @server_endpoint.update_attributes(params[:server_endpoint])
+      flash[:notice] = "Endpoint #{@server_endpoint.name} created."
+      redirect_to frontend_backend_server_endpoints_path
+    else
+      @deployment_types = ["Heroku", "Unix", "Heroku-Swift", "Unix-Swift", "Unix-SSH"]
+      render :new
+    end
+  end
+
   def destroy
     get_context!
     flash[:notice] = "Server Endpoint #{@server_endpoint.name} destroyed."
@@ -54,10 +87,9 @@ class Frontends::Backends::ServerEndpointController < ApplicationController
 
   def partial_status
     get_context!
-    @server_endpoint = ServerEndpoint.find(params[:id])
-    if @server_endpoint
+    if @server_endpoint_job
       index = params[:log_end].to_i
-      @logs = @server_endpoint.server_endpoint_log.segment(index, 100)
+      @logs = @server_endpoint_job.endpoint_log.segment(index, 100)
     else
       render :nothing => true
     end
@@ -164,7 +196,7 @@ class Frontends::Backends::ServerEndpointController < ApplicationController
     if @backend
       @server_endpoint = @backend.server_endpoints.find(params[:id])
       if @server_endpoint
-        @server_endpoint_job = DeployServerEndpointJob.where(:server_endpoint_id => @server_endpoint.id).first
+        @server_endpoint_job = DeployServerEndpointJob.where(:endpoint_id => @server_endpoint.id).first
       end
     end
   end

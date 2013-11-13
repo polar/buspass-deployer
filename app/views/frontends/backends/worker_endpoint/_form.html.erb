@@ -1,4 +1,7 @@
-<%= form_for(@worker_endpoint, :url => frontend_backend_worker_endpoints_path(@frontend, @backend), :validate => true) do |f| %>
+<%= form_for(@worker_endpoint,
+             :url => @worker_endpoint.new? ? frontend_backend_worker_endpoints_path(@frontend, @backend) :
+                        frontend_backend_worker_endpoint_path(@frontend, @backend, @worker_endpoint),
+             :validate => true) do |f| %>
     <% if @worker_endpoint.errors.any? %>
         <div id="error_explanation">
           <h2><%= pluralize(@worker_endpoint.errors.count, "error") %> prohibited this Worker endpoint from being saved:</h2>
@@ -18,7 +21,7 @@
     <%= f.text_field :heroku_app_name %>
     <%= f.label :remote_user, "User Name (Heroku: N/A, Unix login)" %>
     <%= f.text_field :remote_user %>
-    <%= f.label :remote_host, "Remote Name (Heroku Appname, Unix <Hostname|ip>)" %>
+    <%= f.label :remote_host, "Remote Host (Heroku N/A, Unix <Hostname|ip>)" %>
     <%= f.text_field :remote_host %>
     <%= f.label :n_servers, "N Workers" %>
     <%= f.text_field :n_servers, :value => @worker_endpoint.n_servers %>

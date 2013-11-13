@@ -1,0 +1,4 @@
+<% for s in @worker_endpoint.git_commit %>
+    <div><%= s %></div>
+<% end if @worker_endpoint.git_commit %>
+<div>UPDATED <%= @worker_endpoint.updated_at %></div>

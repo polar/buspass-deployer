@@ -1,0 +1,15 @@
+<tr>
+  <td>Worker Endpoint</td>
+  <td><%= link_to @worker_endpoint.name, frontend_backend_worker_endpoint_path(@frontend, @backend, @worker_endpoint) %></td>
+  <td><%= @worker_endpoint_job.delayed_jobs.count if @worker_endpoint_job %></td>
+  <td>
+    <% for s in @worker_endpoint_job.git_commit do %>
+        <div><%= s %></div>
+    <% end if@worker_endpoint_job && @worker_endpoint_job.git_commit %>
+  </td>
+  <td>
+    <% for s in @worker_endpoint_job.remote_status do %>
+        <div><%= s %></div>
+    <% end if @worker_endpoint_job && @worker_endpoint_job.remote_status %>
+  </td>
+</tr>

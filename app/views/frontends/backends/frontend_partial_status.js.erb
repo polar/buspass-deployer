@@ -1,3 +1,2 @@
 $("#log").append('<%= @logs.map{|x| "<div>#{escape_javascript(x)}</div>" }.join.html_safe %>');
-$("#frontend_hostip").html('<%= escape_javascript(@hostip); %>');
-$("#frontend_configured").html('<%= escape_javascript(@remote_configured); %>');
+$("#frontend_hostip").html('<%= escape_javascript(@frontend.external_ip); %>');

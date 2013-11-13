@@ -7,7 +7,7 @@ class RemoteKey
   # We don't use CarrierWave this in Swifty and we don't need the key here (yet).
   # so if we don't have it, we don't need it.
   begin
-  mount_uploader :ssh_key, FrontendKeyFileUploader
+  mount_uploader :ssh_key, RemoteKeyFileUploader
   rescue NameError
   end
 

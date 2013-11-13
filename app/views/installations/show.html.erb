@@ -18,11 +18,11 @@
 <table class="table table-bordered">
   <tbody>
   <tr>
-    <td><%= button_to "Install Frontends", install_frontends_installation_path(@installation), :class => "btn btn-mini" %></td>
-    <td><%= button_to "Upgrade Installation", upgrade_installation_path(@installation), :class => "btn btn-mini"  %></td>
-    <td><%= button_to "Start Installation", start_installation_path(@installation), :class => "btn btn-mini"  %></td>
-    <td><%= button_to "Stop Installation", stop_installation_path(@installation), :class => "btn btn-mini"  %></td>
-    <td><%= link_to "Job Status", status_installation_path(@installation), :class => "btn btn-mini"  %></td>
+    <td><%= button_to "Create", create_all_installation_path(@installation), :class => "btn btn-mini" %></td>
+    <td><%= button_to "Deploy", deploy_all_installation_path(@installation), :class => "btn btn-mini"  %></td>
+    <td><%= button_to "Start", start_all_installation_path(@installation), :class => "btn btn-mini"  %></td>
+    <td><%= button_to "Stop ", stop_all_installation_path(@installation), :class => "btn btn-mini"  %></td>
+    <td><%= link_to "Job Status", job_status_installation_path(@installation), :class => "btn btn-mini"  %></td>
     <td><%= link_to "Deploy Status", deploy_status_installation_path(@installation), :class => "btn btn-mini"  %></td>
   </tr>
   <tbody>

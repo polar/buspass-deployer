@@ -1,0 +1,17 @@
+<%= form_for(@simulate_job) do |f| %>
+  <% if @simulate_job.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@simulate_job.errors.count, "error") %> prohibited this simulate_job from being saved:</h2>
+
+      <ul>
+      <% @simulate_job.errors.full_messages.each do |msg| %>
+        <li><%= msg %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="actions">
+    <%= f.submit %>
+  </div>
+<% end %>

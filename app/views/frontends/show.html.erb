@@ -1,3 +1,6 @@
+<%= content_for :head do %>
+    <%= render :partial => "update_log" %>
+<% end %>
 <h1>Frontend</h1>
 
 <table class="table table-bordered">
@@ -20,6 +23,10 @@
     <th colspan="2"></th>
   </tr>
   <tr>
+    <th>
+      Job Status
+    </th>
+    <td id="status"><%= @frontend_job.remote_status if @frontend_job %></td>
     <th>Git Commit</th>
     <td>
       <% for s in @frontend.git_commit do %>
@@ -56,13 +63,12 @@
         <td><%= be.server_endpoints.count %>
           <%= link_to "+", new_frontend_backend_server_endpoint_path(@frontend, be), :class => "btn btn-mini" %>
         </td><td><%= link_to "All", frontend_backend_server_endpoints_path(@frontend, be) %></td>
-        </td><td><%= link_to "All", frontend_backend_swift_endpoints_path(@frontend, be) %></td>
         <td><%= be.worker_endpoints.count %>
           <%= link_to "+", new_frontend_backend_worker_endpoint_path(@frontend, be), :class => "btn btn-mini" %></td>
 
         <td><%= link_to "All", frontend_backend_worker_endpoints_path(@frontend, be) %></td>
         <td><%= link_to "Show", frontend_backend_path(@frontend, be), :class => "btn btn-mini" %></td>
-        <td><%= button_to "Destroy All", backend_path(be), :method => :delete, :class => "btn btn-mini" %></td>
+        <td><%= button_to "Destroy", frontend_backend_path(@frontend, be), :method => :delete, :class => "btn btn-mini" %></td>
               </tr>
   <% end %></tbody>
 </table>
@@ -70,3 +76,11 @@
 <%= link_to "New Backend", new_frontend_backend_path(@frontend) %>
 <br />
 <%= link_to "All Frontends", frontends_path %>
+
+<h3>Log
+  <%= button_to "Clear", clear_log_frontend_path(@frontend), :class => "btn" %>  </h3>
+<div id="log">
+  <% for l in @frontend_job.logger.to_a do %>
+      <div><%= l %></div>
+  <% end if @frontend_job %>
+</div>

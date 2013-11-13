@@ -13,20 +13,30 @@
     <th>Locations</th>
     <th>Servers</th>
     <th>Workers</th>
+    <th>Actions</th>
   </tr>
   </thead>
   <tbody>
   <% for be in [@backend] %>
       <tr>
-        <td><%= link_to be.name, frontend_backend_path(be.frontend, be) %></td>
+        <td><%= link_to be.name, edit_frontend_backend_path(be.frontend, be) %></td>
         <td><%= be.hostnames.map {|x| "<div>#{x}</div>"}.join(" ").html_safe %></td>
         <td><%= be.locations.map {|x| "<div>#{x}</div>"}.join(" ").html_safe %></td>
         <td><%= be.server_endpoints.count %></td>
         <td><%= be.worker_endpoints.count %></td>
+        <td><%= link_to "Edit", edit_frontend_backend_path(@frontend, be), :class => "btn btn-mini" %></td>
+        <td><%= button_to "Destroy", frontend_backend_path(@frontend, be), :method => :delete, :class => "btn btn-mini" %></td>
       </tr>
   <% end %>
+  <tr>
+    <th>Common Endpoint Configuration</th>
+    <td><%= @backend.endpoint_configuration_literal %></td>
+  </tr>
   </tbody>
 </table>
+
+<H3>Proxy Addresses</H3>
+<%= render :partial => 'proxy_addresss_table' %>
 
 <h3>Frontend Background Operations</h3>
 <table class="table table-bordered">
@@ -101,7 +111,6 @@
   <tr>
     <th>Name</th>
     <th>Endpoint Type</th>
-    <th>Deploy Status</th>
     <th>Remote Name</th>
     <th>Remote Status</th>
   </tr>
@@ -110,11 +119,10 @@
   <% for se in @backend.worker_endpoints %>
       <tr id="endpoint_<%=se.id%>">
         <td><%= link_to se.name, frontend_backend_worker_endpoint_path(@frontend, @backend, se) %></td>
-        <td><%= se.endpoint_type %></td>
-        <td class="deploy_status"><%= se.status %></td>
+        <td><%= se.deployment_type %></td>
         <td><%= se.remote_name %></td>
         <td class="remote_status">
-          <%= render :partial => 'endpoint_remote_status', :locals => {:se => se} %>
+          <%= render :partial => 'endpoint_remote_status', :locals => {:se => DeployEndpointJob.where(:endpoint_id => se.id).first} %>
         </td>
       </tr>
   <% end %>

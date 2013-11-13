@@ -1,11 +1,11 @@
 class ServerProxy
-  include MongoMapper::EmbeddedDocument
+  include MongoMapper::Document
 
   key :proxy_type
   key :local_proxy_address
   key :local_backend_address
 
-  embedded_in :backend
+  belongs_to :backend
 
   belongs_to :server_endpoint
 

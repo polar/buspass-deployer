@@ -28,28 +28,6 @@ class Endpoint
 
   key :remote_host
 
-  # For ServerEndpoint only.
-
-  key :proxy_address_store
-
-  def proxy_address
-    proxy_address_store ||
-        case at_type
-          when "ServerEndpoint"
-            case deployment_type
-              when "Heroku"
-                "https://#{heroku_app_name}.herokuapp.com"
-              when "Unix"
-                "http://#{remote_host}"
-            end
-          when "WorkerEndpoint"
-        end
-  end
-
-  def proxy_address=(addr)
-    self.proxy_address_store = addr  if self.proxy_address != addr
-  end
-
   key :n_servers, Integer, :default => 1
 
   key :start_command, :default => "script/start_endpoint.sh"
@@ -71,6 +49,15 @@ class Endpoint
   validates_presence_of :installation
 
   before_validation :assign_upwards
+
+  def remote_name
+    case deployment_type
+      when /Heroku/
+        heroku_app_name
+      else
+        remote_host
+    end
+  end
 
   def assign_upwards
     self.name = self.name.gsub(/\s/, "_")

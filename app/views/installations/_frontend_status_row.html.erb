@@ -1,0 +1,11 @@
+<tr>
+  <th>Frontend</th>
+  <td><%= link_to @frontend.name, frontend_path(@frontend) %></td>
+  <td><%= @frontend_job.delayed_jobs.count if @frontend_job %></td>
+  <td>
+    <% for s in @frontend_job.git_commit do %>
+        <div><%= s %></div>
+    <% end if @frontend_job && @frontend_job.git_commit %>
+  </td>
+  <td><%= (@frontend_job.listen_status.length > 0 ? "UP" :"DOWN") if @frontend_job && @frontend_job.listen_status %></td>
+</tr>

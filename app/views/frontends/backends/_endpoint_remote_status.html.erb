@@ -1,4 +1,3 @@
 <% for s in se.remote_status do %>
     <div><%= s %></div>
-<% end if se.remote_status %>
-<div><%= "Instance: #{se.instance_status}" if se.instance_status %></div>
+<% end if se && se.remote_status %>

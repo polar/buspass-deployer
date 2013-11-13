@@ -13,14 +13,26 @@ class Frontends::Backends::WorkerEndpointController < ApplicationController
     get_context!
   end
 
+  def num(name)
+    match = /.*([0-9]+)/.match(name)
+    if match
+      n = match[1].to_i
+    else
+      0
+    end
+  end
+
   def new
     get_context
     if @backend
       @deployment_types = ["Heroku", "Unix"]
+      names = ServerEndpoint.where(:name => /#{@backend.name}-worker/).map {|x| x.name}
+      last_name = names.sort {|x,y| num(x) <=> num(y) }.last
+      n = num(last_name) + 1
+      name = "#{@backend.name}-worker#{n}"
       @worker_endpoint = WorkerEndpoint.new(
           :backend => @backend,
-          :name => "#{@backend.name}-worker#{WorkerEndpoint.count}",
-          :remote_user => "busme"
+          :name => name,
       )
     else
       raise NotFoundError
@@ -55,10 +67,9 @@ class Frontends::Backends::WorkerEndpointController < ApplicationController
 
   def partial_status
     get_context!
-    @worker_endpoint = WorkerEndpoint.find(params[:id])
-    if @worker_endpoint
+    if @worker_endpoint_job
       index = params[:log_end].to_i
-      @logs = @worker_endpoint.worker_endpoint_log.segment(index, 100)
+      @logs = @worker_endpoint_job.endpoint_log.segment(index, 100)
     else
       render :nothing => true
     end
@@ -165,7 +176,7 @@ class Frontends::Backends::WorkerEndpointController < ApplicationController
     if @backend
       @worker_endpoint = @backend.worker_endpoints.find(params[:id])
       if @worker_endpoint
-        @worker_endpoint_job = DeployWorkerEndpointJob.where(:worker_endpoint_id => @worker_endpoint.id).first
+        @worker_endpoint_job = DeployWorkerEndpointJob.where(:endpoint_id => @worker_endpoint.id).first
       end
     end
   end

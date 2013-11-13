@@ -1,0 +1,34 @@
+<h1>Listing Delayed Jobs</h1>
+
+<table class="table table-striped">
+  <tr>
+  <tr>
+    <th>Queue</th>
+    <th>Priority</th>
+    <th>Locked By</th>
+    <th>Locked At</th>
+    <th>Run At</th>
+    <th>Attempts</th>
+    <th>Failed At</th>
+    <th>Last Error</th>
+    <th>Payload Object</th>
+
+  </tr>
+
+  </tr>
+
+<% @delayed_jobs.each do |job| %>
+      <tr>
+        <td><%= job.queue -%></td>
+        <td><%= job.priority -%></td>
+        <td><%= job.locked_by -%></td>
+        <td><%= uptime(job)-%></td>
+        <td><%= runtime(job) -%></td>
+        <td><%= job.attempts -%></td>
+        <td><%= job.failed_at -%></td>
+        <td><%= job.last_error %></td>
+        <td><%= job.payload_object if job.handler -%></td>
+        <td><%= button_to "Destroy", delayed_job_path(job), :method => :delete, :confirm => "Are you sure?", :class => "btn btn-mini" %></td>
+      </tr>
+<% end %>
+</table>

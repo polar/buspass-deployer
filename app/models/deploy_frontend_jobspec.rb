@@ -1,99 +1,42 @@
-class DeployFrontendJobspec < Struct.new(:deploy_frontend_job_id, :name, :action, :backend_id, :backend_name)
+class DeployFrontendJobspec < Struct.new(:frontend_job_id, :action, :backend_id)
 
   def enqueue(delayed_job)
-    job = DeployFrontendJob.find(deploy_frontend_job_id)
-    if job && job.frontend.nil?
-      puts "No frontend"
+    job = DeployFrontendJob.find(frontend_job_id)
+    if job.nil? || job.frontend.nil?
+      puts "No Frontend"
       return
     end
     job.set_status("Enqueued:#{action}")
-    job.log "Enqueued job for #{action} for #{job.frontend.name}"
+    job.log "Enqueued job to #{action} for frontend #{job.frontend.name}"
   end
 
   def perform
     MongoMapper::Plugins::IdentityMap.clear
-    job = DeployFrontendJob.find(deploy_frontend_job_id)
-    if job.nil?
+    job = DeployFrontendJob.find(frontend_job_id)
+    if job.nil? || job.frontend.nil?
       puts "No DeployFrontendJob, exiting."
       return
     end
-    case action
-      when "install_remote_frontend"
-        job.install_remote_frontend
+    job.send(action, backend_id)
+  end
 
-      when "upgrade_remote_frontend"
-        job.upgrade_remote_frontend
-
-      when "full_upgrade_remote_frontend"
-        job.full_upgrade_remote_frontend
-
-      when "configure_remote_frontend"
-        job.configure_remote_frontend
-
-      when "configure_remote_frontend_backends"
-        job.configure_remote_frontend_backends
-
-      when "start_remote_frontend"
-        job.start_remote_frontend
-
-      when "stop_remote_frontend"
-        job.stop_remote_frontend
-
-      when "status_remote_frontend"
-        job.status_remote_frontend
-
-      when "deconfigure_remote_frontend"
-        job.deconfigure_remote_frontend
-
-      when "start_remote_backends"
-        job.start_remote_backends
-
-      when "stop_remote_backends"
-        job.stop_remote_backends
-
-      when "restart_remote_backends"
-        job.restart_remote_backends
-
-      when "create_all_endpoint_apps"
-        job.create_all_endpoint_apps
-      when "configure_all_endpoint_apps"
-        job.configure_all_endpoint_apps
-      when "start_all_endpoint_apps"
-        job.start_all_endpoint_apps
-      when "restart_all_endpoint_apps"
-        job.restart_all_endpoint_apps
-      when "stop_all_endpoint_apps"
-        job.stop_all_endpoint_apps
-      when "deploy_all_endpoint_apps"
-        job.deploy_all_endpoint_apps
-      when "destroy_all_endpoint_apps"
-        job.destroy_all_endpoint_apps
-
-      when "configure_remote_backend"
-        backend = Backend.find(backend_id)
-        job.configure_remote_backend(backend)
-
-      when "start_remote_backend"
-        backend = Backend.find(backend_id)
-        job.start_remote_backend(backend)
-
-      when "restart_remote_backend"
-        backend = Backend.find(backend_id)
-        job.restart_remote_backend(backend)
-
-      when "stop_remote_backend"
-        backend = Backend.find(backend_id)
-        job.stop_remote_backend(backend)
-
-      when "deconfigure_remote_backend"
-        backend = Backend.find(backend_id)
-        job.deconfigure_remote_backend(backend)
-
-      when "destroy_frontend"
-        job.destroy_frontend
-
-      else
-        job.log "Unknown action #{action}."
+  def error
+    job = DeployFrontendJob.find(frontend_job_id)
+    if job.nil? || job.frontend.nil?
+      puts "No endpoint"
+      return
     end
+    job.log "Error #{action} #{job.frontend.name}"
+    job.set_status("Error:#{action}")
+  end
+
+  def failure
+    job = DeployFrontendJob.find(frontend_job_id)
+    if job.nil? || job.frontend.nil?
+      puts "No endpoint"
+      return
+    end
+    job.log "Failure #{action} #{job.frontend.name}"
+    job.set_status("Error:#{action}")
   end
 end

@@ -2,7 +2,7 @@ class DeployInstallationJobspec < Struct.new(:installation_job_id, :action, :bac
 
   def enqueue(delayed_job)
     job = DeployInstallationJob.find(installation_job_id)
-    if job && job.installation.nil?
+    if job.nil? || job.installation.nil?
       puts "No Installation"
       return
     end
@@ -13,10 +13,30 @@ class DeployInstallationJobspec < Struct.new(:installation_job_id, :action, :bac
   def perform
     MongoMapper::Plugins::IdentityMap.clear
     job = DeployInstallationJob.find(installation_job_id)
-    if job.nil?
+    if job.nil? || job.installation.nil?
       puts "No DeployInstallationJob, exiting."
       return
     end
     job.send(action, backend_id)
+  end
+
+  def error
+    job = DeployInstallationJob.find(installation_job_id)
+    if job.nil? || job.installation.nil?
+      puts "No endpoint"
+      return
+    end
+    job.log "Error #{action} #{job.installation.name}"
+    job.set_status("Error:#{action}")
+  end
+
+  def failure
+    job = DeployInstallationJob.find(installation_job_id)
+    if job.nil? || job.installation.nil?
+      puts "No endpoint"
+      return
+    end
+    job.log "Failure #{action} #{job.installation.name}"
+    job.set_status("Error:#{action}")
   end
 end

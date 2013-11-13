@@ -1,43 +1,21 @@
-class DeployFrontendJob
-  include MongoMapper::Document
-
-  one :frontend, :autosave => false
-  key :status_content
-  key :state_destroy, :default => false
+class DeployFrontendJob < DeployJob
 
   def installation
     frontend.installation
   end
 
-  def state
-    return @state if @state
-    @state = DeployFrontendState.where(:frontend_id => frontend.id).first
-    if @state.nil?
-      @state = DeployFrontendState.new(:frontend_id => frontend.id)
-      @state.save
-    end
-    @state
+  def git_commit
+    state.git_commit
   end
 
-  def log(s)
-    state.logger.log(@state.log_level, s)
+  def listen_status
+    state.listen_status
   end
 
-  def set_status(s, rs = nil)
-    self.status_content = s
-    save
-    state.status = s
-    state.remote_status = rs if rs
-    state.save
-    log("status: #{s}")
-    log("remote status: #{rs.inspect}") if rs
+  def connection_status
+    state.connection_status
   end
 
-  def delayed_jobs
-    Delayed::Job.where(:queue => "deploy-web", :failed_at => nil).select do |job|
-      job.payload_object.is_a?(DeployFrontendJobspec) && job.payload_object.deploy_frontend_job_id == self.id
-    end
-  end
   def create_remote_frontend
     load_impl
     self.send(__method__)
@@ -85,7 +63,7 @@ class DeployFrontendJob
 
   def load_impl
     case self.frontend.deployment_type
-      when "ec2"
+      when "nginx"
         self.singleton_class.send(:include, DeployUnixFrontendJobImpl)
       when "unix"
         self.singleton_class.send(:include, DeployUnixFrontendJobImpl)

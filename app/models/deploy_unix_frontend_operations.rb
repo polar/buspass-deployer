@@ -165,7 +165,7 @@ module DeployUnixFrontendOperations
 
   def unix_destroy_remote_frontend
     head = __method__
-    if !state_destroy
+    if !state.state_destroy
       set_status("Destroy")
       log "Deleting Remote Unix #{frontend.at_type} #{remote_user}@#{remote_host}"
       begin
@@ -181,6 +181,7 @@ module DeployUnixFrontendOperations
       # If there is no .frontend-*.env, then we remove all the frontends.
       unix_ssh("test -e .frontend-*.env || rm -rf #{frontend.git_name}")
       uadmin_unix_ssh("test `ls ~#{remote_user} | wc -l` == '0' && sudo deluser --remove-home #{remote_user}")
+      state.state_destroy = true
       set_status("Success:DestroyApp")
     end
 
