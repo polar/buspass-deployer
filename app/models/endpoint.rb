@@ -22,6 +22,10 @@ class Endpoint
     self.heroku_app_name_store = n_name  if heroku_app_name != n_name
   end
 
+  def deploy_heroku_api_key
+    installation.deploy_heroku_api_key
+  end
+
   # Unix Attributes
   key :remote_user, :default => "busme"
   key :admin_user, :default => "uadmin"
@@ -72,8 +76,10 @@ class Endpoint
     rescue
 
     end
-    installation_config ||= {}
-    installation_config.merge JSON.parse(remote_configuration_literal)
+    result = installation_config ||= {}
+    result = result.merge backend.endpoint_configuration
+    result = result.merge JSON.parse(remote_configuration_literal) if remote_configuration_literal
+    result
   end
 
   def remote_configuration=(json)

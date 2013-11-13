@@ -4,8 +4,7 @@
     <th>Frontend Name</th>
     <th>Host</th>
     <th>Type</th>
-    <th>Host IP</th>
-    <th>Remote Configured</th>
+    <th>External IP</th>
   </tr>
   </thead>
   <tbody>
@@ -13,9 +12,8 @@
       <tr>
         <td><%= link_to fe.name, frontend_path(fe) %></td>
         <td><%= fe.host %></td>
-        <td><%= fe.host_type %></td>
-        <td><%= fe.hostip %></td>
-        <td><%= fe.configured %></td>
+        <td><%= fe.deployment_type %></td>
+        <td><%= fe.external_ip %></td>
       </tr>
   <% end %>
   </tbody>
@@ -25,23 +23,23 @@
   <tr>
     <th>Git Commit</th>
     <td>
-      <% for s in @frontend.git_commit do %>
+      <% for s in @frontend_job.git_commit do %>
           <div><%= s %></div>
-      <% end if @frontend.git_commit %>
+      <% end if @frontend_job && @frontend.git_commit %>
     </td>
   </tr>
   <tr>
     <th>Listen</th>
     <td>
-      <% for s in @frontend.listen_status do %>
+      <% for s in @frontend_job.listen_status do %>
           <div><%= s %></div>
-      <% end if @frontend.listen_status %>
+      <% end if @frontend_job && @frontend_job.listen_status %>
     </td>
   </tr>
   <tr>
     <th>Connections</th>
     <td>
-      <%= @frontend.connection_status.length if @frontend.connection_status %>
+      <%= @frontend_job.connection_status.length if @frontend_job && @frontend_job.connection_status %>
     </td>
   </tr>
   </tbody>

@@ -18,12 +18,6 @@
     <%= f.text_field :hostnames, :value => @backend.hostnames.join(" ") %>
     <%= f.label :locations, "Location Matchers ( /syracuse-university )" %>
     <%= f.text_field :locations, :value => @backend.locations.join(" ") %>
-    <%= f.label :ssh_proxy_address, "SSH Proxy Address (localhost:3000)" %>
-    <%= f.text_field :ssh_proxy_address %>
-    <%= f.label :swift_proxy_address, "Swift Proxy Address (localhost:3001)" %>
-    <%= f.text_field :swift_proxy_address %>
-    <%= f.label :swift_backend_address, "Swift Backend Address (0.0.0.0:4000)" %>
-    <%= f.text_field :swift_backend_address %>
     <%= f.label :remote_configuration_literal, "Runtime configuration (Swift) in JSON" %>
     <%= f.text_area :remote_configuration_literal %>
     <%= f.label :endpoint_configuration_literal, "Common Endpoint Configuration in JSON" %>

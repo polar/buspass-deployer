@@ -1,8 +1,21 @@
 <%= form_for @installation, :validate => true do |f| %>
+    <% if @installation.errors.any? %>
+        <div id="error_explanation">
+          <h2><%= pluralize(@installation.errors.count, "error") %> prohibited this Installation from being saved:</h2>
+
+          <ul>
+            <% @installation.errors.full_messages.each do |msg| %>
+                <li><%= msg %></li>
+            <% end %>
+          </ul>
+        </div>
+    <% end %>
     <%= f.label :name, "Name" %>
     <%= f.text_field :name %>
     <%= f.label :ssh_key_name, "SSH Key Name" %>
-    <%= f.select :ssh_key_name, @keynames %>
+    <%= f.select :ssh_key_name, @ssh_key_names, :include_blank => true %>
+    <%= f.label :deploy_heroku_api_key_name, "SSH Key Name" %>
+    <%= f.select :deploy_heroku_api_key_name, @deploy_heroku_api_key_names, :include_blank => true %>
     <%= f.label :remote_configuration_literal, "Common Configuration" %>
     <%= f.text_area :remote_configuration_literal %>
     <br />

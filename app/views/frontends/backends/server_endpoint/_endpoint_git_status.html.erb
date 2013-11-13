@@ -1,4 +1,4 @@
-<% for s in @server_endpoint.git_commit %>
+<% for s in @server_endpoint_job.git_commit %>
     <div><%= s %></div>
-<% end if @server_endpoint.git_commit %>
-<div>UPDATED <%= @server_endpoint.updated_at %></div>
+<% end if @server_endpoint_job && @server_endpoint_job.git_commit %>
+<div>UPDATED <%= @server_endpoint_job.updated_at if @server_endpoint_job %></div>

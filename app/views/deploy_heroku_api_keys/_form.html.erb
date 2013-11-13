@@ -1,0 +1,23 @@
+<%= form_for @deploy_heroku_api_key do |f| %>
+  <% if @deploy_heroku_api_key.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@deploy_heroku_api_key.errors.count, "error") %> prohibited this Heroku API Key from being saved:</h2>
+
+      <ul>
+      <% @deploy_heroku_api_key.errors.full_messages.each do |msg| %>
+        <li><%= msg %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+  <div class="skdfjsldjf">
+    <%= f.label :name, "Name" %>
+    <%= f.text_field :name %>
+    <%= f.label :value, "Heroku API Key to create deploymnents" %>
+    <%= f.text_field :value, :class => "input-xxlarge" %>
+  </div>
+
+  <div class="actions">
+    <%= f.submit %>
+  </div>
+<% end %>

@@ -26,6 +26,7 @@
         <td><%= be.worker_endpoints.count %></td>
         <td><%= link_to "Edit", edit_frontend_backend_path(@frontend, be), :class => "btn btn-mini" %></td>
         <td><%= button_to "Destroy", frontend_backend_path(@frontend, be), :method => :delete, :class => "btn btn-mini" %></td>
+        <td><%= button_to "Delete", delete_frontend_backend_path(@frontend, be), :method => :delete, :class => "btn btn-mini" %></td>
       </tr>
   <% end %>
   <tr>

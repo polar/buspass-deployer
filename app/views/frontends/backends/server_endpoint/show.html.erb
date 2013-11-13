@@ -74,7 +74,7 @@
 <h3>Log
   <%= button_to "Clear", clear_log_frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint), :class => "btn" %>  </h3>
 <div id="log">
-  <% for l in @server_endpoint_job.endpoint_log.to_a do %>
+  <% for l in @server_endpoint_job.logger.to_a do %>
       <div><%= l %></div>
   <% end if @server_endpoint_job %>
 </div>

@@ -1,5 +1,15 @@
 class DeployEndpointJob < DeployJob
 
+  def delayed_jobs
+    Delayed::Job.where(:queue => "deploy-web").reduce([]) do |result, x|
+      if x.payload_object.is_a?(DeployEndpointJobspec) && x.payload_object.endpoint_job_id == self.id
+        result + [x]
+      else
+        result
+      end
+    end
+  end
+
   def backend
     endpoint.backend
   end

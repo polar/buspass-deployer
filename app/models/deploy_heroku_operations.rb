@@ -7,14 +7,16 @@ module DeployHerokuOperations
     endpoint.heroku_app_name
   end
 
-  def heroku_api_key
-    endpoint.heroku_api_key
+  def deploy_heroku_api_key
+    DeployHerokuApiKey.find_by_name(installation.deploy_heroku_api_key_name)
   end
 
   def heroku_reset_api
+    return true
     # We have to reset, because successive connection/SSL failures
     # do not resolve themselves. Ugg.
     HerokuHeadless.reset
+    ENV["HEROKU_API_KEY"] = deploy_heroku_api_key.value
     HerokuHeadless.configure do |config|
       config.pre_deploy_git_commands = [
           "script/dist-config \"#{endpoint.git_repository}\" \"#{endpoint.git_name}\" \"#{endpoint.git_refspec}\" /tmp"
@@ -26,6 +28,7 @@ module DeployHerokuOperations
   
   def heroku_create_remote_endpoint
     head = __method__
+    heroku_reset_api
     set_status("Creating")
     log "#{head}: Creating #{endpoint.at_type} - #{heroku_app_name}"
     result = HerokuHeadless.heroku.post_app(:name => heroku_app_name)
@@ -40,6 +43,7 @@ module DeployHerokuOperations
   def heroku_get_deploy_status
     head = __method__
     log "#{head}: Getting deploy worker endpoint #{heroku_app_name} status."
+    heroku_reset_api
     result = HerokuHeadless.heroku.get_releases(heroku_app_name)
     log "#{head}: Result #{result} status."
     if result
@@ -72,6 +76,7 @@ module DeployHerokuOperations
   def heroku_remote_endpoint_exists?
     head = __method__
     log "#{head}: Checking if Remote #{endpoint.at_type} - #{heroku_app_name} exists."
+    heroku_reset_api
     result = HerokuHeadless.heroku.get_app(heroku_app_name)
     log "#{head}: Remote #{endpoint.at_type} - #{heroku_app_name} exists."
     if result
@@ -90,6 +95,7 @@ module DeployHerokuOperations
     head = __method__
     set_status("RemoteStatus")
     log "#{head}: Getting Remote #{endpoint.at_type} - #{heroku_app_name} status."
+    heroku_reset_api
     result = HerokuHeadless.heroku.get_app(heroku_app_name)
     if result
       result = HerokuHeadless.heroku.get_ps(heroku_app_name)
@@ -113,6 +119,7 @@ module DeployHerokuOperations
   def heroku_scale_remote_endpoint(proc, ndynos = 1)
     head = __method__
     set_status("ScaleRemoteEndpoint")
+    heroku_reset_api
     log "#{head}: Start Remote #{endpoint.at_type} #{heroku_app_name}."
     result = HerokuHeadless.heroku.post_ps_scale(heroku_app_name, proc, ndynos)
     if result && result.data && result.data[:body]
@@ -130,6 +137,7 @@ module DeployHerokuOperations
   def heroku_restart_remote_endpoint
     head = __method__
     set_status("Restart")
+    heroku_reset_api
     log "#{head}: Restarting Remote #{endpoint.at_type} #{heroku_app_name} ."
     result = HerokuHeadless.heroku.post_ps_restart(heroku_app_name)
     if result && result.data && result.data[:body]
@@ -147,6 +155,7 @@ module DeployHerokuOperations
   def heroku_configure_remote_endpoint
     head = __method__
     set_status("Configure")
+    heroku_reset_api
     log "#{head}: Setting configuration variables for Remote #{endpoint.at_type} #{heroku_app_name}."
     result = HerokuHeadless.heroku.put_config_vars(heroku_app_name, endpoint.remote_configuration)
     if result && result.data[:body]
@@ -163,8 +172,10 @@ module DeployHerokuOperations
   end
   
   def heroku_deploy_to_remote_endpoint
-    head = __method__
+tarline    head = __method__
     set_status("Deploy")
+    heroku_reset_api
+     # The following must be self as it takes log(msg)
     HerokuHeadless::Deployer.logger = self
     log "#{head}: Deploying Remote #{endpoint.at_type} #{heroku_app_name} refspec #{endpoint.git_refspec}."
     result = HerokuHeadless::Deployer.deploy(heroku_app_name, endpoint.git_refspec)
@@ -182,6 +193,7 @@ module DeployHerokuOperations
   def heroku_destroy_remote_endpoint
     head = __method__
     set_status("Destroy")
+    heroku_reset_api
     log "Deleting Remote #{endpoint.at_type} #{heroku_app_name}"
     result = HerokuHeadless.heroku.delete_app(heroku_app_name)
     set_status("Success:Delete")
@@ -194,6 +206,7 @@ module DeployHerokuOperations
   def heroku_get_remote_endpoint_logs
     head = __method__
     set_status("GetLogs")
+    heroku_reset_api
     result = HerokuHeadless.heroku.get_logs(heroku_app_name, :num => 500)
     if result && result.status == 200
       log "#{head}: Log available at #{result.data[:body]}"
@@ -214,6 +227,7 @@ module DeployHerokuOperations
   def heroku_get_remote_configuration
     head = __method__
     set_status("GetConfiguration")
+    heroku_reset_api
     log "#{head}: Getting configuration variables for Remote #{endpoint.at_type} #{heroku_app_name}."
     result = HerokuHeadless.heroku.get_config_vars(heroku_app_name)
     if result && result.data[:body]

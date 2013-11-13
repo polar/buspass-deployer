@@ -63,30 +63,6 @@ class Backend
     end
   end
 
-  def ssh_proxy_address
-    server_proxies.select {|x| x.proxy_type == "SSH"}.first.local_proxy_address
-  end
-
-  def ssh_proxy_address=(addr)
-    server_proxies.select {|x| x.proxy_type == "SSH"}.first.local_proxy_address = addr
-  end
-
-  def swift_proxy_address
-    server_proxies.select {|x| x.proxy_type == "Swift"}.first.local_proxy_address
-  end
-
-  def swift_proxy_address=(addr)
-    server_proxies.select {|x| x.proxy_type == "Swift"}.first.local_proxy_address = addr
-  end
-
-  def swift_backend_address
-    server_proxies.select {|x| x.proxy_type == "Swift"}.first.local_backend_address
-  end
-
-  def swift_backend_address=(addr)
-    server_proxies.select {|x| x.proxy_type == "Swift"}.first.local_backend_address = addr
-  end
-
   # JSON String representing the variable configuration of the endpoint on the remote side.
   # TODO: Should be encrypted.
   key :remote_configuration_literal
@@ -106,33 +82,6 @@ class Backend
   validates_presence_of :installation
   before_validation :assign_upwards
 
-  validate :validate_type
-
-  def port_of(addr)
-    match = /((.*):)?(.*)/ =~ addr
-    match[3].to_i
-  end
-
-  def validate_type
-    ports = frontend.backends.reduce([]) do |result, backend|
-      if backend != self
-        result + backend.local_proxy_ports + backend.local_backend_ports
-      else
-        result
-      end
-    end
-
-    if ports.include?(port_of(ssh_proxy_address))
-      self.errors.add(:ssh_proxy_address, "port taken in frontend")
-    end
-    if ports.include?(port_of(swift_proxy_address))
-      self.errors.add(:ssh_proxy_address, "port taken in frontend")
-    end
-    if ports.include?(port_of(swift_backend_address))
-      self.errors.add(:ssh_proxy_address, "port taken in frontend")
-    end
-  end
-
   def assign_upwards
     self.name = self.name.gsub(/\s/, "_")
     self.installation = frontend.installation
@@ -145,8 +94,9 @@ class Backend
     rescue
 
     end
-    installation_config ||= {}
-    installation_config.merge JSON.parse(remote_configuration_literal)
+    result = installation_config ||= {}
+    result = result.merge JSON.parse(remote_configuration_literal) if remote_configuration_literal && ! remote_configuration_literal.blank?
+    result
   end
 
   def remote_configuration=(hash)
@@ -157,13 +107,9 @@ class Backend
   key :endpoint_configuration_literal
 
   def endpoint_configuration
-    begin
-      installation_config = installation.remote_configuration
-    rescue
-
-    end
-    installation_config ||= {}
-    installation_config.merge JSON.parse(endpoint_configuration_literal)
+    result = {}
+    result = result.merge JSON.parse(endpoint_configuration_literal) if endpoint_configuration_literal  && ! endpoint_configuration_literal.blank?
+    result
   end
 
   def endpoint_configuration=(hash)

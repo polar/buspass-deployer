@@ -11,12 +11,14 @@ class InstallationsController < ApplicationController
 
   def edit
     @installation = Installation.find params[:id]
-    @keynames = RemoteKey.all.map {|x| x.name}
+    @ssh_key_names = RemoteKey.all.map {|x| x.name}
+    @deploy_heroku_api_key_names = DeployHerokuApiKey.all.map {|x| x.name}
   end
 
   def new
     @installation = Installation.new
-    @keynames = RemoteKey.all.map {|x| x.name}
+    @ssh_key_names = RemoteKey.all.map {|x| x.name}
+    @deploy_heroku_api_key_names = DeployHerokuApiKey.all.map {|x| x.name}
   end
 
   def create
@@ -27,6 +29,8 @@ class InstallationsController < ApplicationController
       redirect_to installation_path(@installation)
     else
       flash[:error] = "Could not create new installation."
+      @ssh_key_names = RemoteKey.all.map {|x| x.name}
+      @deploy_heroku_api_key_names = DeployHerokuApiKey.all.map {|x| x.name}
       render :new
     end
   end
@@ -34,12 +38,13 @@ class InstallationsController < ApplicationController
   def update
     @installation = Installation.find params[:id]
     if @installation.update_attributes(params[:installation])
-      flash[:notice] = "New installation #{@installation.name} has been created."
+      flash[:notice] = "installation #{@installation.name} has been updated."
       @installation.save
       redirect_to installation_path(@installation)
     else
       flash[:error] = "Could not update new installation."
-      @keynames = RemoteKey.all.map {|x| x.name}
+      @ssh_key_names = RemoteKey.all.map {|x| x.name}
+      @deploy_heroku_api_key_names = DeployHerokuApiKey.all.map {|x| x.name}
       render :edit
     end
   end
@@ -186,6 +191,10 @@ class InstallationsController < ApplicationController
   end
 
   def deploy_status
+    get_context!
+  end
+
+  def partial_deploy_status
     get_context!
   end
 

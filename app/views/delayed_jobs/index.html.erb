@@ -2,7 +2,6 @@
 
 <table class="table table-striped">
   <tr>
-  <tr>
     <th>Queue</th>
     <th>Priority</th>
     <th>Locked By</th>
@@ -12,10 +11,8 @@
     <th>Failed At</th>
     <th>Last Error</th>
     <th>Payload Object</th>
-
-  </tr>
-
-  </tr>
+    <td><%= button_to "Destroy ALL", destroy_all_delayed_jobs_path, :method => :delete, :confirm => "Are you sure?", :class => "btn btn-mini" %></td>
+</tr>
 
 <% @delayed_jobs.each do |job| %>
       <tr>

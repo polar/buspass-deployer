@@ -1,0 +1,23 @@
+<h1>Listing Deploy Heroku API Keys</h1>
+
+<table class="table table-bordered">
+  <tr>
+    <th>Name</th>
+    <th>Encrypted Content</th>
+    <th col_span="3">Actions</th>
+  </tr>
+
+<% @deploy_heroku_api_keys.each do |key| %>
+  <tr>
+    <td><%= link_to key.name, deploy_heroku_api_key_path(key) %></td>
+    <td><%= key.key_encrypted_content %></td>
+    <td><%= link_to 'Edit', edit_deploy_heroku_api_key_path(key), :class => "btn btn-mini" %></td>
+    <td><%= button_to 'Destroy', key, :method => "delete", :class => "btn btn-mini", :data => { :confirm => 'Are you sure?' } %></td>
+  </tr>
+<% end %>
+</table>
+
+<br />
+
+<%= link_to 'New Deploy Heroku API key', new_deploy_heroku_api_key_path %> |
+<%= link_to 'Installations', installations_path %>

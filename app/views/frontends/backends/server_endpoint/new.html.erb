@@ -1,4 +1,7 @@
 <h1>Create Server Endpoint</h1>
+> <%= link_to @installation.name, installation_path(@installation) %>
+> <%= link_to "#{@frontend.name}(#{@frontend.remote_host})" %>
+> <%= link_to @backend.name, frontend_backend_path(@frontend, @backend) %>
 
 <%= render :partial => 'form' %>
 

@@ -1,5 +1,15 @@
 class DeployFrontendJob < DeployJob
 
+  def delayed_jobs
+    Delayed::Job.where(:queue => "deploy-web").reduce([]) do |result, x|
+      if x.payload_object.is_a?(DeployFrontendJobspec) && x.payload_object.frontend_job_id == self.id
+        result + [x]
+      else
+        result
+      end
+    end
+  end
+
   def installation
     frontend.installation
   end

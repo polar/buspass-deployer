@@ -1,181 +1,156 @@
 class FrontendsController < ApplicationController
 
   def index
-    @frontends = Frontend.all
+    @installation = Installation.find(params[:installation_id])
+    if @installation
+      @frontends = Frontend.where(:installation_id => @installation.id)
+    else
+      @frontends = Frontend.all
+    end
   end
 
   def new
     @installation = Installation.find(params[:installation_id]) if params[:installation_id]
     @frontend = Frontend.new(:installlation => @installation)
-    @frontend_types = ["nginx"]
-    @installations = Installation.all
+    @deployment_types = ["unix-nginx"]
   end
 
   def edit
-    @frontend = Frontend.find params[:id]
+    get_context!
+    @frontend.update_attributes(params[:frontend])
+    @frontend.installation = @installation
     @frontend_types = [@frontend.deployment_type]
-    @installations = [@frontend.installation]
   end
 
   def show
-    @frontend = Frontend.find(params[:id])
-    if @frontend
-    end
+    get_context!
   end
 
   def create
+    @installation = Installation.find(params[:installation_id]) if params[:installation_id]
     @frontend = Frontend.new(params[:frontend])
+    @frontend.installation = @installation
     if @frontend.valid?
       @frontend.save
       flash[:notice] = "Frontend created"
       if @frontend.installation.frontends.count > 1
-        redirect_to installation_path(@frontend.installation)
+        redirect_to installation_path(@installation)
       else
         redirect_to frontend_path(@frontend)
       end
     else
       flash[:error] = "Could not create frontend"
-      @frontend_types = ["ec2", "unix"]
-      @installations = Installation.all
+      @deployment_types = ["unix-nginx"]
       render :new
     end
   end
 
   def update
-    @frontend = Frontend.find params[:id]
+    get_context!
     if @frontend.update_attributes(params[:frontend])
       flash[:notice] = "Frontend updated"
       redirect_to frontend_path(@frontend)
     else
       flash[:error] = "Could not update frontend"
-      @frontend_types = [@frontend.deployment_type]
+      @deployment_types = ["unix-nginx"]
       @installations = [@frontend.installation]
       render :edit
     end
   end
 
   def destroy
-    @frontend = Frontend.find(params[:id])
-    if @frontend
-      if @frontend.backends.count == 0
-        jobspec = DeployFrontendJob.get_job(@frontend, "destroy_remote_frontend")
-        Delayed::Job.enqueue(jobspec, :queue => "deploy-web")
-        flash[:notice] = "A job has been submitted to destroy the frontend"
-      else
-        flash[:error] = "Frontend still has backends"
-      end
-      redirect_to frontend_path(@frontend)
-    else
-      flash[:error] = "Cannot find Frontend"
-      redirect_to installations_path
-    end
+    get_context!
+    jobspec = DeployFrontendJob.get_job(@frontend, "destroy_remote_frontend")
+    Delayed::Job.enqueue(jobspec, :queue => "deploy-web")
+    flash[:notice] = "A job has been submitted to destroy the frontend"
+    redirect_to installation_path(@installation)
+  end
+
+  def delete
+    get_context!
+    @frontend.destroy
+    flash[:notice] = "Frontend #{@frontend.name} and all its backends have been deleted."
+    redirect_to installation_path(@installation)
   end
 
   def create_remote
-    @frontend = Frontend.find(params[:id])
-    if @frontend
-      if @frontend.remote_key && @frontend.admin_user
-        jobspec = DeployFrontendJob.get_job(@frontend, "create_remote_frontend")
-        Delayed::Job.enqueue(jobspec, :queue => "deploy-web")
-        flash[:notice] = "A job has been submitted to create the frontend"
-      else
-        flash[:error] = "Frontend needs key and admin_user"
-      end
+    get_context!
+    if @frontend.remote_key && @frontend.admin_user
+      jobspec = DeployFrontendJob.get_job(@frontend, "create_remote_frontend")
+      Delayed::Job.enqueue(jobspec, :queue => "deploy-web")
+      flash[:notice] = "A job has been submitted to create the frontend"
     else
-      flash[:error] = "Cannot find Frontend"
+      flash[:error] = "Frontend needs key and admin_user"
     end
     redirect_to frontend_path(@frontend)
   end
 
   def configure_remote
-    @frontend = Frontend.find(params[:id])
-    if @frontend
-      if @frontend.remote_key && @frontend.admin_user
-        jobspec = DeployFrontendJob.get_job(@frontend, "configure_remote_frontend")
-        Delayed::Job.enqueue(jobspec, :queue => "deploy-web")
-        flash[:notice] = "A job has been submitted to configure the frontend"
-      else
-        flash[:error] = "Frontend needs key and admin_user"
-      end
+    get_context!
+    if @frontend.remote_key && @frontend.admin_user
+      jobspec = DeployFrontendJob.get_job(@frontend, "configure_remote_frontend")
+      Delayed::Job.enqueue(jobspec, :queue => "deploy-web")
+      flash[:notice] = "A job has been submitted to configure the frontend"
     else
-      flash[:error] = "Cannot find Frontend"
+      flash[:error] = "Frontend needs key and admin_user"
     end
     redirect_to frontend_path(@frontend)
   end
 
   def deconfigure_remote
-    @frontend = Frontend.find(params[:id])
-    if @frontend
-      if @frontend.remote_key && @frontend.admin_user
-        jobspec = DeployFrontendJob.get_job(@frontend, "deconfigure_remote_frontend")
-        Delayed::Job.enqueue(jobspec, :queue => "deploy-web")
-        flash[:notice] = "A job has been submitted to configure the frontend"
-      else
-        flash[:error] = "Frontend needs key and admin_user"
-      end
+    get_context!
+    if @frontend.remote_key && @frontend.admin_user
+      jobspec = DeployFrontendJob.get_job(@frontend, "deconfigure_remote_frontend")
+      Delayed::Job.enqueue(jobspec, :queue => "deploy-web")
+      flash[:notice] = "A job has been submitted to configure the frontend"
     else
-      flash[:error] = "Cannot find Frontend"
+      flash[:error] = "Frontend needs key and admin_user"
     end
     redirect_to frontend_path(@frontend)
   end
 
   def start_remote
-    @frontend = Frontend.find(params[:id])
-    if @frontend
-      if @frontend.remote_key && @frontend.admin_user
-        jobspec = DeployFrontendJob.get_job(@frontend, "start_remote_frontend")
-        Delayed::Job.enqueue(jobspec, :queue => "deploy-web")
-        flash[:notice] = "A job has been submitted to start the frontend"
-      else
-        flash[:error] = "Frontend needs key and admin_user"
-      end
+    get_context!
+    if @frontend.remote_key && @frontend.admin_user
+      jobspec = DeployFrontendJob.get_job(@frontend, "start_remote_frontend")
+      Delayed::Job.enqueue(jobspec, :queue => "deploy-web")
+      flash[:notice] = "A job has been submitted to start the frontend"
     else
-      flash[:error] = "Cannot find Frontend"
+      flash[:error] = "Frontend needs key and admin_user"
     end
     redirect_to frontend_path(@frontend)
   end
 
   def stop_remote
-    @frontend = Frontend.find(params[:id])
-    if @frontend
-      if @frontend.remote_key && @frontend.admin_user
-        jobspec = DeployFrontendJob.get_job(@frontend, "stop_remote_frontend")
-        Delayed::Job.enqueue(jobspec, :queue => "deploy-web")
-        flash[:notice] = "A job has been submitted to start the frontend"
-      else
-        flash[:error] = "Frontend needs key and admin_user"
-      end
+    get_context!
+    if @frontend.remote_key && @frontend.admin_user
+      jobspec = DeployFrontendJob.get_job(@frontend, "stop_remote_frontend")
+      Delayed::Job.enqueue(jobspec, :queue => "deploy-web")
+      flash[:notice] = "A job has been submitted to start the frontend"
     else
-      flash[:error] = "Cannot find Frontend"
+      flash[:error] = "Frontend needs key and admin_user"
     end
     redirect_to frontend_path(@frontend)
   end
 
   def deploy_to_remote
-    @frontend = Frontend.find(params[:id])
-    if @frontend
-      if @frontend.remote_key && @frontend.admin_user
-        jobspec = DeployFrontendJob.get_job(@frontend, "deploy_to_remote_frontend")
-        Delayed::Job.enqueue(jobspec, :queue => "deploy-web")
-        flash[:notice] = "Frontend is being deployed on the remote end."
-      else
-        flash[:error] = "Frontend needs key and admin_user"
-      end
+    get_context!
+    if @frontend.remote_key && @frontend.admin_user
+      jobspec = DeployFrontendJob.get_job(@frontend, "deploy_to_remote_frontend")
+      Delayed::Job.enqueue(jobspec, :queue => "deploy-web")
+      flash[:notice] = "Frontend is being deployed on the remote end."
+    else
+      flash[:error] = "Frontend needs key and admin_user"
     end
     redirect_to frontend_path(@frontend)
   end
 
   def destroy_remote
-    @frontend = Frontend.find(params[:id])
-    if @frontend
-      jobspec = DeployFrontendJob.get_job(@frontend, "destroy_remote_frontend")
-      Delayed::Job.enqueue(jobspec, :queue => "deploy-web")
-      flash[:notice] = "A job has been submitted to destroy the frontend and all backends"
-      redirect_to installation_path(@frontend.installation)
-    else
-      flash[:error] = "Cannot find Frontend"
-      redirect_to installations_path
-    end
+    get_context!
+    jobspec = DeployFrontendJob.get_job(@frontend, "destroy_remote_frontend")
+    Delayed::Job.enqueue(jobspec, :queue => "deploy-web")
+    flash[:notice] = "A job has been submitted to destroy the frontend and all backends"
+    redirect_to installation_path(@frontend.installation)
   end
 
   def destroy_all_backends
@@ -212,8 +187,10 @@ class FrontendsController < ApplicationController
   protected
 
   def get_context
+    @installation = Installation.find(params[:installation_id]) if params[:installation_id]
     @frontend = Frontend.find(params[:id])
-    @frontend_job = DeployFrontendJob.where(:frontend_id => @frontend) if @frontend
+    @installation = @frontend.installation if @frontend && @frontend.installation
+    @frontend_job = DeployFrontendJob.where(:frontend_id => @frontend.id).first if @frontend
   end
 
   def get_context!

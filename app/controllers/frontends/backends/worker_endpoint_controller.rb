@@ -172,6 +172,7 @@ class Frontends::Backends::WorkerEndpointController < ApplicationController
 
   def get_context
     @frontend = Frontend.find(params[:frontend_id])
+    @installation = @frontend.installation if @frontend
     @backend = @frontend.backends.find(params[:backend_id]) if @frontend
     if @backend
       @worker_endpoint = @backend.worker_endpoints.find(params[:id])

@@ -37,6 +37,8 @@ class DeployState
     end
     if self.deploy_log.nil?
       self.create_deploy_log
+      self.deploy_log.save
+      self.save
     end
     @my_logger           = MyLogger.new(self.deploy_log)
     @my_logger.level     = self.log_level

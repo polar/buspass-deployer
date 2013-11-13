@@ -25,22 +25,7 @@ class Frontends::BackendsController < ApplicationController
       )
       @backend.server_proxies.build(:proxy_type=> "SSH")
       @backend.server_proxies.build(:proxy_type=> "Swift")
-      backend_proxy_init()
     end
-  end
-
-  def backend_proxy_init
-    proxy_ports   = @frontend.allocated_proxy_ports
-    backend_ports = @frontend.allocated_backend_ports
-
-    ssh_proxy_port     = (proxy_ports.max || 2999) + 1
-    swift_proxy_port   = (proxy_ports + [ssh_proxy_port]).max + 1
-    swift_backend_port = (backend_ports.max || 3999) + 1
-    @backend.ssh_proxy_address  = "127.0.0.1:#{ssh_proxy_port}"
-
-    @backend.swift_proxy_address = "127.0.0.1:#{swift_proxy_port}"
-
-    @backend.swift_backend_address = "0.0.0.0:#{swift_backend_port}"
   end
 
   def edit
@@ -76,14 +61,22 @@ class Frontends::BackendsController < ApplicationController
       redirect_to frontend_path(@backend.frontend)
     else
       flash[:error] = "Backend #{@backend.name} could not be created"
-      backend_proxy_init()
       render :new
     end
   end
 
   def destroy
     get_context!
+    job = DeployBackendJob.get_job(@backend, "destroy_remote_backend")
+    Delayed::Job.enqueue(job, :queue => "deploy-web")
+    flash[:notice] = "Backend #{@backend.name} and all its endpoints will be destroyed."
+    redirect_to frontend_backends_path(@frontend)
+  end
+
+  def delete
+    get_context!
     @backend.destroy
+    flash[:notice] = "Backend #{@backend.name} and all its endpoints have been deleted."
     redirect_to frontend_backends_path(@frontend)
   end
 
@@ -138,7 +131,7 @@ class Frontends::BackendsController < ApplicationController
   def start_all
     get_context
     @frontend.backends.each do |backend|
-      job = DeployFrontendEndpointJob.get_job(backend, "start_remote_backend")
+      job = DeployFrontendJob.get_job(backend, "start_remote_backend")
       Delayed::Job.enqueue(job, :queue => "deploy-web")
     end
     flash[:notice] = "Backend #{@backend.name} will be started."
@@ -148,7 +141,7 @@ class Frontends::BackendsController < ApplicationController
   def stop_all
     get_context
     @frontend.backends.each do |backend|
-      job = DeployFrontendEndpointJob.get_job(backend, "stop_remote_backend")
+      job = DeployFrontendJob.get_job(backend, "stop_remote_backend")
       Delayed::Job.enqueue(job, :queue => "deploy-web")
     end
     flash[:notice] = "Backend #{@backend.name} will be stopped."
@@ -158,7 +151,7 @@ class Frontends::BackendsController < ApplicationController
   def restart_all
     get_context
     @frontend.backends.each do |backend|
-      job = DeployFrontendEndpointJob.get_job(backend, "restart_remote_backend")
+      job = DeployFrontendJob.get_job(backend, "restart_remote_backend")
       Delayed::Job.enqueue(job, :queue => "deploy-web")
     end
     flash[:notice] = "Backend #{@backend.name} will be restarted."
@@ -168,10 +161,10 @@ class Frontends::BackendsController < ApplicationController
   def status_all
     get_context
     @frontend.backends.each do |backend|
-      job = DeployFrontendEndpointJob.get_job(backend, "status_remote_backend")
+      job = DeployFrontendJob.get_job(backend, "status_remote_backend")
       Delayed::Job.enqueue(job, :queue => "deploy-web")
     end
-    flash[:notice] = "Backend #{@backend.name} will be getting status."
+    flash[:notice] = "Frontend #{@frontend.name} will be getting status for all backends."
     redirect_to :back
   end
 

@@ -1,5 +1,8 @@
 <%= render :partial => "frontends/backends/frontend_update_log" %>
 <H1>Frontend Backends</H1>
+<%= link_to @frontend.installation.name, installation_path(@frontend.installation) %> >
+<%= link_to "#{@frontend.name}(#{@frontend.remote_host})", frontend_path(@frontend) %>
+
 
 <table class="table table-bordered">
   <thead>
@@ -55,12 +58,11 @@
       <tr>
         <td><%= link_to be.name, frontend_backend_path(@frontend, be) %></td>
         <td><%= be.hostnames.map {|x| "<div>#{x}</div>"}.join("\n").html_safe %></td>
-        <td><%= be.server_endpoints.count %>
+        <td><%= link_to be.server_endpoints.count, frontend_backend_server_endpoints_path(@frontend, be) %>
           <%= link_to "+", new_frontend_backend_server_endpoint_path(@frontend, be), :class => "btn btn-mini"  %></td>
-        <td><%= be.worker_endpoints.count %>
+        <td><%= link_to be.worker_endpoints.count, frontend_backend_worker_endpoints_path(@frontend, be) %>
         <%= link_to "+", new_frontend_backend_worker_endpoint_path(@frontend, be), :class => "btn btn-mini" %></td>
         <td><%= link_to "Edit", edit_frontend_backend_path(@frontend, be), :class => "btn btn-mini" %></td>
-        <td><%= button_to "Delete", frontend_backend_path(@frontend, be), :method => :delete, :class => "btn btn-mini", :confirm => "Are you sure?" %></td></tr></tbody></table> </td>
       </tr>
   <% end %>
   </tbody>

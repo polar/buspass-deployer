@@ -1,5 +1,5 @@
 module DeployHerokuEndpointJobImpl
-  include DeployHerokuEndpointOperations
+  include DeployHerokuOperations
 
   def create_remote_endpoint
     heroku_create_remote_endpoint

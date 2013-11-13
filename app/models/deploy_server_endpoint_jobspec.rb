@@ -1,4 +1,4 @@
-class DeployServerEndpointJobspec < Struct.new(:endpoint_job_id, :action, :name)
+class DeployServerEndpointJobspec < DeployEndpointJobspec
 
   def enqueue(job)
     job = DeployServerEndpointJob.find(endpoint_job_id)

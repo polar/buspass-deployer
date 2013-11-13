@@ -3,6 +3,7 @@ class Installation
 
   key :name
   key :ssh_key_name
+  key :deploy_heroku_api_key_name
   key :remote_configuration_literal
 
   key :server_endpoint_git_repository, :default => "git://github.com/polar/buspass-web.git"
@@ -28,6 +29,20 @@ class Installation
   validates_presence_of :name
   validates_uniqueness_of :name
   validate :must_be_json_hash
+  validate :existence_of_keys
+
+  def existence_of_keys
+    if !ssh_key_name.blank?
+      if RemoteKey.find_by_name(ssh_key_name).nil?
+        self.errors.add(:ssh_key_name, "does not exist")
+      end
+    end
+    if !deploy_heroku_api_key_name.blank?
+      if DeployHerokuApiKey.find_by_name(deploy_heroku_api_key_name).nil?
+        self.errors.add(:deploy_heroku_api_key_name, "does not exist")
+      end
+    end
+  end
 
   def must_be_json_hash
     conf = remote_configuration
@@ -38,7 +53,7 @@ class Installation
 
   # This will be encrypted at some point.
   def remote_configuration
-    JSON.parse(remote_configuration_literal)
+    JSON.parse(remote_configuration_literal) if remote_configuration_literal && ! remote_configuration_literal.blank?
   end
 
   def remote_configuration=(json)

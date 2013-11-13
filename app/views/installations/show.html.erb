@@ -6,10 +6,12 @@
     <th>Name</th>
     <td><%= link_to @installation.name, edit_installation_path(@installation) %></td>
     <th>SSH Key</th>
-    <td><%= @installation.ssh_key_name %></td>
+    <td><%= link_to @installation.ssh_key_name, remote_key_path(:name => @installation.ssh_key_name) if !@installation.ssh_key_name.blank? %></td>
+    <th>Heroku API Key</th>
+    <td><%= link_to @installation.deploy_heroku_api_key_name, deploy_heroku_api_key_path(:name => @installation.deploy_heroku_api_key_name) if !@installation.deploy_heroku_api_key_name.blank? %></td>
   </tr>
   <tr>
-    <td colspan="4">
+    <td colspan="6">
       <%= @installation.remote_configuration_literal %>
     </td>
   </tr>
@@ -36,7 +38,6 @@
     <th>Backends</th>
     <th>Server Endpoints</th>
     <th>Worker Endpoints</th>
-    <th>Actions</th>
   </tr>
   </thead>
   <tbody>
@@ -47,7 +48,6 @@
     <td><%= fe.backends.count %></td>
     <td><%= fe.server_endpoints.count %></td>
     <td><%= fe.worker_endpoints.count %></td>
-    <td><%= button_to "Destroy All", frontend_path(fe), :method => :delete, :class => "btn btn-mini" %></td>
   </tr>
   <% end %>
   </tbody>
@@ -69,8 +69,11 @@
       <% for be in fe.backends.order(:name) do %>
       <tr>
         <td><%= link_to be.name, frontend_backend_path(fe,be) %></td>
-        <td><%= be.server_endpoints.count %></td>
-        <td><%= be.worker_endpoints.count %></td>
+        <td><%= link_to be.server_endpoints.count, frontend_backend_server_endpoints_path(fe, be) %>
+          <%= link_to "+", new_frontend_backend_server_endpoint_path(fe, be), :class => "btn btn-mini" %>
+        </td>
+        <td><%= link_to be.worker_endpoints.count, frontend_backend_worker_endpoints_path(fe, be) %>
+          <%= link_to "+", new_frontend_backend_worker_endpoint_path(fe, be), :class => "btn btn-mini" %></td>
       </tr>
       <% end %>
       </tbody>

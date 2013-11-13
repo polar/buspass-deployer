@@ -80,7 +80,7 @@ class Frontends::Backends::ServerEndpointController < ApplicationController
 
   def destroy
     get_context!
-    flash[:notice] = "Server Endpoint #{@server_endpoint.name} destroyed."
+    flash[:notice] = "Server Endpoint #{@server_endpoint.name} deleted."
     @server_endpoint.destroy
     redirect_to frontend_backend_server_endpoints_path(@frontend, @backend)
   end
@@ -89,7 +89,7 @@ class Frontends::Backends::ServerEndpointController < ApplicationController
     get_context!
     if @server_endpoint_job
       index = params[:log_end].to_i
-      @logs = @server_endpoint_job.endpoint_log.segment(index, 100)
+      @logs = @server_endpoint_job.logger.segment(index, 100)
     else
       render :nothing => true
     end
@@ -98,8 +98,8 @@ class Frontends::Backends::ServerEndpointController < ApplicationController
   def clear_log
     get_context!
     if @server_endpoint_job
-      @server_endpoint_job.endpoint_log.clear
-      @server_endpoint_job.endpoint_log.save
+      @server_endpoint_job.logger.clear
+      @server_endpoint_job.logger.save
     end
     redirect_to frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint)
   end
@@ -122,7 +122,7 @@ class Frontends::Backends::ServerEndpointController < ApplicationController
 
   def deploy_app
     get_context!
-    job = DeployServerEndpointJob.get_job(@server_endpoint, "deploy_remote_endpoint")
+    job = DeployServerEndpointJob.get_job(@server_endpoint, "deploy_to_remote_endpoint")
     Delayed::Job.enqueue(job, :queue => "deploy-web")
     flash[:notice] = "A job has been queued to deploy Server Endpoint #{@server_endpoint.name}. Check log."
     redirect_to frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint)
@@ -192,6 +192,7 @@ class Frontends::Backends::ServerEndpointController < ApplicationController
 
   def get_context
     @frontend = Frontend.find(params[:frontend_id])
+    @installation = @frontend.installation if @frontend
     @backend = @frontend.backends.find(params[:backend_id]) if @frontend
     if @backend
       @server_endpoint = @backend.server_endpoints.find(params[:id])

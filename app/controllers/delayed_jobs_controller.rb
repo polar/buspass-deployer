@@ -23,4 +23,12 @@ class DelayedJobsController < ApplicationController
       format.json { head :no_content }
     end
   end
+
+  def destroy_all
+    Delayed::Job.where(:queue => "deploy-web").each {|x| x.destroy}
+    respond_to do |format|
+      format.html { redirect_to delayed_jobs_path }
+      format.json { head :no_content }
+    end
+  end
 end

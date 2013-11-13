@@ -47,6 +47,22 @@ class DeployJob
     status_content
   end
 
+  def logger
+    state.logger
+  end
+
+  def status
+    status_content
+  end
+
+  def updated_at
+    state.updated_at
+  end
+
+  def remote_status
+    state.remote_status
+  end
+
   def log(s)
     state.logger.log(state.log_level, s)
   end

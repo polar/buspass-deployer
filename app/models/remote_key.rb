@@ -26,6 +26,12 @@ class RemoteKey
     !key_encrypted_content.nil? || ssh_key.file.exists?
   end
 
+  before_validation :assign_name
+
+  def assign_name
+    self.name = ssh_key.file.filename
+  end
+
   after_save :ensure_chmod
 
   def ensure_chmod
@@ -46,10 +52,6 @@ class RemoteKey
   def decrypt_key_content_to_file(opts = {})
     ssh_key.store!(KeyFile.new(ssh_key.file, decrypt_key_content(opts)))
     File.chmod(0600, ssh_key.file.path)
-  end
-
-  def name
-    ssh_key.file.filename
   end
 
   def path
