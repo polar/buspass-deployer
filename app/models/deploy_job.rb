@@ -37,8 +37,12 @@ class DeployJob
     @state
   end
 
-  def set_status(s)
+  def set_status(s, rs = nil)
     self.status_content = s
+    if rs
+      state.remote_status = rs
+      log("remote_status #{rs}")
+    end
     save
     log("status: #{s}")
   end
@@ -61,6 +65,21 @@ class DeployJob
 
   def remote_status
     state.remote_status
+  end
+
+  def ssh_cert
+    if installation.remote_key
+      if ! File.exists?(installation.remote_key.ssh_key.file.path) && installation.remote_key.key_encrypted_content
+        installation.remote_key.decrypt_key_content_to_file
+      end
+      return installation.remote_key.ssh_key.file.path
+    end
+  end
+
+  def pub_cert(cert_path)
+    file = Tempfile.new("cert.pub")
+    Rush.bash("ssh-keygen -y -f #{cert_path} > #{file.path}")
+    return file
   end
 
   def log(s)

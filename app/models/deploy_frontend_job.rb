@@ -41,7 +41,7 @@ class DeployFrontendJob < DeployJob
     self.send(__method__)
   end
 
-  def deploy_remote_frontend
+  def deploy_to_remote_frontend
     load_impl
     self.send(__method__)
   end
@@ -66,14 +66,14 @@ class DeployFrontendJob < DeployJob
     self.send(__method__)
   end
 
-  def destroy_frontend
+  def destroy_remote_frontend
     load_impl
     self.send(__method__)
   end
 
   def load_impl
     case self.frontend.deployment_type
-      when "nginx"
+      when "unix-nginx"
         self.singleton_class.send(:include, DeployUnixFrontendJobImpl)
       when "unix"
         self.singleton_class.send(:include, DeployUnixFrontendJobImpl)

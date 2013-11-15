@@ -42,7 +42,13 @@ class Frontends::Backends::ServerEndpointController < ApplicationController
   def edit
     get_context
     if @backend
-      @deployment_types = ["Heroku", "Unix", "Heroku-Swift", "Unix-Swift", "Unix-SSH"]
+      if ["Heroku", "Heroku-Swift"].include? @server_endpoint.deployment_type
+        @deployment_types = ["Heroku", "Heroku-Swift"]
+      elsif ["Unix", "Unix-Swift", "Unix-SSH"].include @server_endpoint.deployement_type
+        @deployment_types = ["Unix", "Unix-Swift", "Unix-SSH"]
+      else
+        @deployment_types = ["Heroku", "Unix", "Heroku-Swift", "Unix-Swift", "Unix-SSH"]
+      end
     else
       raise NotFoundError
     end
@@ -73,7 +79,13 @@ class Frontends::Backends::ServerEndpointController < ApplicationController
       flash[:notice] = "Endpoint #{@server_endpoint.name} created."
       redirect_to frontend_backend_server_endpoints_path
     else
-      @deployment_types = ["Heroku", "Unix", "Heroku-Swift", "Unix-Swift", "Unix-SSH"]
+      if ["Heroku", "Heroku-Swift"].include? @server_endpoint.deployment_type
+        @deployment_types = ["Heroku", "Heroku-Swift"]
+      elsif ["Unix", "Unix-Swift", "Unix-SSH"].include @server_endpoint.deployement_type
+        @deployment_types = ["Unix", "Unix-Swift", "Unix-SSH"]
+      else
+        @deployment_types = ["Heroku", "Unix", "Heroku-Swift", "Unix-Swift", "Unix-SSH"]
+      end
       render :new
     end
   end
@@ -99,7 +111,6 @@ class Frontends::Backends::ServerEndpointController < ApplicationController
     get_context!
     if @server_endpoint_job
       @server_endpoint_job.logger.clear
-      @server_endpoint_job.logger.save
     end
     redirect_to frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint)
   end

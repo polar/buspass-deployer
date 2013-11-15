@@ -16,7 +16,7 @@
     <%= f.label :name %>
     <%= f.text_field :name %>
     <%= f.label :deployment_type, "Endpoint Type" %>
-    <%= f.select(:deployment_type, options_for_select(@deployment_types), :value => @worker_endpoint.deployment_type) %>
+    <%= f.select(:deployment_type, options_for_select(@deployment_types, @worker_endpoint.deployment_type)) %>
     <%= f.label :heroku_app_name, "Heroku App Name"  %>
     <%= f.text_field :heroku_app_name %>
     <%= f.label :remote_user, "User Name (Heroku: N/A, Unix login)" %>

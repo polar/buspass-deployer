@@ -1,5 +1,5 @@
 module DeployUnixFrontendJobImpl
-  include DeployUnixOperations
+  include DeployUnixFrontendOperations
 
   def create_remote_frontend
     unix_create_remote_frontend

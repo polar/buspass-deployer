@@ -1,4 +1,4 @@
-class DeployFrontendJobspec < Struct.new(:frontend_job_id, :action, :backend_id)
+class DeployFrontendJobspec < Struct.new(:frontend_job_id, :action)
 
   def enqueue(delayed_job)
     job = DeployFrontendJob.find(frontend_job_id)
@@ -17,7 +17,7 @@ class DeployFrontendJobspec < Struct.new(:frontend_job_id, :action, :backend_id)
       puts "No DeployFrontendJob, exiting."
       return
     end
-    job.send(action, backend_id)
+    job.send(action)
   end
 
   def error

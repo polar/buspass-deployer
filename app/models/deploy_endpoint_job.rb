@@ -99,9 +99,9 @@ class DeployEndpointJob < DeployJob
 
   def load_impl
     case self.endpoint.deployment_type
-      when "Heroku"
+      when /Heroku/
         self.singleton_class.send(:include, DeployHerokuEndpointJobImpl)
-      when "Unix"
+      when /Unix/
         self.singleton_class.send(:include, DeployUnixEndpointJobImpl)
     end
   end

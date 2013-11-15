@@ -12,10 +12,9 @@ module DeployHerokuOperations
   end
 
   def heroku_reset_api
-    return true
     # We have to reset, because successive connection/SSL failures
     # do not resolve themselves. Ugg.
-    HerokuHeadless.reset
+    #HerokuHeadless.reset
     ENV["HEROKU_API_KEY"] = deploy_heroku_api_key.value
     HerokuHeadless.configure do |config|
       config.pre_deploy_git_commands = [
@@ -132,8 +131,11 @@ module DeployHerokuOperations
   rescue Heroku::API::Errors::NotFound => boom
     set_status("Error:ScaleRemoteEndpoint")
     log "#{head}: Remote #{endpoint.at_type} #{heroku_app_name} does not exist."
+  rescue Exception => boom
+    set_status("Error:ScaleRemoteEndpoint")
+    log "#{head}: Remote #{endpoint.at_type} #{heroku_app_name} does not exist."
   end
-  
+
   def heroku_restart_remote_endpoint
     head = __method__
     set_status("Restart")
@@ -172,7 +174,7 @@ module DeployHerokuOperations
   end
   
   def heroku_deploy_to_remote_endpoint
-tarline    head = __method__
+    head = __method__
     set_status("Deploy")
     heroku_reset_api
      # The following must be self as it takes log(msg)

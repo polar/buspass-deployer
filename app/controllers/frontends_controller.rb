@@ -17,9 +17,7 @@ class FrontendsController < ApplicationController
 
   def edit
     get_context!
-    @frontend.update_attributes(params[:frontend])
-    @frontend.installation = @installation
-    @frontend_types = [@frontend.deployment_type]
+    @deployment_types = ["unix-nginx"]
   end
 
   def show
@@ -75,7 +73,7 @@ class FrontendsController < ApplicationController
 
   def create_remote
     get_context!
-    if @frontend.remote_key && @frontend.admin_user
+    if @frontend.admin_user
       jobspec = DeployFrontendJob.get_job(@frontend, "create_remote_frontend")
       Delayed::Job.enqueue(jobspec, :queue => "deploy-web")
       flash[:notice] = "A job has been submitted to create the frontend"
@@ -87,7 +85,7 @@ class FrontendsController < ApplicationController
 
   def configure_remote
     get_context!
-    if @frontend.remote_key && @frontend.admin_user
+    if @frontend.admin_user
       jobspec = DeployFrontendJob.get_job(@frontend, "configure_remote_frontend")
       Delayed::Job.enqueue(jobspec, :queue => "deploy-web")
       flash[:notice] = "A job has been submitted to configure the frontend"
@@ -99,7 +97,7 @@ class FrontendsController < ApplicationController
 
   def deconfigure_remote
     get_context!
-    if @frontend.remote_key && @frontend.admin_user
+    if @frontend.admin_user
       jobspec = DeployFrontendJob.get_job(@frontend, "deconfigure_remote_frontend")
       Delayed::Job.enqueue(jobspec, :queue => "deploy-web")
       flash[:notice] = "A job has been submitted to configure the frontend"
@@ -111,7 +109,7 @@ class FrontendsController < ApplicationController
 
   def start_remote
     get_context!
-    if @frontend.remote_key && @frontend.admin_user
+    if @frontend.admin_user
       jobspec = DeployFrontendJob.get_job(@frontend, "start_remote_frontend")
       Delayed::Job.enqueue(jobspec, :queue => "deploy-web")
       flash[:notice] = "A job has been submitted to start the frontend"
@@ -123,7 +121,7 @@ class FrontendsController < ApplicationController
 
   def stop_remote
     get_context!
-    if @frontend.remote_key && @frontend.admin_user
+    if @frontend.admin_user
       jobspec = DeployFrontendJob.get_job(@frontend, "stop_remote_frontend")
       Delayed::Job.enqueue(jobspec, :queue => "deploy-web")
       flash[:notice] = "A job has been submitted to start the frontend"
@@ -135,7 +133,7 @@ class FrontendsController < ApplicationController
 
   def deploy_to_remote
     get_context!
-    if @frontend.remote_key && @frontend.admin_user
+    if @frontend.admin_user
       jobspec = DeployFrontendJob.get_job(@frontend, "deploy_to_remote_frontend")
       Delayed::Job.enqueue(jobspec, :queue => "deploy-web")
       flash[:notice] = "Frontend is being deployed on the remote end."
@@ -172,16 +170,18 @@ class FrontendsController < ApplicationController
   end
 
   def partial_status
+    get_context!
     index = params[:log_end].to_i
     if @frontend_job
       @logs = @frontend_job.logger.segment(index, 100)
-      @status = @frontend_job.remote_status
+      @status = @frontend_job.status
     end
   end
 
   def clear_log
     get_context!
-    @frontend_job.logger.clear if @frotend_job
+    @frontend_job.logger.clear if @frontend_job
+    redirect_to :back
   end
 
   protected

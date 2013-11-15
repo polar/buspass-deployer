@@ -39,28 +39,28 @@ module DeployUnixFrontendOperations
   
   def uadmin_unix_ssh(cmd)
     log "#{admin_user}@#{remote_host}: #{cmd}"
-    result = Rush.bash unix_ssh_cmd(remote_host, remote_key, "uadmin", cmd)
+    result = Rush.bash unix_ssh_cmd(remote_host, ssh_cert, "uadmin", cmd)
     log "#{admin_user}@#{remote_host}: Result #{result.inspect}"
     return result
   end
 
   def uadmin_unix_scp(path, remote_path)
     log "#{admin_user}@#{remote_host}: scp #{path} #{remote_path}"
-    result = Rush.bash unix_scp_cmd(remote_host, remote_key, "uadmin", path, remote_path)
+    result = Rush.bash unix_scp_cmd(remote_host, ssh_cert, "uadmin", path, remote_path)
     log "#{admin_user}@#{remote_host}: Result #{result.inspect}"
     return result
   end
 
   def unix_ssh(cmd)
     log "#{remote_user}@#{remote_host}: #{cmd}"
-    result = Rush.bash unix_ssh_cmd(remote_host, remote_key, remote_user, cmd)
+    result = Rush.bash unix_ssh_cmd(remote_host, ssh_cert, remote_user, cmd)
     log "#{remote_user}@#{remote_host}: Result #{result.inspect}"
     return result
   end
   
   def unix_scp(path, remote_path)
     log "#{remote_user}@#{remote_host}: scp #{path} #{remote_path}"
-    result = Rush.bash unix_scp_cmd(remote_host, remote_key, remote_user, path, remote_path)
+    result = Rush.bash unix_scp_cmd(remote_host, ssh_cert, remote_user, path, remote_path)
     log "#{remote_user}@#{remote_host}: Result #{result.inspect}"
     return result
   end
@@ -77,14 +77,13 @@ module DeployUnixFrontendOperations
     uadmin_unix_ssh("sudo adduser #{remote_user} --quiet --disabled-password || exit 0")
     uadmin_unix_ssh("sudo -u #{remote_user} mkdir -p ~#{remote_user}/.ssh")
     uadmin_unix_ssh("sudo -u #{remote_user} chmod 777 ~#{remote_user}/.ssh")
-    file = pub_cert(remote_key)
+    file = pub_cert(ssh_cert)
     begin
       uadmin_unix_scp(file.path, "~#{remote_user}/.ssh/frontend-#{name}.pub")
       uadmin_unix_ssh("cat ~#{remote_user}/.ssh/frontend-#{name}.pub | sudo -u #{remote_user} tee -a ~#{remote_user}/.ssh/authorized_keys")
     rescue Exception => boom4
       log "#{head}: error creating ~#{remote_user}/.ssh/frontend-#{name}.pub on #{remote_host} - #{boom4} - trying to ignore"
     end
-    log "#{head}: Result #{result.inspect}"
     file.unlink
     uadmin_unix_ssh("sudo chown -R #{remote_user}:#{remote_user} ~#{remote_user}")
     uadmin_unix_ssh("sudo -u #{remote_user} chmod 700 ~#{remote_user}/.ssh")
@@ -143,7 +142,10 @@ module DeployUnixFrontendOperations
     file.close
     result = unix_scp(file.path, ".frontend-#{frontend.name}.env")
     file.unlink
-    set_status("Success:Configure", [result])
+    uadmin_unix_ssh("echo \"include `echo ~#{remote_user}/#{frontend.git_name}`/backends.d/*.conf;\" | sudo tee /etc/nginx/conf.d/frontend-#{frontend.name}.conf")
+    unix_ssh("mkdir -p #{frontend.git_name}/backends.d")
+    unix_ssh("bash --login -c \"source .frontend-#{frontend.name}.env; cd #{frontend.git_name}; bash #{frontend.configure_command} #{frontend.name}\"")
+    set_status("Success:Configure")
   rescue Exception => boom
     log "#{head}: Cannot configure  Remote Unix #{frontend.at_type} #{remote_user}@#{remote_host} - #{boom}"
     set_status("Error:ConfigureRemoteFrontend")
@@ -152,10 +154,10 @@ module DeployUnixFrontendOperations
   def unix_deploy_to_remote_frontend
     head = __method__
     set_status("Deploy")
-    log "#{head}: Deploying frontend #{remote_user}@#{app_name}"
+    log "#{head}: Deploying frontend #{remote_user}@#{remote_host}"
     unix_ssh("test -e #{frontend.git_name} || git clone #{frontend.git_repository} -b #{frontend.git_refspec}")
     unix_ssh("cd #{frontend.git_name}; rm Gemfile.lock; git pull; git submodule init; git submodule update")
-    unix_ssh("bash --login -c \"cd #{frontend.git_name}; bundle install\"")
+    unix_ssh("bash --login -c \"source .frontend-#{frontend.name}.env; cd #{frontend.git_name}; bundle install\"")
     log "#{head}: Created Remote Unix #{frontend.at_type} #{remote_user}@#{remote_host}"
     set_status("Success:Deploy")
   rescue Exception => boom

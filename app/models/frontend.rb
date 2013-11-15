@@ -13,10 +13,10 @@ class Frontend
   key :remote_user, :default => "busme"
   key :admin_user, :default => "uadmin"
 
-  key :start_command, :default => "script/start_frontend.sh"
-  key :stop_command, :default => "script/stop_frontend.sh"
-  key :restart_command, :default => "script/restart_frontend.sh"
-  key :configure_command, :default => "script/configure_frontend.sh"
+  key :start_command, :default => "scripts/start_frontend.sh"
+  key :stop_command, :default => "scripts/stop_frontend.sh"
+  key :restart_command, :default => "scripts/restart_frontend.sh"
+  key :configure_command, :default => "scripts/configure_frontend.sh"
 
   key :git_commit, Array
 
@@ -59,7 +59,7 @@ class Frontend
 
   validates_presence_of :installation
 
-  attr_accessible :installation, :installation_id, :name, :remote_host, :remote_user, :admin_user
+  attr_accessible :installation, :installation_id, :name, :remote_host, :remote_user, :admin_user, :deployment_type
 
   def allocated_backend_ports
     backends.reduce([]) do |result, backend|
@@ -92,8 +92,13 @@ class Frontend
     rescue
 
     end
-    installation_config ||= {}
-    installation_config.merge JSON.parse(remote_configuration_literal)
+    result = installation_config ||= {}
+    result = result.merge JSON.parse(remote_configuration_literal) if remote_configuration_literal && !remote_configuration_literal.blank?
+    result =  result.merge({
+                              "INSTALLATION" => installation.name,
+                              "FRONTEND" => name,
+                          })
+    result
   end
 
   def remote_configuration=(json)
@@ -101,6 +106,6 @@ class Frontend
   end
 
   def at_type
-    return self._type
+    return self.respond_to?("_type") ? self._type : "Frontend"
   end
 end

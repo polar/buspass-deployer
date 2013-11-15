@@ -76,9 +76,22 @@ class Endpoint
     rescue
 
     end
+    endpoint_config = case at_type
+                        when "ServerEndpoint"
+                          "SERVER_ENDPOINT"
+                        when "WorkerEndpoint"
+                          "WORKER_ENDPOINT"
+                      end
     result = installation_config ||= {}
     result = result.merge backend.endpoint_configuration
     result = result.merge JSON.parse(remote_configuration_literal) if remote_configuration_literal
+    result = result.merge({
+                "INSTALLATION" => installation.name,
+                "FRONTEND" => frontend.name,
+                "BACKEND" => backend.name,
+                "ENDPOINT" => name,
+                endpoint_config => name,
+              })
     result
   end
 

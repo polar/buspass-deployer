@@ -20,10 +20,10 @@ class Backend
   key :remote_user, :default => "busme"
   key :admin_user, :default => "uadmin"
 
-  key :start_command, :default => "script/start_backend.sh"
-  key :stop_command, :default => "script/stop_backend.sh"
-  key :restart_command, :default => "script/restart_backend.sh"
-  key :configure_command, :default => "script/configure_backend.sh"
+  key :start_command, :default => "scripts/start_backend.sh"
+  key :stop_command, :default => "scripts/stop_backend.sh"
+  key :restart_command, :default => "scripts/restart_backend.sh"
+  key :configure_command, :default => "scripts/configure_backend.sh"
 
   # array of host names or host name matches
   # ["syracuse-ny.busme.us", "*.syracuse-ny.busme.us"]
@@ -78,6 +78,7 @@ class Backend
 
   validates_uniqueness_of :name
 
+  validates_presence_of :name
   validates_presence_of :frontend
   validates_presence_of :installation
   before_validation :assign_upwards
@@ -96,6 +97,12 @@ class Backend
     end
     result = installation_config ||= {}
     result = result.merge JSON.parse(remote_configuration_literal) if remote_configuration_literal && ! remote_configuration_literal.blank?
+
+    result = result.merge({
+                              "INSTALLATION" => installation.name,
+                              "FRONTEND" => frontend.name,
+                              "BACKEND" => name,
+                          })
     result
   end
 

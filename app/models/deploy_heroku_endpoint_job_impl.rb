@@ -14,7 +14,20 @@ module DeployHerokuEndpointJobImpl
   end
 
   def start_remote_endpoint
-    heroku_start_remote_endpoint
+    case endpoint.at_type
+      when "ServerEndpoint"
+        case endpoint.deployment_type
+          when "Heroku"
+            heroku_scale_remote_endpoint("web", 1)
+            heroku_scale_remote_endpoint("work", 0)
+          when "Heroku-Swift"
+            heroku_scale_remote_endpoint("web", 0)
+            heroku_scale_remote_endpoint("work", 1)
+        end
+      when "WorkerEndpoint"
+        heroku_scale_remote_endpoint("web", 0)
+        heroku_scale_remote_endpoint("work", 1)
+    end
   end
 
   def restart_remote_endpoint
@@ -22,7 +35,20 @@ module DeployHerokuEndpointJobImpl
   end
 
   def stop_remote_endpoint
-    heroku_stop_remote_endpoint
+    case endpoint.at_type
+      when "ServerEndpoint"
+        case endpoint.deployment_type
+          when "Heroku"
+            heroku_scale_remote_endpoint("web", 0)
+            heroku_scale_remote_endpoint("work", 0)
+          when "Heroku-Swift"
+            heroku_scale_remote_endpoint("web", 0)
+            heroku_scale_remote_endpoint("work", 0)
+        end
+      when "WorkerEndpoint"
+        heroku_scale_remote_endpoint("web", 0)
+        heroku_scale_remote_endpoint("work", 0)
+    end
   end
 
   def destroy_remote_endpoint
