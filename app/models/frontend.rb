@@ -45,6 +45,7 @@ class Frontend
 
   def assign_upwards
     self.name = self.name.gsub(/\s/, "_")
+    self.external_ip = external_ip.strip if external_ip
   end
 
   validates_uniqueness_of :name

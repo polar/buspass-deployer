@@ -1,15 +1,22 @@
 <tr>
   <td>Server Endpoint</td>
   <td><%= link_to @server_endpoint.name, frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint) %></td>
+  <td><%= @server_endpoint.deployment_type %></td>
   <td><%= @server_endpoint_job.delayed_jobs.count if @server_endpoint_job %></td>
   <td>
     <% for s in @server_endpoint_job.git_commit do %>
         <div><%= s %></div>
     <% end if @server_endpoint_job && @server_endpoint_job.git_commit %>
   </td>
+  <td><% if @server_endpoint_job %>
+      <% if /Heroku/ =~ @server_endpoint.deployment_type %>
+        <%= @server_endpoint_job.instance_status.map {|x| "<div>#{x}</div>"}.join.html_safe if @server_endpoint_job.instance_status %>
+      <% else /Unix/  %>
+        <%= @server_endpoint_job.listen_status.map {|x| "<div>#{x}</div>" }.join.html_safe if @server_endpoint_job.listen_status %>
+        <%= @server_endpoint_job.connection_status.map {|x| "<div>#{x}</div>" }.join.html_safe if @server_endpoint_job.connection_status %>
+      <% end %>
+    <% end %>
   <td>
-    <% for s in @server_endpoint_job.remote_status do %>
-        <div><%= s %></div>
-    <% end if @server_endpoint_job && @server_endpoint_job.remote_status %>
+    <%= @server_endpoint_job.remote_status if @server_endpoint_job %>
   </td>
 </tr>

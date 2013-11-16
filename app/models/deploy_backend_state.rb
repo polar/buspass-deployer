@@ -1,5 +1,6 @@
 class DeployBackendState < DeployState
 
+  key :remote_status
   key :listen_status
   key :connection_status
 

@@ -2,6 +2,12 @@
 
 <h1>Installation Deploy Status</h1>
 
+<table class="table table-bordered">
+  <tbody>
+  <td><%= button_to "Update Status", ping_remote_status_installation_path(@installation), :class => "btn btn-mini" %></td>
+
+  <td><%= button_to "Destroy All Job States", destroy_all_jobs_installation_path(@installation), :class => "btn btn-mini" %></td>  </tbody>
+</table>
 <div id="status_table">
 <%= render :partial => 'deploy_table_status' %>
 </div>

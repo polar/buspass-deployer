@@ -44,7 +44,7 @@ class Frontends::Backends::ServerEndpointController < ApplicationController
     if @backend
       if ["Heroku", "Heroku-Swift"].include? @server_endpoint.deployment_type
         @deployment_types = ["Heroku", "Heroku-Swift"]
-      elsif ["Unix", "Unix-Swift", "Unix-SSH"].include @server_endpoint.deployement_type
+      elsif ["Unix", "Unix-Swift", "Unix-SSH"].include? @server_endpoint.deployment_type
         @deployment_types = ["Unix", "Unix-Swift", "Unix-SSH"]
       else
         @deployment_types = ["Heroku", "Unix", "Heroku-Swift", "Unix-Swift", "Unix-SSH"]

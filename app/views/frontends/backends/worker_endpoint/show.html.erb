@@ -47,6 +47,9 @@
     <td id="endpoint_remote_status">
       <%= render :partial => "endpoint_remote_status" %>
     </td>
+    <td id="endpoint_instance_status">
+      <%= render :partial => "endpoint_instance_status" %>
+    </td>
     <td><%= button_to "Update Status", remote_status_frontend_backend_worker_endpoint_path(@frontend, @backend, @worker_endpoint), :class => "btn btn-mini" %></td>
     <td><%= button_to "Get Logs", get_logs_frontend_backend_worker_endpoint_path(@frontend, @backend, @worker_endpoint), :class => "btn btn-mini" %></td>
   </tr>

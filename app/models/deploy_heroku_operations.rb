@@ -14,7 +14,7 @@ module DeployHerokuOperations
   def heroku_reset_api
     # We have to reset, because successive connection/SSL failures
     # do not resolve themselves. Ugg.
-    #HerokuHeadless.reset
+    HerokuHeadless.reset
     ENV["HEROKU_API_KEY"] = deploy_heroku_api_key.value
     HerokuHeadless.configure do |config|
       config.pre_deploy_git_commands = [
@@ -58,8 +58,9 @@ module DeployHerokuOperations
         commit += ["Latest Local Release"]
         commit += Rush.bash("cd \"/tmp/#{endpoint.git_name}\"; git log --max-count=1 `git rev-parse #{endpoint.git_refspec}`").split("\n").take(3)
         state.git_commit = commit
+        state.save
         set_status("Success:DeployStatus")
-        log "#{head}: #{endpoint.at_type} #{heroku_app_name} - #{endpoint.git_commit.inspect} - updated_at #{endpoint.updated_at}"
+        log "#{head}: #{endpoint.at_type} #{heroku_app_name} - #{state.git_commit.inspect} - updated_at #{state.updated_at}"
       else
         set_status("Error:DeployStatus")
         log "#{head}: No commit releases"
@@ -100,11 +101,17 @@ module DeployHerokuOperations
       result = HerokuHeadless.heroku.get_ps(heroku_app_name)
       if result && result.data && result.data[:body]
         log "#{head}: status is #{result.data[:body].inspect}"
-        status = result.data[:body].map {|s| "#{s["process"]}: #{s["pretty_state"]}" }
-        status = ["DOWN"] if status.length == 0
+        state.instance_status = []
+        if endpoint.at_type == "ServerEndpoint" && endpoint.deployment_type == "Heroku"
+          state.instance_status += [endpoint.server_proxy.proxy_address]
+        end
+        result.data[:body].each do |process|
+          state.instance_status += ["#{process["process"]} : #{process["pretty_state"]}"]
+        end
+        status = state.instance_status.length > 0 ? "UP" : "DOWN"
         set_status("Success:RemoteStatus", status)
       else
-        set_status("Error:RemoteStatus", ["Not Available"])
+        set_status("Error:RemoteStatus", "Not Available")
         log "#{head}: Remote #{endpoint.at_type} #{heroku_app_name} has no status."
       end
     else
@@ -112,7 +119,11 @@ module DeployHerokuOperations
     end
   rescue Heroku::API::Errors::NotFound => boom
     set_status("Error:RemoteStatus")
+    state.instance_status = ["Not Created"]
+    set_status("Success:RemoteStatus", "Not Created")
     log "#{head}: Remote #{endpoint.at_type} #{heroku_app_name} does not exist."
+  rescue Exception => boom
+    log "#{head}: Remote #{endpoint.at_type} #{error}."
   end
   
   def heroku_scale_remote_endpoint(proc, ndynos = 1)

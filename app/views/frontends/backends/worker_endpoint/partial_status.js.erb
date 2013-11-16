@@ -1,6 +1,8 @@
 $("#log").append('<%= @logs.map{|x| "<div>#{escape_javascript(x)}</div>" }.join.html_safe %>');
 <% if @worker_endpoint_job && @worker_endpoint_job.remote_status %>
 $("#endpoint_remote_status").html('<%= escape_javascript(render(:partial => 'endpoint_remote_status')) %>');
+<% end %><% if @worker_endpoint_job && @worker_endpoint_job.instance_status %>
+$("#endpoint_instance_status").html('<%= escape_javascript(render(:partial => 'endpoint_instance_status')) %>');
 <% end %>
 <% if @worker_endpoint_job && @worker_endpoint_job.status %>
 $("#endpoint_status").html('<%= escape_javascript(@worker_endpoint_job.status); %>');

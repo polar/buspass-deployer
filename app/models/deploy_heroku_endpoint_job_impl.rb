@@ -51,6 +51,11 @@ module DeployHerokuEndpointJobImpl
     end
   end
 
+  def status_remote_endpoint
+    heroku_get_deploy_status
+    heroku_remote_endpoint_status
+  end
+
   def destroy_remote_endpoint
     heroku_destroy_remote_endpoint
   end

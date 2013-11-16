@@ -202,5 +202,14 @@ class DeployInstallationJob < DeployJob
     log "#{head}: DONE"
   end
 
+  def self.get_job(installation, action)
+    job = self.where(:installation_id => installation.id).first
+    if job.nil?
+      job = DeployInstallationJob.new(:installation => installation)
+      job.save
+    end
+    DeployInstallationJobspec.new(job.id, action, installation.name)
+  end
+
 
 end

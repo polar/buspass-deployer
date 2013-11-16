@@ -24,6 +24,7 @@ BuspassDeployer::Application.routes.draw do
       get  :job_status
       get  :deploy_status
       get  :partial_deploy_status
+      post :destroy_all_jobs
     end
   end
 

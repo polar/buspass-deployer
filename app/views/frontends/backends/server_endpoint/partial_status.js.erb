@@ -2,6 +2,9 @@ $("#log").append('<%= @logs.map{|x| "<div>#{escape_javascript(x)}</div>" }.join.
 <% if @server_endpoint_job && @server_endpoint_job.remote_status %>
 $("#endpoint_remote_status").html('<%= escape_javascript(render(:partial => 'endpoint_remote_status')) %>');
 <% end %>
+<% if @server_endpoint_job && @server_endpoint_job.instance_status %>
+$("#endpoint_instance_status").html('<%= escape_javascript(render(:partial => 'endpoint_instance_status')) %>');
+<% end %>
 <% if @server_endpoint_job && @server_endpoint_job.git_commit %>
 $("#endpoint_git_status").html('<%= escape_javascript(render(:partial => 'endpoint_git_status')) %>');
 <% end %>

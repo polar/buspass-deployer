@@ -1,25 +1,14 @@
 class DeployEndpointJob < DeployJob
 
-  def delayed_jobs
-    Delayed::Job.where(:queue => "deploy-web").reduce([]) do |result, x|
-      if x.payload_object.is_a?(DeployEndpointJobspec) && x.payload_object.endpoint_job_id == self.id
-        result + [x]
-      else
-        result
+  def array_match(m, xs)
+    result = []
+    for x in xs do
+      match = m.match(x)
+      if (match)
+        result << match[1]
       end
     end
-  end
-
-  def backend
-    endpoint.backend
-  end
-
-  def frontend
-    backend.frontend
-  end
-
-  def installation
-    frontend.installation
+    return result
   end
 
   def endpoint_log
@@ -72,6 +61,11 @@ class DeployEndpointJob < DeployJob
     self.send(__method__)
   end
 
+  def status_remote_endpoint
+    load_impl
+    self.send(__method__)
+  end
+
   def destroy_remote_endpoint
     load_impl
     self.send(__method__)
@@ -108,18 +102,16 @@ class DeployEndpointJob < DeployJob
 
   def self.get_job(endpoint, action)
     job = self.where(:endpoint_id => endpoint.id).first
-    if job.nil?
-      case endpoint.at_type
-        when "ServerEndpoint"
-          job = DeployServerEndpointJob.new(:endpoint => endpoint)
-          job_spec = DeployServerEndpointJobspec.new(job.id, action, endpoint.name)
-        when "WorkerEndpoint"
-          job = DeployWorkerEndpointJob.new(:endpoint => endpoint)
-          job_spec = DeployWorkerEndpointJobspec.new(job.id, action, endpoint.name)
-      end
-      job.save
+    job_spec = nil
+    case endpoint.at_type
+      when "ServerEndpoint"
+        job = DeployServerEndpointJob.create(:endpoint => endpoint) if job.nil?
+        job_spec = DeployServerEndpointJobspec.new(job.id, action, endpoint.name)
+      when "WorkerEndpoint"
+        job = DeployWorkerEndpointJob.create(:endpoint => endpoint) if job.nil?
+        job_spec = DeployWorkerEndpointJobspec.new(job.id, action, endpoint.name)
     end
-    jobspec
+    job_spec
   end
 
 end

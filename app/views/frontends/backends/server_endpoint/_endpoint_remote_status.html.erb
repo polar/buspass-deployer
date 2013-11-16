@@ -1,4 +1,3 @@
-<% for s in @server_endpoint_job.remote_status %>
+<% for s in [@server_endpoint_job.remote_status].flatten %>
     <div><%= s %></div>
 <% end if @server_endpoint_job && @server_endpoint_job.remote_status %>
-<div>Instance: <%= @server_endpoint_job.instance_status if @server_endpoint_job %></div>

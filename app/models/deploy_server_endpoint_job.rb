@@ -9,4 +9,12 @@ class DeployServerEndpointJob < DeployEndpointJob
     DeployServerEndpointJobspec.new(job.id, action, endpoint.name)
   end
 
+  def listen_status
+    state.listen_status
+  end
+
+  def connection_status
+    state.connection_status
+  end
+
 end

@@ -10,6 +10,8 @@
   <tr>
     <th>Name</th>
     <td><%= @server_endpoint.name %></td>
+    <th>External IP</th>
+    <td><%= @server_endpoint.external_ip %></td>
     <td><%= link_to "Edit", edit_frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint), :class => "btn btn-mini" %></td>
     <td><%= button_to "Delete", frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint), :method => :delete, :confirm => "Are you sure?", :class => "btn btn-mini" %></td>
 
@@ -49,6 +51,10 @@
     <th>Remote Status</th>
     <td id="endpoint_remote_status">
       <%= render :partial => "endpoint_remote_status" %>
+    </td>
+    <th>Instance Status</th>
+    <td id="endpoint_instance_status">
+      <%= render :partial => "endpoint_instance_status" %>
     </td>
     <td><%= button_to "Update Status", remote_status_frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint), :class => "btn btn-mini" %></td>
     <td><%= button_to "Get Logs", get_logs_frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint), :class => "btn btn-mini" %></td>

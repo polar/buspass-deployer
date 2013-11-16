@@ -50,4 +50,8 @@ class DeployState
   def log(s)
     logger.info s
   end
+
+  def destroy
+    super
+  end
 end

@@ -1,82 +1,167 @@
 class DeployBackendJob < DeployJob
+  include DeployUnixBackendOperations
 
-  key :listen_status, Array
-
-  def ssh_cert
-    if @ssh_cert
-      return @ssh_cert
-    end
-    remote_key = RemoteKey.find_by_name(frontend.installation.ssh_key_name)
-    if ! File.exists?(remote_key.ssh_key.file.path) && remote_key.key_encrypted_content
-      remote_key.decrypt_key_content_to_file
-    end
-    @ssh_cert = remote_key.ssh_key.file.path
-  end
-
-  def delayed_jobs
-    Delayed::Job.where(:queue => "deploy-web").reduce([]) do |result, x|
-      if x.payload_object.is_a?(DeployBackendJobspec) && x.payload_object.backend_job_id == self.id
-        result + [x]
-      else
-        result
+  def array_match(m, xs)
+    result = []
+    for x in xs do
+      match = m.match(x)
+      if (match)
+        result << match[1]
       end
     end
+    return result
   end
 
-  def frontend
-    backend.frontend
+  def listen_status
+    state.listen_status
   end
 
-  # We are assuming
+  def connection_status
+    state.connection_status
+  end
+
   def create_remote_backend
-    load_impl
-    self.send(__method__)
+    log "#{head}: Create Remote Backend #{backend.name} on Frontend #{frontend.name}; Nothing to be done"
   end
 
   def configure_remote_backend
-    load_impl
-    self.send(__method__)
+    head = __method__
+    log "#{head}: Configuring Remote Backend #{backend.name} on Frontend #{frontend.name}"
+    set_status("Configure")
+    result = unix_ssh("bash -login -c \"cd #{dir}; #{backend.configure_command} #{backend.name}\"")
+    set_status("Success:Configure")
+  rescue Exception => boom
+    log "#{head}: Error #{boom}"
+    set_status("Error:Configure")
   end
 
   def deconfigure_remote_backend
-    load_impl
-    self.send(__method__)
+    head = __method__
+    log "#{head}: Deconfiguring Remote Backend #{backend.name} on Frontend #{frontend.name}"
+    set_status("Deconfigure")
+    result = unix_ssh("bash -login -c \"cd #{dir}; #{backend.deconfigure_command} #{backend.name}\"")
+    set_status("Success:Deconfigure")
+  rescue Exception => boom
+    log "#{head}: Error #{boom}"
+    set_status("Error:Deconfigure")
   end
 
   def deploy_to_remote_backend
-    load_impl
-    self.send(__method__)
+    head = __method__
+    log "#{head}: Deploy Remote Backend #{backend.name} on Frontend #{frontend.name}; Nothing to be done"
   end
 
   def start_remote_backend
-    load_impl
-    self.send(__method__)
+    head = __method__
+    log "#{head}: Start Remote Backend #{backend.name} on Frontend #{frontend.name}"
+    set_status("Start")
+    result = unix_ssh("bash -login -c \"cd #{dir}; #{backend.start_command} #{backend.name}\"")
+    set_status("Success:Start")
+  rescue Exception => boom
+    log "#{head}: Error #{boom}"
+    set_status("Error:Start")
   end
 
   def stop_remote_backend
-    load_impl
-    self.send(__method__)
+    head = __method__
+    log "#{head}: Stop Remote Backend #{backend.name} on Frontend #{frontend.name}"
+    set_status("Stop")
+    result = unix_ssh("bash -login -c \"cd #{dir}; #{backend.stop_command} #{backend.name}\"")
+    set_status("Success:Stop")
+  rescue Exception => boom
+    log "#{head}: Error #{boom}"
+    set_status("Error:Stop")
   end
 
   def restart_remote_backend
-    load_impl
-    self.send(__method__)
-  end
+    head = __method__
 
-  def status_remote_backend
-    load_impl
-    self.send(__method__)
+    log "#{head}: Restart Remote Backend #{backend.name} on Frontend #{frontend.name}"
+    log "#{head}: Stop Remote Backend #{backend.name} on Frontend #{frontend.name}"
+    set_status("Stop")
+    result = unix_ssh("bash -login -c \"cd #{dir}; #{backend.stop_command} #{backend.name}\"")
+    set_status("Success:Stop")
+    log "#{head}: Start Remote Backend #{backend.name} on Frontend #{frontend.name}"
+    set_status("Start")
+    result = unix_ssh_cmd(remote_host, cert, remote_user, "bash -login -c \"cd #{dir}; #{backend.stop_command} #{backend.name}\"")
+    set_status("Success:Start")
+    set_status("Success:Restart")
+  rescue Exception => boom
+    log "#{head}: Error #{boom}"
+    set_status("Error:Restart")
   end
 
   def destroy_remote_backend
-    load_impl
-    self.send(__method__)
+    head = __method__
+
+    if !state.state_destroy
+      log "#{head}: Destroy Remote Backend #{backend.name} on Frontend #{frontend.name}"
+      log "#{head}: Stop Remote Backend #{backend.name} on Frontend #{frontend.name}"
+      set_status("Stop")
+      result = unix_ssh_cmd(remote_host, remote_key, remote_user, "bash -login -c \"cd #{git_name}; script/stop_backend.sh --name #{backend.name}\"")
+      set_status("Success:Stop")
+      state.state_destroy = true
+      deconfigure_remote_backend
+      set_status("Destroy")
+      destroy_all_endpoints
+    end
+    if !backend.endpoints.empty?
+      job = DeployBackendJob.get_job(backend, "destroy_remote_backend")
+      Delayed::Job.enqueue(job, :queue => "deploy-web", :run_at => Time.now + 1.minute)
+    else
+      backend.destroy
+      # TODO: We need a job to destroy us?
+      set_status("Success::Destroy")
+      self.destroy
+    end
+  rescue Exception => boom
+    log "#{head}: Error #{boom}"
+    set_status("Error:Destroy")
+  end
+
+  def status_remote_backend
+    head = __method__
+    log "#{head}: Status #{backend.name} on Frontend #{frontend.name}"
+    set_status("Status")
+
+    netstat = unix_ssh("netstat -tan").split("\n")
+    state.listen_status = ["#{frontend.remote_host}(#{frontend.external_ip})"]
+    backend.server_proxies.each do |proxy|
+      case proxy.proxy_type
+        when "Server"
+        when "SSH"
+          state.listen_status += array_match(/tcp\s+[0-9]+\s+[0-9]+\s+(#{proxy.local_proxy_address.gsub(".","\\.")})\s+.*\s+LISTEN/, netstat)
+        when "Swift"
+          state.listen_status += array_match(/tcp\s+[0-9]+\s+[0-9]+\s+(#{proxy.local_proxy_address.gsub(".","\\.")})\s+.*\s+LISTEN/, netstat)
+          state.listen_status += array_match(/tcp\s+[0-9]+\s+[0-9]+\s+(#{proxy.local_backend_address.gsub(".","\\.")})\s+.*\s+LISTEN/, netstat)
+      end
+    end
+    state.listen_status = state.listen_status.uniq.map{|x| "#{x} *"}
+
+    state.connection_status = []
+    backend.server_proxies.each do |proxy|
+      case proxy.proxy_type
+        when "Server"
+        when "SSH"
+          state.connection_status += array_match(/tcp\s+[0-9]+\s+[0-9]+\s+(#{proxy.local_proxy_address.gsub(".","\\.")}\s+.*)\s+ESTABLISHED/, netstat)
+        when "Swift"
+          state.connection_status += array_match(/tcp\s+[0-9]+\s+[0-9]+\s+(#{proxy.local_proxy_address.gsub(".","\\.")}\s+.*)\s+ESTABLISHED/, netstat)
+          state.connection_status += array_match(/tcp\s+[0-9]+\s+[0-9]+\s+(#{proxy.local_backend_address.gsub(".","\\.")}\s+.*)\s+ESTABLISHED/, netstat)
+      end
+    end
+
+    set_status("Success:Status")
+    log "#{head}: Listen status #{state.listen_status.join(" ")}"
+    log "#{head}: Connection status #{state.connection_status.join(" ")}"
+    set_status("Success:Status", state.listen_status.length > 1 ? "UP" : "DOWN")
+  rescue Exception => boom
+    set_status("Error:Status")
+    log "#{head}: error in restarting Remote #{frontend.at_type} #{remote_user}@#{remote_host} - #{boom}."
   end
 
   def apply_to_endpoint(method, endpoint)
     if endpoint && endpoint.backend == self.backend
-      job = DeployEndpointJob.get_job(endpoint)
-      djob = job.jobspec(endpoint.name, method)
+      job = DeployEndpointJob.get_job(endpoint, method)
       Delayed::Job.enqueue(djob, :queue => "deploy-web")
     end
   end
@@ -111,22 +196,13 @@ class DeployBackendJob < DeployJob
     end
   end
 
-  def load_impl
-    case backend.deployment_type
-      when "swift"
-        self.singleton_class.send(:include, DeploySwiftBackendJobImpl)
-      when "ssh"
-        self.singleton_class.send(:include, DeploySshBackendJobImpl)
-    end
-  end
-
   def self.get_job(backend, action)
     job = DeployBackendJob.where(:backend_id => backend.id).first
     if job.nil?
       job = DeployBackendJob.new(:backend => backend)
       job.save
     end
-    DeployBackendJobspec.new(job.id, action)
+    DeployBackendJobspec.new(job.id, action, backend.name)
   end
 
 end

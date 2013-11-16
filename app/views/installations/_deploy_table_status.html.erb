@@ -2,8 +2,10 @@
   <tr>
     <th>Component</th>
     <th>Name</th>
+    <th>Type</th>
     <th>Jobs</th>
-    <th>Last Job Status</th>
+    <th>Commit Status</th>
+    <th>Listen/Connection</th>
     <th>Remote Status</th>
   </tr>
   <tbody>
@@ -11,8 +13,8 @@
     <th>Installation</th>
     <td><%= link_to @installation.name, installation_path(@installation) %></td>
     <td><%= @installation_job.delayed_jobs.count if @installation_job %></td>
+    <td></td>
     <td><%= @installation_job.remote_status if @installation_job %></td>
-    <td><%= button_to "Update", ping_remote_status_installation_path(@installation), :class => "btn btn-mini" %></td>
   </tr>
   <% for frontend in @installation.frontends do %>
       <% @frontend = frontend; @frontend_job = DeployFrontendJob.where(:frontend_id => @frontend.id).first %>
@@ -21,11 +23,11 @@
           <% @backend = backend; @backend_job = DeployBackendJob.where(:backend_id => @backend.id).first %>
           <%= render :partial => 'backend_status_row' %>
           <% for endpoint in @backend.server_endpoints do %>
-              <% @server_endpoint = endpoint; @server_endpoint_job = DeployServerEndpointJob.where(:server_endpoint_id => @server_endpoint.id).first %>
+              <% @server_endpoint = endpoint; @server_endpoint_job = DeployServerEndpointJob.where(:endpoint_id => @server_endpoint.id).first %>
               <%= render :partial => 'server_endpoint_status_row' %>
           <% end %>
           <% for endpoint in @backend.worker_endpoints do %>
-              <% @worker_endpoint = endpoint; @worker_endpoint_job = DeployWorkerEndpointJob.where(:worker_endpoint_id => @worker_endpoint.id).first %>
+              <% @worker_endpoint = endpoint; @worker_endpoint_job = DeployWorkerEndpointJob.where(:endpoint_id => @worker_endpoint.id).first %>
               <%= render :partial => 'worker_endpoint_status_row' %>
           <% end %>
       <% end %>

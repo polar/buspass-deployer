@@ -1,0 +1,3 @@
+<% for s in [@server_endpoint_job.instance_status].flatten %>
+    <div><%= s %></div>
+<% end if @server_endpoint_job && @server_endpoint_job.instance_status %>

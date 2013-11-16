@@ -25,6 +25,11 @@ module DeployUnixEndpointJobImpl
     unix_stop_remote_endpoint
   end
 
+  def status_remote_endpoint
+    unix_get_deployment_status
+    unix_status_remote_endpoint
+  end
+
   def destroy_remote_endpoint
     unix_destroy_remote_endpoint
   end

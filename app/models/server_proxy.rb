@@ -75,7 +75,7 @@ class ServerProxy
           host = server_endpoint.frontend.remote_host
         end
       end
-      return "#{host}:#{port}"
+      return "#{host.strip}:#{port}"
     end
   end
 

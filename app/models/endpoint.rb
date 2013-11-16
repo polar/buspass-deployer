@@ -2,6 +2,7 @@ class Endpoint
   include MongoMapper::Document
 
   key :name
+  key :external_ip
 
   # The endpoint type, Heroku, Heroku-Swift, Unix, Unix-Swift, etc.
   key :deployment_type

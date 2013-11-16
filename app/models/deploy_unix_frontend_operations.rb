@@ -87,13 +87,14 @@ module DeployUnixFrontendOperations
     file.unlink
     uadmin_unix_ssh("sudo chown -R #{remote_user}:#{remote_user} ~#{remote_user}")
     uadmin_unix_ssh("sudo -u #{remote_user} chmod 700 ~#{remote_user}/.ssh")
+    uadmin_unix_ssh("echo \"#{remote_user} ALL=(ALL:ALL) NOPASSWD: /etc/init.d/nginx, /bin/ls, /bin/cp, /bin/mkdir, /bin/rm, /bin/cat\" | sudo tee /etc/sudoers.d/#{remote_user}")
     unix_ssh("ls -la")
     unix_ssh("test -e .rvm || \\curl -L https://get.rvm.io | bash -s stable --autolibs=read-fail")
     unix_ssh("test -e .rvm && bash --login -c \"rvm install #{ruby_version}\"")
-    unix_ssh("git clone #{frontend.git_repository} -b #{frontend.git_refspec} #{frontend.git_name}")
+    unix_ssh("test -e #{frontend.git_name} || git clone #{frontend.git_repository} -b #{frontend.git_refspec} #{frontend.git_name}")
     unix_ssh("cd #{frontend.git_name}; rm Gemfile.lock; git submodule init; git submodule update")
     unix_ssh("bash --login -c \"cd ~/#{frontend.git_name}; bundle install\"")
-    uadmin_unix_ssh("cd ~#{remote_user}/#{frontend.git_name}; sudo install.sh #{frontend.git_name} #{frontend.remote_user}")
+    unix_ssh("cd ~/#{frontend.git_name}; bash scripts/create_frontend.sh #{frontend.git_name}")
     log "#{head}: Remote #{frontend.at_type} #{remote_user}@#{remote_host} exists."
     set_status("Success:Create")
   rescue Exception => boom
@@ -246,19 +247,22 @@ module DeployUnixFrontendOperations
     log "#{head}: Status Remote Unix #{frontend.at_type} #{remote_user}@#{remote_host}."
 
     cmd = "git log --max-count=1"
-    env_cmd = "source ~/.frontend-#{name}.env; cd #{frontend.git_name}; #{cmd} #{name}"
+    env_cmd = "source ~/.frontend-#{name}.env; cd #{frontend.git_name}; #{cmd}"
     result = unix_ssh("bash --login -c \"#{env_cmd}\"")
-    state.git_commit = result.take(3)
+    if result
+      result = result.split("\n")
+    end
+    state.git_commit = result.take(4)
 
     netstat = unix_ssh("netstat -tan").split("\n")
-    state.listen_status = []
-    state.listen_status += array_match(/([0-9a-f\:\.]*:80.*LISTEN)/, netstat)
-    state.listen_status += array_match(/([0-9a-f\:\.]*:443.*LISTEN)/, netstat)
+    state.listen_status = ["#{frontend.remote_host}(#{frontend.external_ip})"]
+    state.listen_status += array_match(/tcp\s+[0-9]+\s+[0-9]+\s+([0-9a-f\:\.]*:80)\s+.*\s+LISTEN/, netstat)
+    state.listen_status += array_match(/tcp\s+[0-9]+\s+[0-9]+\s+([0-9a-f\:\.]*:443)\s+.*\s+LISTEN/, netstat)
 
     state.connection_status = []
-    state.connection_status += array_match(/([0-9a-f\:\.]*:80.*ESTABLISHED)/, netstat)
-    state.connection_status += array_match(/([0-9a-f\:\.]*:443.*ESTABLISHED)/, netstat)
-    set_status("Success:Status")
+    state.connection_status += array_match(/tcp\s+[0-9]+\s+[0-9]+\s+([0-9a-f\:\.]*:80)\s+.*\s+ESTABLISHED/, netstat)
+    state.connection_status += array_match(/tcp\s+[0-9]+\s+[0-9]+\s+([0-9a-f\:\.]*:443)\s+.*\s+ESTABLISHED/, netstat)
+    set_status("Success:Status", state.listen_status.length > 1 ? "UP" : "DOWN")
 
   rescue Exception => boom
     set_status("Error:Status")

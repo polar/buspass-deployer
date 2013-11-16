@@ -66,7 +66,6 @@ module DeployUnixEndpointOperations
     rescue Exception => boom4
       log "#{head}: error creating ~#{remote_user}/.ssh/endpoint-#{name}.pub on #{remote_host} - #{boom4} - trying to ignore"
     end
-    log "#{head}: Result #{result.inspect}"
     file.unlink
     uadmin_unix_ssh("sudo chown -R #{remote_user}:#{remote_user} ~#{remote_user}")
     uadmin_unix_ssh("sudo -u #{remote_user} chmod 700 ~#{remote_user}/.ssh")
@@ -99,9 +98,10 @@ module DeployUnixEndpointOperations
   def unix_get_deployment_status
     head = __method__
     set_status("DeployStatus")
-    log "#{head}: Getting deploy swift endpoint #{remote_user}@#{app_name} status."
+    log "#{head}: Getting deploy swift endpoint #{remote_user}@#{remote_host} status."
     result = unix_ssh("cd #{endpoint.git_name}; git log | head -3")
     state.git_commit = result
+    state.save
     set_status("Success:DeployStatus")
     log "#{head}: Remote Unix #{endpoint.at_type} #{remote_user}@#{remote_host} - #{state.git_commit.inspect} - updated_at #{state.updated_at}"
   rescue Exception => boom
@@ -130,7 +130,7 @@ module DeployUnixEndpointOperations
   def unix_deploy_to_remote_endpoint
     head = __method__
     set_status("Deploy")
-    log "#{head}: Deploying swift endpoint #{remote_user}@#{app_name}"
+    log "#{head}: Deploying swift endpoint #{remote_user}@#{remote_host}"
     unix_ssh("test -e #{endpoint.git_name} || git clone #{endpoint.git_repository} -b #{endpoint.git_refspec}")
     unix_ssh("cd #{endpoint.git_name}; rm Gemfile.lock; git pull; git submodule init; git submodule update")
     unix_ssh('bash --login -c "cd '+endpoint.git_name+'; bundle install" ')
@@ -146,18 +146,22 @@ module DeployUnixEndpointOperations
     set_status("DestroyApp")
     log "Deleting Remote Unix #{endpoint.at_type} #{remote_user}@#{remote_host}"
     begin
-      unix_ssh("ls .endpoint-#{endpoint.name}.env")
+      #unix_ssh("ls .endpoint-#{endpoint.name}.env")
       unix_ssh("rm -f .endpoint-#{endpoint.name}.env")
       unix_ssh("rm -f .ssh/endpoint-#{endpoint.name}.pub")
         # TODO: Remove the pub from the authorized keys.
-    rescue Rush::BashFailed
+    rescue Rush::BashFailed => boom
       log "#{head}: Could not destroy Remote Unix #{endpoint.at_type} #{remote_user}@#{remote_host} : #{boom}"
       return
     end
-    unix_ssh("ls -a .endpoint-*.env")
     # If there is no .endpoint-*.env, then we remove all the endpoints.
     unix_ssh("test -e .endpoint-*.env || rm -rf #{endpoint.git_name}")
-    uadmin_unix_ssh("test `ls ~#{remote_user} | wc -l` == '0' && sudo deluser --remove-home #{remote_user}")
+    begin
+      # If the test doesn't pass, which is what we normally want,, then it raises Rush::BashFailed
+      # so, we ignore.
+      uadmin_unix_ssh("test `ls ~#{remote_user} | wc -l` == '0' && sudo deluser --remove-home #{remote_user}")
+    rescue
+    end
     set_status("Success:DestroyApp")
   rescue Exception => boom
     log "#{head}: Could not delete Remote Unix #{endpoint.at_type} #{remote_user}@#{remote_host} : #{boom}"
@@ -169,7 +173,7 @@ module DeployUnixEndpointOperations
     set_status("Start")
     cmd = endpoint.start_command
     log "#{head}: Starting Remote Unix #{endpoint.at_type} #{remote_user}@#{remote_host}."
-    env_cmd = "source ~/.endpoint-#{name}.env; cd #{endpoint.git_name}; #{cmd} #{name}"
+    env_cmd = "source ~/.endpoint-#{name}.env; cd #{endpoint.git_name}; bash #{cmd} #{name}"
     unix_ssh("bash --login -c \"#{env_cmd}\"")
     set_status("Success:Start")
   rescue Exception => boom
@@ -182,7 +186,7 @@ module DeployUnixEndpointOperations
     set_status("Stop")
     cmd = endpoint.stop_command
     log "#{head}: Starting Remote Unix #{endpoint.at_type} #{remote_user}@#{remote_host}."
-    env_cmd = "source ~/.endpoint-#{name}.env; cd #{endpoint.git_name}; #{cmd} #{name}"
+    env_cmd = "source ~/.endpoint-#{name}.env; cd #{endpoint.git_name}; bash #{cmd} #{name}"
     unix_ssh("bash --login -c \"#{env_cmd}\"")
     set_status("Success:Stop")
   rescue Exception => boom
@@ -195,9 +199,46 @@ module DeployUnixEndpointOperations
     set_status("Restart")
     cmd = endpoint.restart_command
     log "#{head}: Starting Remote Unix #{endpoint.at_type} #{remote_user}@#{remote_host}."
-    env_cmd = "source ~/.endpoint-#{name}.env; cd #{endpoint.git_name}; #{cmd} #{name}"
+    env_cmd = "source ~/.endpoint-#{name}.env; cd #{endpoint.git_name}; bash #{cmd} #{name}"
     unix_ssh("bash --login -c \"#{env_cmd}\"")
     set_status("Success:Restart")
+  rescue Exception => boom
+    set_status("Error:Restart")
+    log "#{head}: error in restarting Remote Unix #{endpoint.at_type} #{remote_user}@#{remote_host} - #{boom}."
+  end
+
+  def unix_status_remote_endpoint
+    head = __method__
+    set_status("RemoteStatus")
+    proxy = endpoint.server_proxy
+    state.listen_status = ["#{endpoint.external_ip}"]
+    if proxy
+      netstat = unix_ssh("netstat -tan").split("\n")
+      case proxy.proxy_type
+        when "Server"
+          addr = proxy.proxy_address
+          match = /(.*):(.*)/.match addr
+          host = match[1]
+          port = match[2]
+          address = "0.0.0.0:#{port}"
+          state.listen_status += array_match(/tcp\s+[0-9]+\s+[0-9]+\s+(#{address.gsub(".","\\.")})\s+.*\s+LISTEN/, netstat)
+        when "SSH"
+          addr = proxy.proxy_address
+          match = /(.*):(.*)/.match addr
+          host = match[1]
+          port = match[2]
+          address = "#{endpoint.frontend.external_ip}:#{port}"
+          state.listen_status += array_match(/tcp\s+[0-9]+\s+[0-9]+\s+[0-9\.\:]+\s+(#{address.gsub(".","\\.")})\s+.*\s+ESTABLISHED/, netstat)
+        when "Swift"
+          addr = proxy.backend_address
+          match = /(.*):(.*)/.match addr
+          host = match[1]
+          port = match[2]
+          address = "#{endpoint.frontend.external_ip}:#{port}"
+          state.listen_status += array_match(/tcp\s+[0-9]+\s+[0-9]+\s+[0-9\.\:]+\s+(#{address.gsub(".","\\.")})\s+.*\s+ESTABLISHED/, netstat)
+      end
+    end
+    set_status("Success:Restart", state.listen_status.length > 1 ? "UP" : "DOWN")
   rescue Exception => boom
     set_status("Error:Restart")
     log "#{head}: error in restarting Remote Unix #{endpoint.at_type} #{remote_user}@#{remote_host} - #{boom}."
