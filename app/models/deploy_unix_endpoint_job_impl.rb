@@ -11,6 +11,7 @@ module DeployUnixEndpointJobImpl
 
   def deploy_to_remote_endpoint
     unix_deploy_to_remote_endpoint
+    unix_get_deployment_status
   end
 
   def start_remote_endpoint

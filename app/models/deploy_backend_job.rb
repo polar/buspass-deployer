@@ -142,11 +142,20 @@ class DeployBackendJob < DeployJob
     backend.server_proxies.each do |proxy|
       case proxy.proxy_type
         when "Server"
+          uri = URI.parse(proxy.proxy_address)
+          proxy_address = "[0-9a-fA-F.:]+:#{uri.port}"
+          state.connection_status += array_match(/tcp\s+[0-9]+\s+[0-9]+\s+(#{proxy_address}\s+.*)\s+ESTABLISHED/, netstat)
         when "SSH"
-          state.connection_status += array_match(/tcp\s+[0-9]+\s+[0-9]+\s+(#{proxy.local_proxy_address.gsub(".","\\.")}\s+.*)\s+ESTABLISHED/, netstat)
+          uri = URI.parse("http://"+proxy.local_proxy_address)
+          proxy_address = "[0-9a-fA-F.:]+:#{uri.port}"
+          state.connection_status += array_match(/tcp\s+[0-9]+\s+[0-9]+\s+(#{proxy_address}\s+.*)\s+ESTABLISHED/, netstat)
         when "Swift"
-          state.connection_status += array_match(/tcp\s+[0-9]+\s+[0-9]+\s+(#{proxy.local_proxy_address.gsub(".","\\.")}\s+.*)\s+ESTABLISHED/, netstat)
-          state.connection_status += array_match(/tcp\s+[0-9]+\s+[0-9]+\s+(#{proxy.local_backend_address.gsub(".","\\.")}\s+.*)\s+ESTABLISHED/, netstat)
+          uri = URI.parse("http://"+proxy.local_proxy_address)
+          proxy_address = uri.host == "0.0.0.0" ? "[0-9a-fA-F.:]+:#{uri.port}" : "#{uri.host.gsub(".","\\.")}:#{uri.port}"
+          uri = URI.parse("http://"+proxy.local_backend_address)
+          backend_address = uri.host == "0.0.0.0" ? "[0-9a-fA-F.:]+:#{uri.port}" : "#{uri.host.gsub(".","\\.")}:#{uri.port}"
+          state.connection_status += array_match(/tcp\s+[0-9]+\s+[0-9]+\s+(#{proxy_address}\s+.*)\s+ESTABLISHED/, netstat)
+          state.connection_status += array_match(/tcp\s+[0-9]+\s+[0-9]+\s+(#{backend_address}\s+.*)\s+ESTABLISHED/, netstat)
       end
     end
 

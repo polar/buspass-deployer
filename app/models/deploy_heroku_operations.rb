@@ -103,7 +103,7 @@ module DeployHerokuOperations
         log "#{head}: status is #{result.data[:body].inspect}"
         state.instance_status = []
         if endpoint.at_type == "ServerEndpoint" && endpoint.deployment_type == "Heroku"
-          state.instance_status += [endpoint.server_proxy.proxy_address]
+          state.instance_status += ["#{endpoint.server_proxy.proxy_address}(#{endpoint.external_ip})"]
         end
         result.data[:body].each do |process|
           state.instance_status += ["#{process["process"]} : #{process["pretty_state"]}"]

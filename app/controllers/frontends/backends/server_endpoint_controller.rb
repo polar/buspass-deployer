@@ -25,7 +25,7 @@ class Frontends::Backends::ServerEndpointController < ApplicationController
   def new
     get_context
     if @backend
-      @deployment_types = ["Heroku", "Unix", "Heroku-Swift", "Unix-Swift", "Unix-SSH"]
+      @deployment_types = ["Heroku", "Unix", "Heroku-Swift", "Heroku-SSH", "Unix-Swift", "Unix-SSH"]
       names = ServerEndpoint.where(:name => /#{@backend.name}-server/).map {|x| x.name}
       last_name = names.sort {|x,y| num(x) <=> num(y) }.last
       n = num(last_name) + 1
@@ -42,12 +42,12 @@ class Frontends::Backends::ServerEndpointController < ApplicationController
   def edit
     get_context
     if @backend
-      if ["Heroku", "Heroku-Swift"].include? @server_endpoint.deployment_type
-        @deployment_types = ["Heroku", "Heroku-Swift"]
+      if ["Heroku", "Heroku-Swift", "Heroku-SSH"].include? @server_endpoint.deployment_type
+        @deployment_types = ["Heroku", "Heroku-Swift", "Heroku-SSH"]
       elsif ["Unix", "Unix-Swift", "Unix-SSH"].include? @server_endpoint.deployment_type
         @deployment_types = ["Unix", "Unix-Swift", "Unix-SSH"]
       else
-        @deployment_types = ["Heroku", "Unix", "Heroku-Swift", "Unix-Swift", "Unix-SSH"]
+        @deployment_types = ["Heroku", "Unix", "Heroku-Swift", "Heroku-SSH", "Unix-Swift", "Unix-SSH"]
       end
     else
       raise NotFoundError
@@ -65,7 +65,7 @@ class Frontends::Backends::ServerEndpointController < ApplicationController
         flash[:notice] = "Endpoint #{@server_endpoint.name} created."
         redirect_to frontend_backend_server_endpoints_path
       else
-        @deployment_types = ["Heroku", "Unix", "Heroku-Swift", "Unix-Swift", "Unix-SSH"]
+        @deployment_types = ["Heroku", "Unix", "Heroku-Swift", "Heroku-SSH", "Unix-Swift", "Unix-SSH"]
         render :new
       end
     else
@@ -79,12 +79,12 @@ class Frontends::Backends::ServerEndpointController < ApplicationController
       flash[:notice] = "Endpoint #{@server_endpoint.name} created."
       redirect_to frontend_backend_server_endpoints_path
     else
-      if ["Heroku", "Heroku-Swift"].include? @server_endpoint.deployment_type
-        @deployment_types = ["Heroku", "Heroku-Swift"]
+      if ["Heroku", "Heroku-Swift", "Heroku-SSH"].include? @server_endpoint.deployment_type
+        @deployment_types = ["Heroku", "Heroku-Swift", "Heroku-SSH"]
       elsif ["Unix", "Unix-Swift", "Unix-SSH"].include @server_endpoint.deployement_type
         @deployment_types = ["Unix", "Unix-Swift", "Unix-SSH"]
       else
-        @deployment_types = ["Heroku", "Unix", "Heroku-Swift", "Unix-Swift", "Unix-SSH"]
+        @deployment_types = ["Heroku", "Unix", "Heroku-Swift", "Heroku-SSH", "Unix-Swift", "Unix-SSH"]
       end
       render :new
     end

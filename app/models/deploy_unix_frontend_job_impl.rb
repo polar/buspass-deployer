@@ -15,6 +15,7 @@ module DeployUnixFrontendJobImpl
 
   def deploy_to_remote_frontend
     unix_deploy_to_remote_frontend
+    unix_status_remote_frontend
   end
 
   def status_remote_frontend

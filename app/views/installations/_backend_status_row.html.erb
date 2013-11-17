@@ -3,10 +3,10 @@
   <td><%= link_to @backend.name, frontend_backend_path(@frontend, @backend) %></td>
   <td></td>
   <td><%= @backend_job.delayed_jobs.count if @backend_job %></td>
-  <td>N/A
+  <td><div>Connections:</div>
+    <%= @backend_job.connection_status.map {|x| "<div>#{x.sub(" ", " - ")}</div>" }.join.html_safe if @backend_job && @backend_job.connection_status %>
   </td>
   <td><%= @backend_job.listen_status.map {|x| "<div>#{x}</div>" }.join.html_safe if @backend_job && @backend_job.listen_status %>
-    <%= @backend_job.connection_status.map {|x| "<div>#{x}</div>" }.join.html_safe if @backend_job && @backend_job.connection_status %>
   </td>
   <td><%= @backend_job.remote_status if @backend_job %></td>
 </tr>

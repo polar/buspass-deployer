@@ -29,7 +29,7 @@ class RemoteKey
   before_validation :assign_name
 
   def assign_name
-    self.name = ssh_key.file.filename
+    self.name = ssh_key.file.filename if ssh_key.file
   end
 
   after_save :ensure_chmod

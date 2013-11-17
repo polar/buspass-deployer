@@ -1,0 +1,56 @@
+<table class="table table-bordered">
+  <tbody>
+  <tr>
+    <th>Name</th>
+    <td><%= @server_endpoint.name %></td>
+    <th>External IP</th>
+    <td><%= @server_endpoint.external_ip %></td>
+    <td><%= link_to "Edit", edit_frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint), :class => "btn btn-mini" %></td>
+    <td><%= button_to "Delete", frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint), :method => :delete, :confirm => "Are you sure?", :class => "btn btn-mini" %></td>
+
+  </tr>
+  <tr>
+    <th>Endpoint Type</th>
+    <td><%= @server_endpoint.deployment_type %></td>
+    <td><%= "#{@server_endpoint.remote_user}@#{@server_endpoint.remote_host}" if !@server_endpoint.remote_user.blank? %></td>
+    <th>Proxy</th>
+    <td><%= @server_endpoint.proxy_address %></td>
+    <th>Backend</th>
+    <td><%= @server_endpoint.backend_address %></td>
+    <td>Servers: <%= @server_endpoint.n_servers %></td>
+  </tr>
+  <tr>
+    <td><%= button_to "Create App", create_app_frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint), :confirm => "Are you sure?", :class => "btn btn-mini" %></td>
+    <td><%= button_to "Configure App", configure_app_frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint), :confirm => "Are you sure?", :class => "btn btn-mini" %></td>
+    <td><%= button_to "Deploy App", deploy_app_frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint), :confirm => "Are you sure?", :class => "btn btn-mini" %></td>
+    <td><%= button_to "Start App", start_app_frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint), :confirm => "Are you sure?", :class => "btn btn-mini" %></td>
+    <td><%= button_to "Restart App", restart_app_frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint), :confirm => "Are you sure?", :class => "btn btn-mini" %></td>
+    <td><%= button_to "Stop App", stop_app_frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint), :confirm => "Are you sure?", :class => "btn btn-mini" %></td>
+    <td><%= button_to "Truncate Logs", truncate_remote_logs_frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint), :confirm => "Are you sure?", :class => "btn btn-mini" %></td>
+    <td><%= button_to "Destroy App", destroy_app_frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint), :method => :delete, :confirm => "Are you sure?", :class => "btn btn-mini" %></td>
+
+  </tr>
+  <tr>
+    <th>Job Status</th>
+    <td id="endpoint_status"><%= @server_endpoint_job.status if @server_endpoint_job %></td>
+    <td>Git Status</td>
+    <td id="endpoint_git_status" colspan="5">
+      <% for s in @server_endpoint_job.git_commit do %>
+          <div><%= s %></div>
+      <% end if @server_endpoint_job && @server_endpoint_job.git_commit %>
+    </td>
+  </tr>
+  <tr>
+    <th>Remote Status</th>
+    <td id="endpoint_remote_status">
+      <%= render :partial => "endpoint_remote_status" %>
+    </td>
+    <th>Instance Status</th>
+    <td id="endpoint_instance_status">
+      <%= render :partial => "endpoint_instance_status" %>
+    </td>
+    <td><%= button_to "Update Status", remote_status_frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint), :class => "btn btn-mini" %></td>
+    <td><%= button_to "Get Logs", get_logs_frontend_backend_server_endpoint_path(@frontend, @backend, @server_endpoint), :class => "btn btn-mini" %></td>
+  </tr>
+  </tbody>
+</table>

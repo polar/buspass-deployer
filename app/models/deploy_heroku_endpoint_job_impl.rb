@@ -11,6 +11,7 @@ module DeployHerokuEndpointJobImpl
 
   def deploy_to_remote_endpoint
     heroku_deploy_to_remote_endpoint
+    heroku_get_deploy_status
   end
 
   def start_remote_endpoint
@@ -21,6 +22,9 @@ module DeployHerokuEndpointJobImpl
             heroku_scale_remote_endpoint("web", 1)
             heroku_scale_remote_endpoint("work", 0)
           when "Heroku-Swift"
+            heroku_scale_remote_endpoint("web", 0)
+            heroku_scale_remote_endpoint("work", 1)
+          when "Heroku-SSH"
             heroku_scale_remote_endpoint("web", 0)
             heroku_scale_remote_endpoint("work", 1)
         end
@@ -42,6 +46,9 @@ module DeployHerokuEndpointJobImpl
             heroku_scale_remote_endpoint("web", 0)
             heroku_scale_remote_endpoint("work", 0)
           when "Heroku-Swift"
+            heroku_scale_remote_endpoint("web", 0)
+            heroku_scale_remote_endpoint("work", 0)
+          when "Heroku-SSH"
             heroku_scale_remote_endpoint("web", 0)
             heroku_scale_remote_endpoint("work", 0)
         end

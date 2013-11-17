@@ -47,7 +47,7 @@ class ServerEndpoint < Endpoint
     if my_proxy
       if ["Unix-Swift", "Heroku-Swift"].include?(deployment_type) && "Swift" != my_proxy.proxy_type
         my_proxy.destroy
-      elsif ["Unix-SSH"].include?(deployment_type) && "SSH" != my_proxy.proxy_type
+      elsif ["Unix-SSH", "Heroku-SSH"].include?(deployment_type) && "SSH" != my_proxy.proxy_type
         my_proxy.destroy
       elsif ["Unix","Heroku"].include?(deployment_type) && "Server" != my_proxy.proxy_type
         my_proxy.destroy
@@ -62,10 +62,10 @@ class ServerEndpoint < Endpoint
             :server_endpoint => self
         )
       end
-    elsif ["Unix-SSH", "Unix-Swift", "Heroku-Swift"].include? deployment_type
+    elsif ["Unix-SSH", "Unix-Swift", "Heroku-SSH", "Heroku-Swift"].include? deployment_type
       proxy_ports   = frontend.allocated_proxy_ports
       backend_ports = frontend.allocated_backend_ports
-      if ["Unix-SSH"].include? deployment_type
+      if ["Unix-SSH", "Heroku-SSH"].include? deployment_type
         proxy = backend.server_proxies.select {|x| x.proxy_type == "SSH" && x.server_endpoint.nil? }.first
         if proxy
           proxy.server_endpoint = self
