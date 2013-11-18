@@ -14,7 +14,7 @@
     <%= f.text_field :name %>
     <%= f.label :ssh_key_name, "SSH Key Name" %>
     <%= f.select :ssh_key_name, @ssh_key_names, :include_blank => true %>
-    <%= f.label :deploy_heroku_api_key_name, "SSH Key Name" %>
+    <%= f.label :deploy_heroku_api_key_name, "Heroku API Key Name" %>
     <%= f.select :deploy_heroku_api_key_name, @deploy_heroku_api_key_names, :include_blank => true %>
     <%= f.label :remote_configuration_literal, "Common Configuration" %>
     <%= f.text_area :remote_configuration_literal %>
