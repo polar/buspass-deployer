@@ -1,0 +1,24 @@
+<%= form_for @remote_key, :html => {:multipart => true} do |f| %>
+  <% if @remote_key.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@remote_key.errors.count, "error") %> prohibited this remote_key from being saved:</h2>
+
+      <ul>
+      <% @remote_key.errors.full_messages.each do |msg| %>
+        <li><%= msg %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+  <div class="skdfjsldjf">
+    <%= f.label :ssh_key, "PEM File" %>
+    <%= f.file_field :ssh_key %>
+    <%= f.hidden_field :ssh_key_cache %>
+    <%= label_tag("key", "Secret Encryption Key") %>
+    <%= text_field_tag("key", "<put key here>", :class => "input xx-large") %>
+  </div>
+
+  <div class="actions">
+    <%= f.submit %>
+  </div>
+<% end %>
