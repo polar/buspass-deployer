@@ -13,8 +13,10 @@
   <div class="skdfjsldjf">
     <%= f.label :name, "Name" %>
     <%= f.text_field :name %>
-    <%= f.label :value, "Heroku API Key to create deploymnents" %>
-    <%= f.text_field :value, :class => "input-xxlarge" %>
+    <%= label_tag :value, "Heroku API Key to create deploymnents" %>
+    <%= text_field_tag :value, :class => "input-xxlarge" %>
+    <%= label_tag :key, "Secret Encryption Key" %>
+    <%= text_field_tag :key, :class => "input-xxlarge" %>
   </div>
 
   <div class="actions">

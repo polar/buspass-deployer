@@ -17,11 +17,4 @@ class DeployHerokuApiKey
     return Encryptor.decrypt(decoded, opts)
   end
 
-  def value=(val)
-    self.key_encrypted_content = val
-  end
-
-  def value
-    key_encrypted_content
-  end
 end

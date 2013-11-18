@@ -35,6 +35,8 @@ class DeployHerokuApiKeysController < ApplicationController
   def create
     @deploy_heroku_api_key = DeployHerokuApiKey.new(params[:deploy_heroku_api_key])
 
+    @deploy_heroku_api_key.encrypt_key_content(params[:value], :key => params[:key])
+
     respond_to do |format|
       if @deploy_heroku_api_key.save
         format.html { redirect_to @deploy_heroku_api_key, notice: 'Heroku key was successfully created.' }
