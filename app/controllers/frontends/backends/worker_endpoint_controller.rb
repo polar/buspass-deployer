@@ -69,7 +69,7 @@ class Frontends::Backends::WorkerEndpointController < ApplicationController
     get_context!
     if @worker_endpoint_job
       index = params[:log_end].to_i
-      @logs = @worker_endpoint_job.endpoint_log.segment(index, 100)
+      @logs = @worker_endpoint_job.logger.segment(index, 100)
     else
       render :nothing => true
     end
@@ -78,8 +78,7 @@ class Frontends::Backends::WorkerEndpointController < ApplicationController
   def clear_log
     get_context!
     if @worker_endpoint_job
-      @worker_endpoint_job.endpoint_log.clear
-      @worker_endpoint_job.endpoint_log.save
+      @worker_endpoint_job.logger.clear
     end
     redirect_to frontend_backend_worker_endpoint_path(@frontend, @backend, @worker_endpoint)
   end
@@ -102,7 +101,7 @@ class Frontends::Backends::WorkerEndpointController < ApplicationController
 
   def deploy_app
     get_context!
-    job = DeployWorkerEndpointJob.get_job(@worker_endpoint, "deploy_remote_endpoint")
+    job = DeployWorkerEndpointJob.get_job(@worker_endpoint, "deploy_to_remote_endpoint")
     Delayed::Job.enqueue(job, :queue => "deploy-web")
     flash[:notice] = "A job has been queued to deploy Worker Endpoint #{@worker_endpoint.name}. Check log."
     redirect_to frontend_backend_worker_endpoint_path(@frontend, @backend, @worker_endpoint)
