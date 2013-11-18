@@ -15,7 +15,7 @@ module DeployHerokuOperations
     # We have to reset, because successive connection/SSL failures
     # do not resolve themselves. Ugg.
     HerokuHeadless.reset
-    ENV["HEROKU_API_KEY"] = deploy_heroku_api_key.value
+    ENV["HEROKU_API_KEY"] = deploy_heroku_api_key.decrypt_key_content(:key => ENV["AWS_SECRET_ACCESS_KEY"])
     HerokuHeadless.configure do |config|
       config.pre_deploy_git_commands = [
           "script/dist-config \"#{endpoint.git_repository}\" \"#{endpoint.git_name}\" \"#{endpoint.git_refspec}\" /tmp"
