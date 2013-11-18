@@ -61,8 +61,10 @@ class DeployFrontendJob < DeployJob
     case self.frontend.deployment_type
       when "unix-nginx"
         self.singleton_class.send(:include, DeployUnixFrontendJobImpl)
-      when "unix"
+      when "ec2-nginx"
         self.singleton_class.send(:include, DeployUnixFrontendJobImpl)
+      else
+        exit 1
     end
   end
 
