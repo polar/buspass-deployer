@@ -12,12 +12,12 @@ class FrontendsController < ApplicationController
   def new
     @installation = Installation.find(params[:installation_id]) if params[:installation_id]
     @frontend = Frontend.new(:installlation => @installation)
-    @deployment_types = ["unix-nginx"]
+    @deployment_types = ["unix-nginx", "ec2-nginx"]
   end
 
   def edit
     get_context!
-    @deployment_types = ["unix-nginx"]
+    @deployment_types = ["unix-nginx", "ec2-nginx"]
   end
 
   def show
@@ -38,7 +38,7 @@ class FrontendsController < ApplicationController
       end
     else
       flash[:error] = "Could not create frontend"
-      @deployment_types = ["unix-nginx"]
+      @deployment_types = ["unix-nginx", "ec2-nginx"]
       render :new
     end
   end
@@ -50,7 +50,7 @@ class FrontendsController < ApplicationController
       redirect_to frontend_path(@frontend)
     else
       flash[:error] = "Could not update frontend"
-      @deployment_types = ["unix-nginx"]
+      @deployment_types = ["unix-nginx", "ec2-nginx"]
       @installations = [@frontend.installation]
       render :edit
     end
