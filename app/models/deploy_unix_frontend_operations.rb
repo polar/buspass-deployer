@@ -74,7 +74,12 @@ module DeployUnixFrontendOperations
     head = __method__
     set_status("Create")
     log "#{head}: Creating #{frontend.at_type} #{remote_user}@#{remote_host}. Should already exist!"
-    uadmin_unix_ssh("sudo adduser #{remote_user} --quiet --disabled-password || exit 0")
+    case frontend.deployment_type
+      when /unix/
+        uadmin_unix_ssh("sudo adduser #{remote_user} --quiet --disabled-password || exit 0")
+      when /ec2/
+        uadmin_unix_ssh("sudo useradd #{remote_user} --create-home --user-group || exit 0")
+    end
     uadmin_unix_ssh("sudo -u #{remote_user} mkdir -p ~#{remote_user}/.ssh")
     uadmin_unix_ssh("sudo -u #{remote_user} chmod 777 ~#{remote_user}/.ssh")
     file = pub_cert(ssh_cert)
