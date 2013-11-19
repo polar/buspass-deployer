@@ -154,7 +154,7 @@ module DeployUnixEndpointOperations
   def unix_deploy_to_remote_endpoint
     head = __method__
     set_status("Deploy")
-    log "#{head}: Deploying swift endpoint #{remote_user}@#{remote_host}"
+    log "#{head}: Deploying Endpoint #{endpoint.name} on #{remote_user}@#{remote_host}"
     unix_ssh("test -e #{endpoint.git_name} || git clone #{endpoint.git_repository} -b #{endpoint.git_refspec}")
     unix_ssh("cd #{endpoint.git_name}; rm Gemfile.lock; git pull; git submodule init; git submodule update")
     unix_ssh('bash --login -c "cd '+endpoint.git_name+'; bundle install" ')
@@ -197,7 +197,7 @@ module DeployUnixEndpointOperations
     set_status("Start")
     cmd = endpoint.start_command
     log "#{head}: Starting Remote Unix #{endpoint.at_type} #{remote_user}@#{remote_host}."
-    env_cmd = "source ~/.endpoint-#{name}.env; cd #{endpoint.git_name}; bash #{cmd} #{name}"
+    env_cmd = "source ~/.endpoint-#{name}.env; cd #{endpoint.git_name}; nohup #{cmd} #{name} > /dev/null 2>&1 &"
     unix_ssh("bash --login -c \"#{env_cmd}\"")
     set_status("Success:Start")
   rescue Exception => boom
