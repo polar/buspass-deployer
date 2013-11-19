@@ -103,7 +103,7 @@ module DeployHerokuOperations
     if result
       result = HerokuHeadless.heroku.get_ps(heroku_app_name)
       if result && result.data && result.data[:body]
-        log "#{head}: status is #{result.data[:body].inspect}"
+        #log "#{head}: status is #{result.data[:body].inspect}"
         state.instance_status = []
         if endpoint.at_type == "ServerEndpoint" && endpoint.deployment_type == "Heroku"
           state.instance_status += ["#{endpoint.server_proxy.proxy_address}(#{endpoint.external_ip})"]
@@ -113,6 +113,9 @@ module DeployHerokuOperations
         end
         status = state.instance_status.length > 0 ? "UP" : "DOWN"
         set_status("Success:RemoteStatus", status)
+        state.instance_status.each do |line|
+          log "#{head}: #{line}"
+        end
       else
         set_status("Error:RemoteStatus", "Not Available")
         log "#{head}: Remote #{endpoint.at_type} #{heroku_app_name} has no status."
