@@ -69,24 +69,9 @@
   </tbody>
 </table>
 
-<table class="table table-bordered">
-  <thead>
-  <tr>
-    <th>Name</th>
-    <th>Endpoint Type</th>
-    <th>Proxy Address</th>
-  </tr>
-  </thead>
-  <tbody>
-  <% for se in @backend.server_endpoints %>
-      <tr id="endpoint_<%=se.id%>">
-        <td><%= link_to se.name, frontend_backend_server_endpoint_path(@frontend, @backend, se) %></td>
-        <td><%= se.deployment_type %></td>
-        <td><%= se.proxy_address %></td>
-      </tr>
-  <% end %>
-  </tbody>
-</table>
+<div id="server_endpoints_table">
+  <%= render :partial => 'server_endpoints_table' %>
+</div>
 
 
 <h3>Worker Endpoints</h3>
@@ -107,28 +92,9 @@
   </tbody>
 </table>
 
-<table class="table table-bordered">
-  <thead>
-  <tr>
-    <th>Name</th>
-    <th>Endpoint Type</th>
-    <th>Remote Name</th>
-    <th>Remote Status</th>
-  </tr>
-  </thead>
-  <tbody>
-  <% for se in @backend.worker_endpoints %>
-      <tr id="endpoint_<%=se.id%>">
-        <td><%= link_to se.name, frontend_backend_worker_endpoint_path(@frontend, @backend, se) %></td>
-        <td><%= se.deployment_type %></td>
-        <td><%= se.remote_name %></td>
-        <td class="remote_status">
-          <%= render :partial => 'endpoint_remote_status', :locals => {:se => DeployEndpointJob.where(:endpoint_id => se.id).first} %>
-        </td>
-      </tr>
-  <% end %>
-  </tbody>
-</table>
+<div id="worker_endpoints_table">
+  <%= render :partial => 'worker_endpoints_table' %>
+</div>
 
 <h3>Log
   <%= button_to "Clear", clear_log_frontend_backend_path(@frontend, @backend), :class => "btn" %>  </h3>

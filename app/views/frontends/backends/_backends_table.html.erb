@@ -79,11 +79,9 @@
         <td><%= be.cluster_address %>:<%= be.cluster_port %></td>
         <td>
           <% if be.listen_status %>
-              <% if be.listen_status.length > 0 %>
-                  <% for l in be.listen_status do %>
+                  <% for l in [be.listen_status].flatten do %>
                       <div><%= l %></div>
                   <% end %>
-              <% end %>
           <% end %>
         </td>
         <td><%= be.connection_status.length if be.connection_status %></td>

@@ -1,0 +1,18 @@
+<table class="table table-bordered">
+  <thead>
+  <tr>
+    <th>Name</th>
+    <th>Endpoint Type</th>
+    <th>Proxy Address</th>
+  </tr>
+  </thead>
+  <tbody>
+  <% for se in @backend.server_endpoints %>
+      <tr id="endpoint_<%=se.id%>">
+        <td><%= link_to se.name, frontend_backend_server_endpoint_path(@frontend, @backend, se) %></td>
+        <td><%= se.deployment_type %></td>
+        <td><%= se.proxy_address %></td>
+      </tr>
+  <% end %>
+  </tbody>
+</table>
