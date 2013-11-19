@@ -25,6 +25,8 @@
     <%= f.text_field :remote_host %>
     <%= f.label :n_servers, "N Workers" %>
     <%= f.text_field :n_servers, :value => @worker_endpoint.n_servers %>
+    <%= f.label :remote_configuration_literal, "Runtime configuration in JSON" %>
+    <%= f.text_area :remote_configuration_literal %>
     <br />
     <br />
     <%= f.submit "Create Worker Endpoint", :class => "btn" %>
