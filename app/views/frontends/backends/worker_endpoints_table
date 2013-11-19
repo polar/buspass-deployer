@@ -1,0 +1,22 @@
+<table class="table table-bordered">
+  <thead>
+  <tr>
+    <th>Name</th>
+    <th>Endpoint Type</th>
+    <th>Remote Name</th>
+    <th>Remote Status</th>
+  </tr>
+  </thead>
+  <tbody>
+  <% for se in @backend.worker_endpoints %>
+      <tr id="endpoint_<%=se.id%>">
+        <td><%= link_to se.name, frontend_backend_worker_endpoint_path(@frontend, @backend, se) %></td>
+        <td><%= se.deployment_type %></td>
+        <td><%= se.remote_name %></td>
+        <td class="remote_status">
+          <%= render :partial => 'endpoint_remote_status', :locals => {:se => DeployEndpointJob.where(:endpoint_id => se.id).first} %>
+        </td>
+      </tr>
+  <% end %>
+  </tbody>
+</table>
