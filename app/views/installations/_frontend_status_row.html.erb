@@ -4,12 +4,12 @@
   <td><%= @frontend.deployment_type %></td>
   <td><%= @frontend_job.delayed_jobs.count if @frontend_job %></td>
   <td>
-    <% for s in @frontend_job.git_commit do %>
+    <% for s in [@frontend_job.git_commit].flatten do %>
         <div><%= s %></div>
     <% end if @frontend_job && @frontend_job.git_commit %>
   </td>
-  <td><%= @frontend_job.listen_status.map {|x| "<div>#{x}</div>" }.join.html_safe if @frontend_job && @frontend_job.listen_status %>
-      <%= @frontend_job.connection_status.map {|x| "<div>#{x}</div>" }.join.html_safe if @frontend_job && @frontend_job.connection_status %>
+  <td><%= [@frontend_job.listen_status].flatten.map {|x| "<div>#{x}</div>" }.join.html_safe if @frontend_job && @frontend_job.listen_status %>
+      <%= [@frontend_job.connection_status].flatten.map {|x| "<div>#{x}</div>" }.join.html_safe if @frontend_job && @frontend_job.connection_status %>
   </td>
-  <td><%= @frontend_job.remote_status if @frontend_job %></td>
+  <td><%= [@frontend_job.remote_status].flatten.map {|x| "<div>#{x}</div>" }.join.html_safe if @frontend_job && @frontend_job.remote_status %></td>
 </tr>
