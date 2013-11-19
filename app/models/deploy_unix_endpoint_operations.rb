@@ -198,7 +198,7 @@ module DeployUnixEndpointOperations
     cmd = endpoint.start_command
     log "#{head}: Starting Remote Unix #{endpoint.at_type} #{remote_user}@#{remote_host}."
     env_cmd = "source ~/.endpoint-#{name}.env; cd #{endpoint.git_name}; nohup bash #{cmd} #{name} > /dev/null 2>&1 &"
-    unix_ssh("bash --login -c \"#{env_cmd}\"")
+    unix_ssh("-n -f bash --login -c \"#{env_cmd}\"")
     set_status("Success:Start")
   rescue Exception => boom
     set_status("Error:Start")
