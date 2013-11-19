@@ -84,7 +84,7 @@ class Frontends::BackendsController < ApplicationController
     get_context!
     job = DeployBackendJob.get_job(@backend, "configure_remote_backend")
     Delayed::Job.enqueue(job, :queue => "deploy-web")
-    flash[:notice] = "Backend #{@backend.name} will bestarted."
+    flash[:notice] = "Backend #{@backend.name} will be configured."
     redirect_to :back
   end
 
@@ -92,7 +92,7 @@ class Frontends::BackendsController < ApplicationController
     get_context!
     job = DeployBackendJob.get_job(@backend, "deconfigure_remote_backend")
     Delayed::Job.enqueue(job, :queue => "deploy-web")
-    flash[:notice] = "Backend #{@backend.name} will bestarted."
+    flash[:notice] = "Backend #{@backend.name} will deconfigured."
     redirect_to :back
   end
 
@@ -100,7 +100,7 @@ class Frontends::BackendsController < ApplicationController
     get_context!
     job = DeployBackendJob.get_job(@backend, "start_remote_backend")
     Delayed::Job.enqueue(job, :queue => "deploy-web")
-    flash[:notice] = "Backend #{@backend.name} will bestarted."
+    flash[:notice] = "Backend #{@backend.name} will be started."
     redirect_to :back
   end
 
@@ -108,7 +108,7 @@ class Frontends::BackendsController < ApplicationController
     get_context!
     job = DeployBackendJob.get_job(@backend, "restart_remote_backend")
     Delayed::Job.enqueue(job, :queue => "deploy-web")
-    flash[:notice] = "Backend #{@backend.name} will bestarted."
+    flash[:notice] = "Backend #{@backend.name} will be restarted."
     redirect_to :back
   end
 
@@ -116,7 +116,7 @@ class Frontends::BackendsController < ApplicationController
     get_context!
     job = DeployBackendJob.get_job(@backend, "status_remote_backend")
     Delayed::Job.enqueue(job, :queue => "deploy-web")
-    flash[:notice] = "Backend #{@backend.name} will bestarted."
+    flash[:notice] = "Backend #{@backend.name} status."
     redirect_to :back
   end
 
@@ -124,7 +124,7 @@ class Frontends::BackendsController < ApplicationController
     get_context!
     job = DeployBackendJob.get_job(@backend, "stop_remote_backend")
     Delayed::Job.enqueue(job, :queue => "deploy-web")
-    flash[:notice] = "Backend #{@backend.name} will bestarted."
+    flash[:notice] = "Backend #{@backend.name} will be stopped."
     redirect_to :back
   end
 
@@ -134,7 +134,7 @@ class Frontends::BackendsController < ApplicationController
       job = DeployFrontendJob.get_job(backend, "start_remote_backend")
       Delayed::Job.enqueue(job, :queue => "deploy-web")
     end
-    flash[:notice] = "Backend #{@backend.name} will be started."
+    flash[:notice] = "All Backends of #{@frontend.name} will be started."
     redirect_to :back
   end
 
@@ -144,7 +144,7 @@ class Frontends::BackendsController < ApplicationController
       job = DeployFrontendJob.get_job(backend, "stop_remote_backend")
       Delayed::Job.enqueue(job, :queue => "deploy-web")
     end
-    flash[:notice] = "Backend #{@backend.name} will be stopped."
+    flash[:notice] = "All Backends of #{@frontend.name} will be stopped."
     redirect_to :back
   end
 
@@ -154,7 +154,7 @@ class Frontends::BackendsController < ApplicationController
       job = DeployFrontendJob.get_job(backend, "restart_remote_backend")
       Delayed::Job.enqueue(job, :queue => "deploy-web")
     end
-    flash[:notice] = "Backend #{@backend.name} will be restarted."
+    flash[:notice] = "All Backends of #{@frontend.name} will be restarted."
     redirect_to :back
   end
 
@@ -164,7 +164,7 @@ class Frontends::BackendsController < ApplicationController
       job = DeployFrontendJob.get_job(backend, "status_remote_backend")
       Delayed::Job.enqueue(job, :queue => "deploy-web")
     end
-    flash[:notice] = "Frontend #{@frontend.name} will be getting status for all backends."
+    flash[:notice] = "All Backends of #{@frontend.name} will retrieve status."
     redirect_to :back
   end
 
@@ -174,7 +174,7 @@ class Frontends::BackendsController < ApplicationController
       job = DeployServerEndpointJob.get_job(endpoint, "create_remote_endpoint")
       Delayed::Job.enqueue(job, :queue => "deploy-web")
     end
-    flash[:notice] = "Job has been launched to create all server endpoints"
+    flash[:notice] = "All server endpoints for Backend #{@backend.name} will be created."
     redirect_to frontend_backend_path(@frontend, @backend)
   end
 
@@ -183,7 +183,7 @@ class Frontends::BackendsController < ApplicationController
       job = DeployServerEndpointJob.get_job(endpoint, "configure_remote_endpoint")
       Delayed::Job.enqueue(job, :queue => "deploy-web")
     end
-    flash[:notice] = "Job has been launched to configure all server endpoints"
+    flash[:notice] = "All server endpoints for Backend #{@backend.name} will be configured."
     redirect_to frontend_backend_path(@frontend, @backend)
   end
 
@@ -193,7 +193,7 @@ class Frontends::BackendsController < ApplicationController
       job = DeployServerEndpointJob.get_job(endpoint, "deploy_to_remote_endpoint")
       Delayed::Job.enqueue(job, :queue => "deploy-web")
     end
-    flash[:notice] = "Job has been launched to deploy to all server endpoints"
+    flash[:notice] = "All server endpoints for Backend #{@backend.name} will be deployed."
     redirect_to frontend_backend_path(@frontend, @backend)
   end
 
@@ -203,7 +203,7 @@ class Frontends::BackendsController < ApplicationController
       job = DeployServerEndpointJob.get_job(endpoint, "destroy_remote_endpoint")
       Delayed::Job.enqueue(job, :queue => "deploy-web")
     end
-    flash[:notice] = "Job has been launched to destroy to all server endpoints"
+    flash[:notice] = "All server endpoints for Backend #{@backend.name} will be destroyed."
     redirect_to frontend_backend_path(@frontend, @backend)
   end
 
@@ -213,7 +213,7 @@ class Frontends::BackendsController < ApplicationController
       job = DeployServerEndpointJob.get_job(endpoint, "start_remote_endpoint")
       Delayed::Job.enqueue(job, :queue => "deploy-web")
     end
-    flash[:notice] = "Job has been launched to start all server endpoints"
+    flash[:notice] = "All server endpoints for Backend #{@backend.name} will be started."
     redirect_to frontend_backend_path(@frontend, @backend)
   end
 
@@ -223,7 +223,7 @@ class Frontends::BackendsController < ApplicationController
       job = DeployServerEndpointJob.get_job(endpoint, "restart_remote_endpoint")
       Delayed::Job.enqueue(job, :queue => "deploy-web")
     end
-    flash[:notice] = "Job has been launched to restart all server endpoints"
+    flash[:notice] = "All server endpoints for Backend #{@backend.name} will be restarted."
     redirect_to frontend_backend_path(@frontend, @backend)
   end
 
@@ -233,7 +233,7 @@ class Frontends::BackendsController < ApplicationController
       job = DeployServerEndpointJob.get_job(endpoint, "stop_remote_endpoint")
       Delayed::Job.enqueue(job, :queue => "deploy-web")
     end
-    flash[:notice] = "Job has been launched to stop all server endpoints"
+    flash[:notice] = "All server endpoints for Backend #{@backend.name} will be stopped."
     redirect_to frontend_backend_path(@frontend, @backend)
   end
 
@@ -243,7 +243,7 @@ class Frontends::BackendsController < ApplicationController
       job = DeployServerEndpointJob.get_job(endpoint, "status_remote_endpoint")
       Delayed::Job.enqueue(job, :queue => "deploy-web")
     end
-    flash[:notice] = "Job has been launched to get status of server endpoints"
+    flash[:notice] = "All server endpoints for Backend #{@backend.name} will get status updates."
     redirect_to frontend_backend_path(@frontend, @backend)
   end
 
@@ -253,7 +253,7 @@ class Frontends::BackendsController < ApplicationController
       job = DeployServerEndpointJob.get_job(endpoint, "create_remote_endpoint")
       Delayed::Job.enqueue(job, :queue => "deploy-web")
     end
-    flash[:notice] = "Job has been launched to create all worker endpoints"
+    flash[:notice] = "All worker endpoints for Backend #{@backend.name} will be created."
     redirect_to frontend_backend_path(@frontend, @backend)
   end
 
@@ -263,7 +263,7 @@ class Frontends::BackendsController < ApplicationController
       job = DeployServerEndpointJob.get_job(endpoint, "configure_remote_endpoint")
       Delayed::Job.enqueue(job, :queue => "deploy-web")
     end
-    flash[:notice] = "Job has been launched to configure all worker endpoints"
+    flash[:notice] = "All worker endpoints for Backend #{@backend.name} will be configured."
     redirect_to frontend_backend_path(@frontend, @backend)
   end
 
@@ -273,7 +273,7 @@ class Frontends::BackendsController < ApplicationController
       job = DeployServerEndpointJob.get_job(endpoint, "deploy_to_remote_endpoint")
       Delayed::Job.enqueue(job, :queue => "deploy-web")
     end
-    flash[:notice] = "Job has been launched to deploy to all worker endpoints"
+    flash[:notice] = "All worker endpoints for Backend #{@backend.name} will be deployed."
     redirect_to frontend_backend_path(@frontend, @backend)
   end
 
@@ -283,7 +283,7 @@ class Frontends::BackendsController < ApplicationController
       job = DeployServerEndpointJob.get_job(endpoint, "destroy_remote_endpoint")
       Delayed::Job.enqueue(job, :queue => "deploy-web")
     end
-    flash[:notice] = "Job has been launched to destroy to all worker endpoints"
+    flash[:notice] = "All worker endpoints for Backend #{@backend.name} will be destroyed."
     redirect_to frontend_backend_path(@frontend, @backend)
   end
 
@@ -293,7 +293,7 @@ class Frontends::BackendsController < ApplicationController
       job = DeployServerEndpointJob.get_job(endpoint, "start_remote_endpoint")
       Delayed::Job.enqueue(job, :queue => "deploy-web")
     end
-    flash[:notice] = "Job has been launched to start all worker endpoints"
+    flash[:notice] = "All worker endpoints for Backend #{@backend.name} will be started."
     redirect_to frontend_backend_path(@frontend, @backend)
   end
 
@@ -303,7 +303,7 @@ class Frontends::BackendsController < ApplicationController
       job = DeployServerEndpointJob.get_job(endpoint, "restart_remote_endpoint")
       Delayed::Job.enqueue(job, :queue => "deploy-web")
     end
-    flash[:notice] = "Job has been launched to start all worker endpoints"
+    flash[:notice] = "All worker endpoints for Backend #{@backend.name} will be restarted."
     redirect_to frontend_backend_path(@frontend, @backend)
   end
 
@@ -313,7 +313,7 @@ class Frontends::BackendsController < ApplicationController
       job = DeployServerEndpointJob.get_job(endpoint, "stop_remote_endpoint")
       Delayed::Job.enqueue(job, :queue => "deploy-web")
     end
-    flash[:notice] = "Job has been launched to stop all worker endpoints"
+    flash[:notice] = "All worker endpoints for Backend #{@backend.name} will be stopped."
     redirect_to frontend_backend_path(@frontend, @backend)
   end
 
@@ -323,7 +323,7 @@ class Frontends::BackendsController < ApplicationController
       job = DeployServerEndpointJob.get_job(endpoint, "status_remote_endpoint")
       Delayed::Job.enqueue(job, :queue => "deploy-web")
     end
-    flash[:notice] = "Job has been launched to get status of worker endpoints"
+    flash[:notice] = "All worker endpoints for Backend #{@backend.name} will get status updates."
     redirect_to frontend_backend_path(@frontend, @backend)
   end
 
