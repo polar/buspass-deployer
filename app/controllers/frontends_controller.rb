@@ -174,7 +174,6 @@ class FrontendsController < ApplicationController
     index = params[:log_end].to_i
     if @frontend_job
       @logs = @frontend_job.logger.segment(index, 100)
-      @status = @frontend_job.status
     end
   end
 

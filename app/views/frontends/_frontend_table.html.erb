@@ -1,0 +1,48 @@
+<table class="table table-bordered">
+  <tbody>
+  <tr>
+    <th>Frontend Name</th>
+    <td><%= link_to @frontend.name, edit_frontend_path(@frontend) %></td>
+    <th>Type</th>
+    <td><%= @frontend.deployment_type %></td>
+    <th>Installation</th>
+    <td><%= link_to @frontend.installation.name, installation_path(@frontend.installation) %></td>
+    <th colspan="3">Actions</th>
+  </tr>
+  <tr>
+    <th>Remote Host</th>
+    <td><%= @frontend.remote_host %></td>
+    <th>Remote User</th>
+    <td><%= @frontend.remote_user %></td>
+    <th>Admin User</th>
+    <td><%= @frontend.admin_user %></td>
+    <td><%= link_to "Mange Backends", frontend_backends_path(@frontend), :class => "btn btn-mini" %></td>
+    <td><%= link_to "Edit", edit_frontend_path(@frontend), :class => "btn btn-mini" %></td>
+    <td><%= button_to "Destroy", frontend_path(@frontend), :method => :delete, :class => "btn btn-mini" %></td>
+    <td><%= button_to "Delete", delete_frontend_path(@frontend), :method => :delete, :class => "btn btn-mini" %></td>
+    <th colspan="2"></th>
+  </tr>
+  <tr>
+    <th>
+      Job Status
+    </th>
+    <td id="status"><%= @frontend_job.status if @frontend_job %></td>
+    <th>Git Commit</th>
+    <td>
+      <% for s in @frontend_job.git_commit do %>
+          <div><%= s %></div>
+      <% end if @frontend_job && @frontend_job.git_commit %>
+    </td>
+  </tr>
+  <tr>
+    <td><%= button_to "Create Remote", create_remote_frontend_path(@frontend), :class => "btn btn-mini" %></td>
+    <td><%= button_to "Deploy to Remote", deploy_to_remote_frontend_path(@frontend), :class => "btn btn-mini" %></td>
+    <td><%= button_to "Configure Remote", configure_remote_frontend_path(@frontend), :class => "btn btn-mini" %></td>
+    <td><%= button_to "Start Remote", start_remote_frontend_path(@frontend), :class => "btn btn-mini" %></td>
+    <td><%= button_to "Restart Remote", restart_remote_frontend_path(@frontend), :class => "btn btn-mini" %></td>
+    <td><%= button_to "Stop Remote", stop_remote_frontend_path(@frontend), :class => "btn btn-mini" %></td>
+    <td><%= button_to "Deconfigure Remote", deconfigure_remote_frontend_path(@frontend), :class => "btn btn-mini" %></td>
+    <td><%= button_to "Destroy Remote", destroy_remote_frontend_path(@frontend), :class => "btn btn-mini" %></td>
+  </tr>
+  </tbody>
+</table>
