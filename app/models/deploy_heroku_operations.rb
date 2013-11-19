@@ -178,7 +178,7 @@ module DeployHerokuOperations
     log "#{head}: Setting configuration variables for Remote #{endpoint.at_type} #{heroku_app_name}."
     result = HerokuHeadless.heroku.put_config_vars(heroku_app_name, endpoint.remote_configuration)
     if result && result.data[:body]
-      log "#{head}: Configuration Result #{result.inspect}"
+      #log "#{head}: Configuration Result #{result.inspect}"
       vars_set = result.data[:body].keys
       log "#{head}: Remote Configuration Variables #{vars_set.join(", ")} have been set for Remote #{endpoint.at_type} #{heroku_app_name}."
       set_status("Success:Configure")
