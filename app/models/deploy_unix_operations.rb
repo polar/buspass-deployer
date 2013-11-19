@@ -1,10 +1,10 @@
 module DeployUnixOperations
 
-  def unix_ssh_cmd(hostport, ssh_cert, user_name, cmd)
+  def unix_ssh_cmd(hostport, ssh_cert, user_name, cmd, ssh_args = "")
     match = /([0-9a-zA-Z\-\._]*)(:([0-9]*))?/.match(hostport)
     host = match[1]
     port = match[3]
-    cmd = "ssh -o StrictHostKeychecking=no -o CheckHostIP=no -o UserKnownHostsFile=/dev/null  #{"-p #{port}" if port} -i #{ssh_cert} #{user_name}@#{host} '#{cmd}'"
+    cmd = "ssh -o StrictHostKeychecking=no -o CheckHostIP=no -o UserKnownHostsFile=/dev/null #{ssh_args} #{"-p #{port}" if port} -i #{ssh_cert} #{user_name}@#{host} '#{cmd}'"
 
     return cmd
   end
