@@ -262,9 +262,9 @@ module DeployUnixEndpointOperations
           state.listen_status += array_match(/tcp\s+[0-9]+\s+[0-9]+\s+[0-9\.\:]+\s+(#{address.gsub(".","\\.")})\s+.*\s+ESTABLISHED/, netstat)
       end
     end
-    set_status("Success:Restart", state.listen_status.length > 1 ? "UP" : "DOWN")
+    set_status("Success:RemoteStatus", state.listen_status.length > 1 ? "UP" : "DOWN")
   rescue Exception => boom
-    set_status("Error:Restart")
+    set_status("Error:RemoteStatus")
     log "#{head}: error in restarting Remote Unix #{endpoint.at_type} #{remote_user}@#{remote_host} - #{boom}."
   end
 
