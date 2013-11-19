@@ -35,28 +35,52 @@ module DeployUnixBackendOperations
   def uadmin_unix_ssh(cmd)
     log "#{admin_user}@#{remote_host}: #{cmd}"
     result = Rush.bash unix_ssh_cmd(remote_host, ssh_cert, admin_user, cmd)
-    log "#{admin_user}@#{remote_host}: Result #{result.inspect}"
+    if result
+      result.split("\n").each do |line|
+        log "#{admin_user}@#{remote_host}: #{line}"
+      end
+    else
+      log "#{admin_user}@#{remote_host}: no result!"
+    end
     return result
   end
 
   def uadmin_unix_scp(path, remote_path)
     log "#{admin_user}@#{remote_host}: scp #{path} #{remote_path}"
     result = Rush.bash unix_scp_cmd(remote_host, ssh_cert, admin_user, path, remote_path)
-    log "#{admin_user}@#{remote_host}: Result #{result.inspect}"
+    if result
+      result.split("\n").each do |line|
+        log "#{admin_user}@#{remote_host}: #{line}"
+      end
+    else
+      log "#{admin_user}@#{remote_host}: no result!"
+    end
     return result
   end
 
   def unix_ssh(cmd)
     log "#{remote_user}@#{remote_host}: #{cmd}"
     result = Rush.bash unix_ssh_cmd(remote_host, ssh_cert, remote_user, cmd)
-    log "#{remote_user}@#{remote_host}: Result #{result.inspect}"
+    if result
+      result.split("\n").each do |line|
+        log "#{remote_user}@#{remote_host}: #{line}"
+      end
+    else
+      log "#{remote_user}@#{remote_host}: no result!"
+    end
     return result
   end
-  
+
   def unix_scp(path, remote_path)
     log "#{remote_user}@#{remote_host}: scp #{path} #{remote_path}"
     result = Rush.bash unix_scp_cmd(remote_host, ssh_cert, remote_user, path, remote_path)
-    log "#{remote_user}@#{remote_host}: Result #{result.inspect}"
+    if result
+      result.split("\n").each do |line|
+        log "#{remote_user}@#{remote_host}: #{line}"
+      end
+    else
+      log "#{remote_user}@#{remote_host}: no result!"
+    end
     return result
   end
 
