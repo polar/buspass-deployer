@@ -19,9 +19,9 @@ module DeployUnixEndpointOperations
     "1.9.3"
   end
   
-  def uadmin_unix_ssh(cmd)
+  def uadmin_unix_ssh(cmd, ssh_args = "")
     log "uadmin@#{remote_host}: #{cmd}"
-    result = Rush.bash unix_ssh_cmd(remote_host, ssh_cert, "uadmin", cmd)
+    result = Rush.bash unix_ssh_cmd(remote_host, ssh_cert, "uadmin", cmd, ssh_args)
     if result
       result.split("\n").each do |line|
         log "uadmin@#{remote_host}: #{line}"
@@ -45,9 +45,9 @@ module DeployUnixEndpointOperations
     return result
   end
 
-  def unix_ssh(cmd)
+  def unix_ssh(cmd, ssh_args = "")
     log "#{remote_user}@#{remote_host}: #{cmd}"
-    result = Rush.bash unix_ssh_cmd(remote_host, ssh_cert, remote_user, cmd)
+    result = Rush.bash unix_ssh_cmd(remote_host, ssh_cert, remote_user, cmd, ssh_args)
     if result
       result.split("\n").each do |line|
         log "#{remote_user}@#{remote_host}: #{line}"
@@ -198,7 +198,7 @@ module DeployUnixEndpointOperations
     cmd = endpoint.start_command
     log "#{head}: Starting Remote Unix #{endpoint.at_type} #{remote_user}@#{remote_host}."
     env_cmd = "source ~/.endpoint-#{name}.env; cd #{endpoint.git_name}; nohup bash #{cmd} #{name} > /dev/null 2>&1 &"
-    unix_ssh("-n -f bash --login -c \"#{env_cmd}\"")
+    unix_ssh("bash --login -c \"#{env_cmd}\"", "-n -f")
     set_status("Success:Start")
   rescue Exception => boom
     set_status("Error:Start")
@@ -223,8 +223,8 @@ module DeployUnixEndpointOperations
     set_status("Restart")
     cmd = endpoint.restart_command
     log "#{head}: Starting Remote Unix #{endpoint.at_type} #{remote_user}@#{remote_host}."
-    env_cmd = "source ~/.endpoint-#{name}.env; cd #{endpoint.git_name}; bash #{cmd} #{name}"
-    unix_ssh("bash --login -c \"#{env_cmd}\"")
+    env_cmd = "source ~/.endpoint-#{name}.env; cd #{endpoint.git_name}; nohup bash #{cmd} #{name}"
+    unix_ssh("bash --login -c \"#{env_cmd}\"", "-n -f")
     set_status("Success:Restart")
   rescue Exception => boom
     set_status("Error:Restart")
