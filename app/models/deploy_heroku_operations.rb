@@ -49,7 +49,7 @@ module DeployHerokuOperations
       release = result.data[:body].select {|x| x["commit"]}.last
       if release
         Rush.bash("script/dist-config \"#{endpoint.git_repository}\" \"#{endpoint.git_name}\" \"#{endpoint.git_refspec}\" /tmp")
-        log "#{head}: Release #{release.inspect}"
+        #log "#{head}: Release #{release.inspect}"
         commit = ["Current Remote Release"]
         commit += [ "#{release["name"]} #{release["descr"]} created_at #{release["created_at"]} by #{release["user"]}"]
         commit += Rush.bash("cd \"/tmp/#{endpoint.git_name}\"; git log --max-count=1 `git rev-parse #{release["commit"]}`").split("\n").take(3)
@@ -59,8 +59,11 @@ module DeployHerokuOperations
         commit += Rush.bash("cd \"/tmp/#{endpoint.git_name}\"; git log --max-count=1 `git rev-parse #{endpoint.git_refspec}`").split("\n").take(3)
         state.git_commit = commit
         state.save
+        log "#{head}: #{endpoint.at_type} #{heroku_app_name}  - updated_at #{state.updated_at}"
+        commit.each do |line|
+          log "#{head}: #{line}"
+        end
         set_status("Success:DeployStatus")
-        log "#{head}: #{endpoint.at_type} #{heroku_app_name} - #{state.git_commit.inspect} - updated_at #{state.updated_at}"
       else
         set_status("Error:DeployStatus")
         log "#{head}: No commit releases"
@@ -244,7 +247,6 @@ module DeployHerokuOperations
     log "#{head}: Getting configuration variables for Remote #{endpoint.at_type} #{heroku_app_name}."
     result = HerokuHeadless.heroku.get_config_vars(heroku_app_name)
     if result && result.data[:body]
-      log "#{head}: Configuration Result #{result.inspect}"
       vars_set = result.data[:body].keys
       log "#{head}: Remote Configuration Variables #{vars_set.join(", ")} have been set for Remote #{endpoint.at_type} #{heroku_app_name}."
       set_status("Success:Configure")
