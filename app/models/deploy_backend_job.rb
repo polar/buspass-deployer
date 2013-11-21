@@ -20,6 +20,10 @@ class DeployBackendJob < DeployJob
     state.connection_status
   end
 
+  def dir
+    backend.frontend.git_name
+  end
+
   def create_remote_backend
     log "#{head}: Create Remote Backend #{backend.name} on Frontend #{frontend.name}; Nothing to be done"
   end
