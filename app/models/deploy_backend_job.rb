@@ -32,7 +32,7 @@ class DeployBackendJob < DeployJob
     head = __method__
     log "#{head}: Configuring Remote Backend #{backend.name} on Frontend #{frontend.name}"
     set_status("Configure")
-    result = unix_ssh("bash -login -c \"cd #{dir}; #{backend.configure_command} #{backend.name}\"")
+    result = unix_ssh("bash -login -c \"source ~/.frontend-#{frontend.name}.env; cd #{dir}; #{backend.configure_command} #{backend.name}\"")
     set_status("Success:Configure")
   rescue Exception => boom
     log "#{head}: Error #{boom}"
@@ -43,7 +43,7 @@ class DeployBackendJob < DeployJob
     head = __method__
     log "#{head}: Deconfiguring Remote Backend #{backend.name} on Frontend #{frontend.name}"
     set_status("Deconfigure")
-    result = unix_ssh("bash -login -c \"cd #{dir}; #{backend.deconfigure_command} #{backend.name}\"")
+    result = unix_ssh("bash -login -c \"source ~/.frontend-#{frontend.name}.env; cd #{dir}; #{backend.deconfigure_command} #{backend.name}\"")
     set_status("Success:Deconfigure")
   rescue Exception => boom
     log "#{head}: Error #{boom}"
@@ -59,7 +59,7 @@ class DeployBackendJob < DeployJob
     head = __method__
     log "#{head}: Start Remote Backend #{backend.name} on Frontend #{frontend.name}"
     set_status("Start")
-    result = unix_ssh("bash -login -c \"cd #{dir}; #{backend.start_command} #{backend.name}\"")
+    result = unix_ssh("bash -login -c \"source ~/.frontend-#{frontend.name}.env; cd #{dir}; #{backend.start_command} #{backend.name}\"")
     set_status("Success:Start")
   rescue Exception => boom
     log "#{head}: Error #{boom}"
@@ -70,7 +70,7 @@ class DeployBackendJob < DeployJob
     head = __method__
     log "#{head}: Stop Remote Backend #{backend.name} on Frontend #{frontend.name}"
     set_status("Stop")
-    result = unix_ssh("bash -login -c \"cd #{dir}; #{backend.stop_command} #{backend.name}\"")
+    result = unix_ssh("bash -login -c \"source ~/.frontend-#{frontend.name}.env; cd #{dir}; #{backend.stop_command} #{backend.name}\"")
     set_status("Success:Stop")
   rescue Exception => boom
     log "#{head}: Error #{boom}"
@@ -83,11 +83,11 @@ class DeployBackendJob < DeployJob
     log "#{head}: Restart Remote Backend #{backend.name} on Frontend #{frontend.name}"
     log "#{head}: Stop Remote Backend #{backend.name} on Frontend #{frontend.name}"
     set_status("Stop")
-    result = unix_ssh("bash -login -c \"cd #{dir}; #{backend.stop_command} #{backend.name}\"")
+    result = unix_ssh("bash -login -c \"source ~/.frontend-#{frontend.name}.env; cd #{dir}; #{backend.stop_command} #{backend.name}\"")
     set_status("Success:Stop")
     log "#{head}: Start Remote Backend #{backend.name} on Frontend #{frontend.name}"
     set_status("Start")
-    result = unix_ssh_cmd(remote_host, cert, remote_user, "bash -login -c \"cd #{dir}; #{backend.stop_command} #{backend.name}\"")
+    result = unix_ssh_cmd(remote_host, cert, remote_user, "bash -login -c \"source ~/.frontend-#{frontend.name}.env; cd #{dir}; #{backend.stop_command} #{backend.name}\"")
     set_status("Success:Start")
     set_status("Success:Restart")
   rescue Exception => boom
@@ -102,7 +102,7 @@ class DeployBackendJob < DeployJob
       log "#{head}: Destroy Remote Backend #{backend.name} on Frontend #{frontend.name}"
       log "#{head}: Stop Remote Backend #{backend.name} on Frontend #{frontend.name}"
       set_status("Stop")
-      result = unix_ssh_cmd(remote_host, remote_key, remote_user, "bash -login -c \"cd #{git_name}; script/stop_backend.sh --name #{backend.name}\"")
+      result = unix_ssh_cmd(remote_host, remote_key, remote_user, "bash -login -c \"source ~/.frontend-#{frontend.name}.env; cd #{git_name}; script/stop_backend.sh --name #{backend.name}\"")
       set_status("Success:Stop")
       state.state_destroy = true
       deconfigure_remote_backend
