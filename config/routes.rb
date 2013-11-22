@@ -14,6 +14,7 @@ BuspassDeployer::Application.routes.draw do
       post :create_all
       post :deploy_all
       post :start_all
+      post :restart_all
       post :stop_all
       post :destroy_all
 
