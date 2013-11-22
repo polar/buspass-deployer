@@ -44,6 +44,10 @@ class ServerEndpoint < Endpoint
   end
 
   def ensure_backend_server_proxy
+    if server_proxy
+      server_proxy.save
+      return
+    end
     my_proxy = backend.server_proxies.where(:server_endpoint_id => self.id).first
     if my_proxy
       if ["Unix-Swift", "Heroku-Swift"].include?(deployment_type) && "Swift" != my_proxy.proxy_type
