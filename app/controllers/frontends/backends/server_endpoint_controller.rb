@@ -32,7 +32,8 @@ class Frontends::Backends::ServerEndpointController < ApplicationController
       name = "#{@backend.name}-server#{n}"
       @server_endpoint = ServerEndpoint.new(
           :backend => @backend,
-          :name => name
+          :name => name,
+          :remote_configuration_literal => "{}"
       )
     else
       raise NotFoundError
@@ -59,6 +60,9 @@ class Frontends::Backends::ServerEndpointController < ApplicationController
     if @backend
       @server_endpoint = ServerEndpoint.new(params[:server_endpoint])
       @server_endpoint.backend = @backend
+      if @server_endpoint.remote_configuration_literal.blank?
+        @server_endpoint.remote_configuration_literal = "{}"
+      end
 
       if @server_endpoint.valid?
         @server_endpoint.save
@@ -75,6 +79,9 @@ class Frontends::Backends::ServerEndpointController < ApplicationController
 
   def update
     get_context
+    if params[:server_endpoint][:remote_configuration_literal].blank?
+      params[:server_endpoint][:remote_configuration_literal] = "{}"
+    end
     if @server_endpoint.update_attributes(params[:server_endpoint])
       flash[:notice] = "Endpoint #{@server_endpoint.name} created."
       redirect_to frontend_backend_server_endpoints_path
