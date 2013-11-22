@@ -130,6 +130,18 @@ class InstallationsController < ApplicationController
     redirect_to deploy_status_installation_path(@installation)
   end
 
+  def restart_all
+    get_context!
+    if job_check_failed
+      redirect_to deploy_status_installation_path(@installation)
+      return
+    end
+    job = DeployInstallationJob.get_job(@installation, "restart_installation")
+    Delayed::Job.enqueue(job, :queue => "deploy-web")
+    flash[:notice] = "Job has been launched to restart the installation"
+    redirect_to deploy_status_installation_path(@installation)
+  end
+
   def deploy_all
     get_context!
     if job_check_failed

@@ -23,6 +23,7 @@
     <td><%= button_to "Create", create_all_installation_path(@installation), :class => "btn btn-mini" %></td>
     <td><%= button_to "Deploy", deploy_all_installation_path(@installation), :class => "btn btn-mini"  %></td>
     <td><%= button_to "Start", start_all_installation_path(@installation), :class => "btn btn-mini"  %></td>
+    <td><%= button_to "Restart", restart_all_installation_path(@installation), :class => "btn btn-mini"  %></td>
     <td><%= button_to "Stop ", stop_all_installation_path(@installation), :class => "btn btn-mini"  %></td>
     <td><%= link_to "Job Status", job_status_installation_path(@installation), :class => "btn btn-mini"  %></td>
     <td><%= link_to "Deploy Status", deploy_status_installation_path(@installation), :class => "btn btn-mini"  %></td>
