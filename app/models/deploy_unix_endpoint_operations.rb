@@ -152,18 +152,23 @@ module DeployUnixEndpointOperations
   end
 
   def unix_deploy_to_remote_endpoint
-    head = __method__
-    set_status("Deploy")
-    log "#{head}: Deploying Endpoint #{endpoint.name} on #{remote_user}@#{remote_host}"
-    unix_ssh("test -e #{endpoint.git_name} || git clone #{endpoint.git_repository} -b #{endpoint.git_refspec}")
-    unix_ssh("cd #{endpoint.git_name}; rm Gemfile.lock; git pull; git submodule init; git submodule update")
-    unix_ssh('bash --login -c "cd '+endpoint.git_name+'; bundle install" ')
-    log "#{head}: Created Remote Unix #{endpoint.at_type} #{remote_user}@#{remote_host}"
-    set_status("Success:Deploy")
-  rescue Exception => boom
-    log "#{head}: Could not deploy Remote Unix #{endpoint.at_type} #{remote_user}@#{remote_host} : #{boom}"
-    set_status("Error:Deploy")
+    begin
+      head = __method__
+      set_status("Deploy")
+      log "#{head}: Deploying Endpoint #{endpoint.name} on #{remote_user}@#{remote_host}"
+      unix_ssh("test -e #{endpoint.git_name} || git clone #{endpoint.git_repository} -b #{endpoint.git_refspec}")
+      unix_ssh("cd #{endpoint.git_name}; rm Gemfile.lock; git pull; git submodule init; git submodule update")
+      unix_ssh('bash --login -c "cd '+endpoint.git_name+'; bundle install" ')
+      log "#{head}: Created Remote Unix #{endpoint.at_type} #{remote_user}@#{remote_host}"
+      set_status("Success:Deploy")
+    rescue Exception => boom
+      log "#{head}: Could not deploy Remote Unix #{endpoint.at_type} #{remote_user}@#{remote_host} : #{boom}"
+      set_status("Error:Deploy")
+    end
+    unix_stop_remote_endpoint
+    unix_start_remote_endpoint
   end
+
 
   def unix_destroy_remote_endpoint
     head = __method__
