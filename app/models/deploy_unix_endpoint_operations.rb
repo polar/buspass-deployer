@@ -134,24 +134,44 @@ module DeployUnixEndpointOperations
   end
 
   def unix_configure_remote_endpoint
-    head = __method__
-    set_status("Configure")
-    log "#{head}: Setting configuration variables for Remote Unix #{endpoint.at_type} #{remote_user}@#{remote_host}."
-    file = Tempfile.new('vars')
-    vars = endpoint.remote_configuration
-    vars.each_pair do |k,v|
-      file.write("export #{k}='#{v}'\n")
+    unix_status_remote_endpoint
+    start_endpoint_after = false
+    if state.remote_status == "UP"
+      unix_stop_remote_endpoint
+      start_endpoint_after = true
     end
-    file.close
-    result = unix_scp(file.path, ".endpoint-#{endpoint.name}.env")
-    file.unlink
-    set_status("Success:Configure", [result])
-  rescue Exception => boom
-    log "#{head}: Cannot configure  Remote Unix #{endpoint.at_type} #{remote_user}@#{remote_host} - #{boom}"
-    set_status("Error:ConfigureRemoteEndpoint")
+    begin
+      head = __method__
+      set_status("Configure")
+      log "#{head}: Setting configuration variables for Remote Unix #{endpoint.at_type} #{remote_user}@#{remote_host}."
+      file = Tempfile.new('vars')
+      vars = endpoint.remote_configuration
+      vars.each_pair do |k,v|
+        file.write("export #{k}='#{v}'\n")
+      end
+      file.close
+      result = unix_scp(file.path, ".endpoint-#{endpoint.name}.env")
+      file.unlink
+      set_status("Success:Configure", [result])
+    rescue Exception => boom
+      log "#{head}: Cannot configure  Remote Unix #{endpoint.at_type} #{remote_user}@#{remote_host} - #{boom}"
+      set_status("Error:ConfigureRemoteEndpoint")
+      start_endpoint_after = false
+    end
+    if start_endpoint_after
+      unix_start_remote_endpoint
+    end
   end
 
+
   def unix_deploy_to_remote_endpoint
+    unix_status_remote_endpoint
+    start_endpoint_after = false
+    if state.remote_status == "UP"
+      unix_stop_remote_endpoint
+      start_endpoint_after = true
+    end
+
     begin
       head = __method__
       set_status("Deploy")
@@ -164,13 +184,19 @@ module DeployUnixEndpointOperations
     rescue Exception => boom
       log "#{head}: Could not deploy Remote Unix #{endpoint.at_type} #{remote_user}@#{remote_host} : #{boom}"
       set_status("Error:Deploy")
+      start_endpoint_after = false
     end
-    unix_stop_remote_endpoint
-    unix_start_remote_endpoint
+    if start_endpoint_after
+      unix_start_remote_endpoint
+    end
   end
 
 
   def unix_destroy_remote_endpoint
+    unix_status_remote_endpoint
+    if state.remote_status == "UP"
+      unix_stop_remote_endpoint
+    end
     head = __method__
     set_status("DestroyApp")
     log "Deleting Remote Unix #{endpoint.at_type} #{remote_user}@#{remote_host}"
