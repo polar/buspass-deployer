@@ -21,6 +21,7 @@
   <tbody>
   <tr>
     <td><%= button_to "Create", create_all_installation_path(@installation), :class => "btn btn-mini" %></td>
+    <td><%= button_to "Configure", configure_all_installation_path(@installation), :class => "btn btn-mini" %></td>
     <td><%= button_to "Deploy", deploy_all_installation_path(@installation), :class => "btn btn-mini"  %></td>
     <td><%= button_to "Start", start_all_installation_path(@installation), :class => "btn btn-mini"  %></td>
     <td><%= button_to "Restart", restart_all_installation_path(@installation), :class => "btn btn-mini"  %></td>

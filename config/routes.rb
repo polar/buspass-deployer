@@ -12,6 +12,7 @@ BuspassDeployer::Application.routes.draw do
       put :update_worker_endpoint_git
 
       post :create_all
+      post :configure_all
       post :deploy_all
       post :start_all
       post :restart_all
