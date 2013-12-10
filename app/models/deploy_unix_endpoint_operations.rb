@@ -278,7 +278,7 @@ module DeployUnixEndpointOperations
           address = "0.0.0.0:#{port}"
           state.listen_status += array_match(/tcp\s+[0-9]+\s+[0-9]+\s+(#{address.gsub(".","\\.")})\s+.*\s+LISTEN/, netstat)
         when "SSH"
-          addr = proxy.proxy_address
+          addr = proxy.backend_address
           match = /(.*):(.*)/.match addr
           host = match[1]
           port = match[2]
