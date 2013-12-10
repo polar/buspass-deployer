@@ -135,34 +135,63 @@ module DeployUnixEndpointOperations
 
   def unix_configure_remote_endpoint
     head = __method__
-    set_status("Configure")
-    log "#{head}: Setting configuration variables for Remote Unix #{endpoint.at_type} #{remote_user}@#{remote_host}."
-    file = Tempfile.new('vars')
-    vars = endpoint.remote_configuration
-    vars.each_pair do |k,v|
-      file.write("export #{k}='#{v}'\n")
+
+    unix_status_remote_endpoint
+    start_endpoint_after = false
+    if state.remote_status == "UP"
+      unix_stop_remote_endpoint
+      start_endpoint_after = true
     end
-    file.close
-    result = unix_scp(file.path, ".endpoint-#{endpoint.name}.env")
-    file.unlink
-    set_status("Success:Configure", [result])
-  rescue Exception => boom
-    log "#{head}: Cannot configure  Remote Unix #{endpoint.at_type} #{remote_user}@#{remote_host} - #{boom}"
-    set_status("Error:ConfigureRemoteEndpoint")
+
+    begin
+      set_status("Configure")
+      log "#{head}: Setting configuration variables for Remote Unix #{endpoint.at_type} #{remote_user}@#{remote_host}."
+      file = Tempfile.new('vars')
+      vars = endpoint.remote_configuration
+      vars.each_pair do |k,v|
+        file.write("export #{k}='#{v}'\n")
+      end
+      file.close
+      result = unix_scp(file.path, ".endpoint-#{endpoint.name}.env")
+      file.unlink
+      set_status("Success:Configure", [result])
+    rescue Exception => boom
+      log "#{head}: Cannot configure  Remote Unix #{endpoint.at_type} #{remote_user}@#{remote_host} - #{boom}"
+      set_status("Error:ConfigureRemoteEndpoint")
+      start_endpoint_after = false
+    end
+
+    if start_endpoint_after
+      unix_start_remote_endpoint
+    end
   end
 
   def unix_deploy_to_remote_endpoint
     head = __method__
-    set_status("Deploy")
-    log "#{head}: Deploying Endpoint #{endpoint.name} on #{remote_user}@#{remote_host}"
-    unix_ssh("test -e #{endpoint.git_name} || git clone #{endpoint.git_repository} -b #{endpoint.git_refspec}")
-    unix_ssh("cd #{endpoint.git_name}; rm Gemfile.lock; git pull; git submodule init; git submodule update")
-    unix_ssh('bash --login -c "cd '+endpoint.git_name+'; bundle install" ')
-    log "#{head}: Created Remote Unix #{endpoint.at_type} #{remote_user}@#{remote_host}"
-    set_status("Success:Deploy")
-  rescue Exception => boom
-    log "#{head}: Could not deploy Remote Unix #{endpoint.at_type} #{remote_user}@#{remote_host} : #{boom}"
-    set_status("Error:Deploy")
+
+    unix_status_remote_endpoint
+    start_endpoint_after = false
+    if state.remote_status == "UP"
+      unix_stop_remote_endpoint
+      start_endpoint_after = true
+    end
+    begin
+      set_status("Deploy")
+      log "#{head}: Deploying Endpoint #{endpoint.name} on #{remote_user}@#{remote_host}"
+      unix_ssh("test -e #{endpoint.git_name} || git clone #{endpoint.git_repository} -b #{endpoint.git_refspec}")
+      unix_ssh("cd #{endpoint.git_name}; rm Gemfile.lock; git pull; git submodule init; git submodule update")
+      unix_ssh('bash --login -c "cd '+endpoint.git_name+'; bundle install" ')
+      log "#{head}: Created Remote Unix #{endpoint.at_type} #{remote_user}@#{remote_host}"
+      set_status("Success:Deploy")
+    rescue Exception => boom
+      log "#{head}: Could not deploy Remote Unix #{endpoint.at_type} #{remote_user}@#{remote_host} : #{boom}"
+      set_status("Error:Deploy")
+      start_endpoint_after = false
+    end
+
+    if start_endpoint_after
+      unix_start_remote_endpoint
+    end
   end
 
   def unix_destroy_remote_endpoint
