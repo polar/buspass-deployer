@@ -282,8 +282,10 @@ module DeployUnixEndpointOperations
           match = /(.*):(.*)/.match addr
           host = match[1]
           port = match[2]
-          address = "#{endpoint.frontend.external_ip}:#{port}"
-          state.listen_status += array_match(/tcp\s+[0-9]+\s+[0-9]+\s+[0-9\.\:]+\s+(#{address.gsub(".","\\.")})\s+.*\s+ESTABLISHED/, netstat)
+          address = "0.0.0.0:#{port}"
+          state.listen_status += array_match(/tcp\s+[0-9]+\s+[0-9]+\s+(#{address.gsub(".","\\.")})\s+.*\s+LISTEN/, netstat)
+          address = "#{host}:#{port}"
+          state.listen_status += array_match(/tcp\s+[0-9]+\s+[0-9]+\s+(#{address.gsub(".","\\.")})\s+.*\s+LISTEN/, netstat)
         when "Swift"
           addr = proxy.backend_address
           match = /(.*):(.*)/.match addr
