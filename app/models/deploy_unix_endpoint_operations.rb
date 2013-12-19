@@ -265,40 +265,46 @@ module DeployUnixEndpointOperations
   def unix_status_remote_endpoint
     head = __method__
     set_status("RemoteStatus")
-    proxy = endpoint.server_proxy
-    state.listen_status = ["#{endpoint.external_ip}"]
-    if proxy
-      netstat = unix_ssh("netstat -tan").split("\n")
-      case proxy.proxy_type
-        when "Server"
-          addr = proxy.proxy_address
-          match = /(.*):(.*)/.match addr
-          host = match[1]
-          port = match[2]
-          address = "0.0.0.0:#{port}"
-          state.listen_status += array_match(/tcp\s+[0-9]+\s+[0-9]+\s+(#{address.gsub(".","\\.")})\s+.*\s+LISTEN/, netstat)
-        when "SSH"
-          addr = proxy.backend_address
-          match = /(.*):(.*)/.match addr
-          host = match[1]
-          port = match[2]
-          address = "0.0.0.0:#{port}"
-          state.listen_status += array_match(/tcp\s+[0-9]+\s+[0-9]+\s+(#{address.gsub(".","\\.")})\s+.*\s+LISTEN/, netstat)
-          address = "#{host}:#{port}"
-          state.listen_status += array_match(/tcp\s+[0-9]+\s+[0-9]+\s+(#{address.gsub(".","\\.")})\s+.*\s+LISTEN/, netstat)
-        when "Swift"
-          addr = proxy.backend_address
-          match = /(.*):(.*)/.match addr
-          host = match[1]
-          port = match[2]
-          address = "#{endpoint.frontend.external_ip}:#{port}"
-          state.listen_status += array_match(/tcp\s+[0-9]+\s+[0-9]+\s+[0-9\.\:]+\s+(#{address.gsub(".","\\.")})\s+.*\s+ESTABLISHED/, netstat)
+    if endpoint.is_a? ServerEndpoint
+      proxy = endpoint.server_proxy
+      state.listen_status = ["#{endpoint.external_ip}"]
+      if proxy
+        netstat = unix_ssh("netstat -tan").split("\n")
+        case proxy.proxy_type
+          when "Server"
+            addr = proxy.proxy_address
+            match = /(.*):(.*)/.match addr
+            host = match[1]
+            port = match[2]
+            address = "0.0.0.0:#{port}"
+            state.listen_status += array_match(/tcp\s+[0-9]+\s+[0-9]+\s+(#{address.gsub(".","\\.")})\s+.*\s+LISTEN/, netstat)
+          when "SSH"
+            addr = proxy.backend_address
+            match = /(.*):(.*)/.match addr
+            host = match[1]
+            port = match[2]
+            address = "0.0.0.0:#{port}"
+            state.listen_status += array_match(/tcp\s+[0-9]+\s+[0-9]+\s+(#{address.gsub(".","\\.")})\s+.*\s+LISTEN/, netstat)
+            address = "#{host}:#{port}"
+            state.listen_status += array_match(/tcp\s+[0-9]+\s+[0-9]+\s+(#{address.gsub(".","\\.")})\s+.*\s+LISTEN/, netstat)
+          when "Swift"
+            addr = proxy.backend_address
+            match = /(.*):(.*)/.match addr
+            host = match[1]
+            port = match[2]
+            address = "#{endpoint.frontend.external_ip}:#{port}"
+            state.listen_status += array_match(/tcp\s+[0-9]+\s+[0-9]+\s+[0-9\.\:]+\s+(#{address.gsub(".","\\.")})\s+.*\s+ESTABLISHED/, netstat)
+        end
       end
+      set_status("Success:RemoteStatus", state.listen_status.length > 1 ? "UP" : "DOWN")
+    else
+      ps_status = unix_ssh("ps ax | grep #{endpoint.name}").split("\n")
+      state.instance_status = array_match(/instance/, ps_status)
+      set_status("Success:RemoteStatus", state.instance_status.length > 0 ? "UP" : "DOWN")
     end
-    set_status("Success:RemoteStatus", state.listen_status.length > 1 ? "UP" : "DOWN")
   rescue Exception => boom
     set_status("Error:RemoteStatus")
-    log "#{head}: error in restarting Remote Unix #{endpoint.at_type} #{remote_user}@#{remote_host} - #{boom}."
+    log "#{head}: error in status of Remote Unix #{endpoint.at_type} #{remote_user}@#{remote_host} - #{boom}."
   end
 
 
