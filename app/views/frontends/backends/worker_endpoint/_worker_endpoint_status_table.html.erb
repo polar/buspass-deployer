@@ -2,7 +2,7 @@
   <tbody>
   <tr>
     <th>Name</th>
-    <td><%= @worker_endpoint.name %></td>
+    <td><%= link_to @worker_endpoint.name, edit_frontend_backend_worker_endpoint_path(@frontend, @backend, @worker_endpoint) %></td>
     <td><%= button_to "Delete", frontend_backend_worker_endpoint_path(@frontend, @backend, @worker_endpoint), :method => :delete, :confirm => "Are you sure?", :class => "btn btn-mini" %></td>
 
   </tr>
@@ -12,6 +12,10 @@
     <td><%= @worker_endpoint.remote_user %></td>
     <td><%= @worker_endpoint.remote_host %></td>
     <td>Workers: <%= @worker_endpoint.n_servers %></td>
+  </tr>
+  <tr>
+    <th>Configuration</th>
+    <td colspan="7"><%= @worker_endpoint.remote_configuration %></td>
   </tr>
   <tr>
     <td><%= button_to "Create App", create_app_frontend_backend_worker_endpoint_path(@frontend, @backend, @worker_endpoint), :confirm => "Are you sure?", :class => "btn btn-mini" %></td>

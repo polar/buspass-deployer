@@ -58,6 +58,30 @@ class Frontends::Backends::WorkerEndpointController < ApplicationController
     end
   end
 
+  def edit
+    get_context
+    if @backend
+      @deployment_types = ["Heroku", "Unix"]
+    else
+      raise NotFoundError
+    end
+  end
+
+  def update
+    get_context
+    if @backend
+      if @worker_endpoint.update_attributes(params[:worker_endpoint])
+        flash[:notice] = "Endpoint #{@worker_endpoint.name} updated."
+        redirect_to frontend_backend_worker_endpoints_path
+      else
+        @deployment_types = ["Heroku", "Unix"]
+        render :edit
+      end
+    else
+      raise NotFoundError
+    end
+  end
+
   def destroy
     get_context!
     flash[:notice] = "Worker Endpoint #{@worker_endpoint.name} destroyed."

@@ -1,0 +1,9 @@
+<h1>Edit Worker Endpoint</h1>
+> <%= link_to @installation.name, installation_path(@installation) %>
+> <%= link_to "#{@frontend.name}(#{@frontend.remote_host})" %>
+> <%= link_to @backend.name, frontend_backend_path(@frontend, @backend) %>
+
+<%= render :partial => 'form' %>
+
+<%= render :partial => "frontends/backends/frontend_table"  %>
+<%= render :partial => "frontends/backends/backend_table" %>

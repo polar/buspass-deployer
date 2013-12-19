@@ -8,7 +8,7 @@ class ServerEndpoint < Endpoint
   after_save :ensure_backend_server_proxy
 
   # For ServerEndpoint only.
-  attr_accessible :backend_address, :proxy_address, :proxy_address_store
+  attr_accessible :backend_address, :proxy_address, :proxy_address_store, :deployment_type, :remote_configuration_literal
 
   def backend_address
     @backend_address || (server_proxy.backend_address if server_proxy)
