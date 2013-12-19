@@ -55,7 +55,7 @@ class Endpoint
 
   before_validation :assign_upwards
 
-  attr_accessible :n_servers, :remote_user, :admin_user, :backend, :backend_id, :remote_host, :name, :external_ip
+  attr_accessible :n_servers, :remote_user, :admin_user, :backend, :backend_id, :remote_host, :name, :external_ip, :deployment_type
 
   def remote_name
     case deployment_type
