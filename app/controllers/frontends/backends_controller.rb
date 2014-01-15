@@ -250,7 +250,7 @@ class Frontends::BackendsController < ApplicationController
   def create_all_worker_endpoint_apps
     get_context!
     @backend.worker_endpoints.each do |endpoint|
-      job = DeployWorkerndpointJob.get_job(endpoint, "create_remote_endpoint")
+      job = DeployWorkerEndpointJob.get_job(endpoint, "create_remote_endpoint")
       Delayed::Job.enqueue(job, :queue => "deploy-web")
     end
     flash[:notice] = "All worker endpoints for Backend #{@backend.name} will be created."
@@ -260,7 +260,7 @@ class Frontends::BackendsController < ApplicationController
   def configure_all_worker_endpoint_apps
     get_context!
     @backend.worker_endpoints.each do |endpoint|
-      job = DeployWorkerndpointJob.get_job(endpoint, "configure_remote_endpoint")
+      job = DeployWorkerEndpointJob.get_job(endpoint, "configure_remote_endpoint")
       Delayed::Job.enqueue(job, :queue => "deploy-web")
     end
     flash[:notice] = "All worker endpoints for Backend #{@backend.name} will be configured."
@@ -270,7 +270,7 @@ class Frontends::BackendsController < ApplicationController
   def deploy_all_worker_endpoint_apps
     get_context!
     @backend.worker_endpoints.each do |endpoint|
-      job = DeployWorkerndpointJob.get_job(endpoint, "deploy_to_remote_endpoint")
+      job = DeployWorkerEndpointJob.get_job(endpoint, "deploy_to_remote_endpoint")
       Delayed::Job.enqueue(job, :queue => "deploy-web")
     end
     flash[:notice] = "All worker endpoints for Backend #{@backend.name} will be deployed."
@@ -280,7 +280,7 @@ class Frontends::BackendsController < ApplicationController
   def destroy_all_worker_endpoint_apps
     get_context!
     @backend.worker_endpoints.each do |endpoint|
-      job = DeployWorkerndpointJob.get_job(endpoint, "destroy_remote_endpoint")
+      job = DeployWorkerEndpointJob.get_job(endpoint, "destroy_remote_endpoint")
       Delayed::Job.enqueue(job, :queue => "deploy-web")
     end
     flash[:notice] = "All worker endpoints for Backend #{@backend.name} will be destroyed."
@@ -290,7 +290,7 @@ class Frontends::BackendsController < ApplicationController
   def start_all_worker_endpoint_apps
     get_context!
     @backend.worker_endpoints.each do |endpoint|
-      job = DeployWorkerndpointJob.get_job(endpoint, "start_remote_endpoint")
+      job = DeployWorkerEndpointJob.get_job(endpoint, "start_remote_endpoint")
       Delayed::Job.enqueue(job, :queue => "deploy-web")
     end
     flash[:notice] = "All worker endpoints for Backend #{@backend.name} will be started."
@@ -300,7 +300,7 @@ class Frontends::BackendsController < ApplicationController
   def restart_all_worker_endpoint_apps
     get_context!
     @backend.worker_endpoints.each do |endpoint|
-      job = DeployWorkerndpointJob.get_job(endpoint, "restart_remote_endpoint")
+      job = DeployWorkerEndpointJob.get_job(endpoint, "restart_remote_endpoint")
       Delayed::Job.enqueue(job, :queue => "deploy-web")
     end
     flash[:notice] = "All worker endpoints for Backend #{@backend.name} will be restarted."
@@ -310,7 +310,7 @@ class Frontends::BackendsController < ApplicationController
   def stop_all_worker_endpoint_apps
     get_context!
     @backend.worker_endpoints.each do |endpoint|
-      job = DeployWorkerndpointJob.get_job(endpoint, "stop_remote_endpoint")
+      job = DeployWorkerEndpointJob.get_job(endpoint, "stop_remote_endpoint")
       Delayed::Job.enqueue(job, :queue => "deploy-web")
     end
     flash[:notice] = "All worker endpoints for Backend #{@backend.name} will be stopped."
@@ -320,7 +320,7 @@ class Frontends::BackendsController < ApplicationController
   def status_all_worker_endpoint_apps
     get_context!
     @backend.worker_endpoints.each do |endpoint|
-      job = DeployWorkerndpointJob.get_job(endpoint, "status_remote_endpoint")
+      job = DeployWorkerEndpointJob.get_job(endpoint, "status_remote_endpoint")
       Delayed::Job.enqueue(job, :queue => "deploy-web")
     end
     flash[:notice] = "All worker endpoints for Backend #{@backend.name} will get status updates."
