@@ -184,7 +184,7 @@ module DeployUnixEndpointOperations
       unix_ssh("mkdir -p ~/busme")
       cmd = endpoint.start_command
       env_cmd = "source ~/.endpoint-#{name}.env; cd #{endpoint.git_name}; nohup bash #{cmd} #{name} > /dev/null 2>&1 &"
-      start_cmd = "sudo -u #{remote_user} -s \"#{env_cmd}\"\n"
+      start_cmd = "su - #{remote_user} '#{env_cmd}'\n"
       file = Tempfile.new('start')
       file.write(start_cmd)
       file.close
