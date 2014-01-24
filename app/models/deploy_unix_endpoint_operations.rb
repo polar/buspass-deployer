@@ -182,6 +182,7 @@ module DeployUnixEndpointOperations
       unix_ssh('bash --login -c "cd '+endpoint.git_name+'; bundle install" ')
 
       unix_ssh("mkdir -p ~/busme")
+      cmd = endpoint.start_command
       env_cmd = "source ~/.endpoint-#{name}.env; cd #{endpoint.git_name}; nohup bash #{cmd} #{name} > /dev/null 2>&1 &"
       start_cmd = "sudo -u #{remote_user} -s \"#{env_cmd}\"\n"
       file = Tempfile.new('start')
