@@ -3,7 +3,7 @@ class DeployCreateWorkerEndpointJobspec < Struct.new(:endpoint_id, :endpoint_nam
 
   def perform
     puts "Attempting to create remote entity for Worker Endpoint '#{endpoint_name}'"
-    endpoint = WorkerEndpoint.where(:endpoint_id => endpoint_id).first
+    endpoint = WorkerEndpoint.find(endpoint_id)
     if endpoint
       if endpoint.deployment_type.empty?
         endpoint.deployment_type = "Heroku"
