@@ -187,7 +187,7 @@ module DeployUnixEndpointOperations
       head = __method__
       set_status("Deploy")
       log "#{head}: Deploying Endpoint #{endpoint.name} on #{remote_user}@#{remote_host}"
-      unix_ssh("test -e #{endpoint.git_name} || #{git_ssh}; git clone #{endpoint.git_repository} -b #{endpoint.git_refspec}")
+      unix_ssh("test -e #{endpoint.git_name} || (#{git_ssh}; git clone #{endpoint.git_repository} -b #{endpoint.git_refspec})")
       unix_ssh("cd #{endpoint.git_name}; #{git_ssh}; git config user.email admin@adiron.com; git config user.name Admin")
       unix_ssh("cd #{endpoint.git_name}; #{git_ssh}; git stash; git pull; git submodule init; git submodule update")
       unix_ssh('bash --login -c "cd '+endpoint.git_name+'; bundle install" ')
