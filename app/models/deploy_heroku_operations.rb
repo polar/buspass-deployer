@@ -15,10 +15,11 @@ module DeployHerokuOperations
     # We have to reset, because successive connection/SSL failures
     # do not resolve themselves. Ugg.
     HerokuHeadless.reset
+    deploy_cert_path = deploy_cert
     ENV["HEROKU_API_KEY"] = deploy_heroku_api_key.decrypt_key_content(:key => ENV["AWS_SECRET_ACCESS_KEY"])
     HerokuHeadless.configure do |config|
       config.pre_deploy_git_commands = [
-          "script/dist-config \"#{endpoint.git_repository}\" \"#{endpoint.git_name}\" \"#{endpoint.git_refspec}\" /tmp"
+          "script/dist-config \"#{endpoint.git_repository}\" \"#{endpoint.git_name}\" \"#{endpoint.git_refspec}\" /tmp \"#{deploy_cert_path}\" "
       ]
       config.force_push = true
       config.repository_location = File.join("/", "tmp", endpoint.git_name)
@@ -48,7 +49,8 @@ module DeployHerokuOperations
     if result
       release = result.data[:body].select {|x| x["commit"]}.last
       if release
-        Rush.bash("script/dist-config \"#{endpoint.git_repository}\" \"#{endpoint.git_name}\" \"#{endpoint.git_refspec}\" /tmp")
+        deploy_key_path = deploy_cert
+        Rush.bash("script/dist-config \"#{endpoint.git_repository}\" \"#{endpoint.git_name}\" \"#{endpoint.git_refspec}\" /tmp \"#{deploy_key_path}\" ")
         #log "#{head}: Release #{release.inspect}"
         commit = ["Current Remote Release"]
         commit += [ "#{release["name"]} #{release["descr"]} created_at #{release["created_at"]} by #{release["user"]}"]

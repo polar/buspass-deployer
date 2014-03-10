@@ -4,12 +4,20 @@ REPOSITORY=$1
 NAME=$2
 REFSPEC=$3
 DIRECTORY=$4
+SSH_KEY=$5
 
 if [ "x$DIRECTORY" = "x" ];then
     DIRECTORY=/tmp
 fi
 
 cd "$DIRECTORY"
+
+if [ "x$SSH_KEY" != "x" ];then
+    echo "exec /usr/bin/ssh -o StrictHostKeyChecking=no -i "$SSH_KEY" \"$@\"" > ./gitsh
+    chmod +x ./gitsh
+    export GIT_SSH="$cwd/gitsh"
+fi
+
 
 if [ ! -e "$NAME" ]; then
     echo "Cloning '$REPOSITORY' to '$NAME'"

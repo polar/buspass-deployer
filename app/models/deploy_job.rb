@@ -102,6 +102,18 @@ class DeployJob
     @ssh_cert = remote_key.ssh_key.file.path
   end
 
+  # For now, its the same as the ssh_cert, which is used for *everything*.
+  def deploy_cert
+    if @deploy_cert
+      return @deploy_cert
+    end
+    remote_key = RemoteKey.find_by_name(frontend.installation.ssh_key_name)
+    if ! File.exists?(remote_key.ssh_key.file.path) && remote_key.key_encrypted_content
+      remote_key.decrypt_key_content_to_file(:key => ENV["AWS_SECRET_ACCESS_KEY"])
+    end
+    @deploy_cert = remote_key.ssh_key.file.path
+  end
+
   def pub_cert(cert_path)
     file = Tempfile.new("cert.pub")
     Rush.bash("ssh-keygen -y -f #{cert_path} > #{file.path}")

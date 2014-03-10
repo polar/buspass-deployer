@@ -84,6 +84,7 @@ module DeployUnixEndpointOperations
     uadmin_unix_ssh("sudo -u #{remote_user} mkdir -p ~#{remote_user}/.ssh")
     uadmin_unix_ssh("sudo -u #{remote_user} chmod 777 ~#{remote_user}/.ssh")
     file = pub_cert(ssh_cert)
+    deploy_cert_path = deploy_cert
     begin
       uadmin_unix_scp(file.path, "~#{remote_user}/.ssh/endpoint-#{name}.pub")
       uadmin_unix_ssh("cat ~#{remote_user}/.ssh/endpoint-#{name}.pub | sudo -u #{remote_user} tee -a ~#{remote_user}/.ssh/authorized_keys")
@@ -92,7 +93,13 @@ module DeployUnixEndpointOperations
     end
     file.unlink
     uadmin_unix_ssh("sudo chown -R #{remote_user}:#{remote_user} ~#{remote_user}")
-    uadmin_unix_ssh("sudo -u #{remote_user} chmod 700 ~#{remote_user}/.ssh")
+    uadmin_unix_ssh("sudo -u #{remote_user} chmod 700 ~#{remote_user}/.ssh ~#{remote_user}/.ssh/*.pem")
+
+    unix_scp(deploy_cert_path, "~/.ssh/endpoint-#{name}-deploy.pem")
+    unix_ssh("chmod 700 ~/.ssh/endpoint#{name}-deploy.pem")
+    unix_ssh("mkdir -p ~/bin")
+    unix_ssh("echo 'exec /usr/bin/ssh -o StrictHostKeyChecking=no -i ~/.ssh/endpoint-#{name}-deploy.pem \"$@\"' > ~/bin/endpoint-#{name}-git")
+    unix_ssh("chmod +x ~/bin/endpoint-#{name}-git")
     unix_ssh("ls -la")
     unix_ssh("test -e .rvm || \\curl -L https://get.rvm.io | bash -s stable --autolibs=read-fail")
     unix_ssh("test -e .rvm && bash --login -c \"rvm install #{ruby_version}\"")
@@ -101,6 +108,10 @@ module DeployUnixEndpointOperations
   rescue Exception => boom
     log "#{head}: error creating ~#{remote_user}@#{remote_host} on remote server - #{boom}"
     set_status("Error:Create")
+  end
+
+  def git_ssh
+    "export GIT_SSH=\"~/bin/endpoint-#{name}-git\""
   end
 
   def unix_remote_endpoint_exists?
@@ -123,7 +134,7 @@ module DeployUnixEndpointOperations
     head = __method__
     set_status("DeployStatus")
     log "#{head}: Getting deploy swift endpoint #{remote_user}@#{remote_host} status."
-    result = unix_ssh("cd #{endpoint.git_name}; git log | head -3")
+    result = unix_ssh("cd #{endpoint.git_name}; #{git_ssh}; git log | head -3")
     state.git_commit = result
     state.save
     set_status("Success:DeployStatus")
@@ -176,9 +187,9 @@ module DeployUnixEndpointOperations
       head = __method__
       set_status("Deploy")
       log "#{head}: Deploying Endpoint #{endpoint.name} on #{remote_user}@#{remote_host}"
-      unix_ssh("test -e #{endpoint.git_name} || git clone #{endpoint.git_repository} -b #{endpoint.git_refspec}")
-      unix_ssh("cd #{endpoint.git_name}; git config user.email admin@adiron.com; git config user.name Admin")
-      unix_ssh("cd #{endpoint.git_name}; git stash; git pull; git submodule init; git submodule update")
+      unix_ssh("test -e #{endpoint.git_name} || #{git_ssh}; git clone #{endpoint.git_repository} -b #{endpoint.git_refspec}")
+      unix_ssh("cd #{endpoint.git_name}; #{git_ssh}; git config user.email admin@adiron.com; git config user.name Admin")
+      unix_ssh("cd #{endpoint.git_name}; #{git_ssh}; git stash; git pull; git submodule init; git submodule update")
       unix_ssh('bash --login -c "cd '+endpoint.git_name+'; bundle install" ')
 
       unix_ssh("mkdir -p ~/busme")
@@ -215,6 +226,8 @@ module DeployUnixEndpointOperations
       #unix_ssh("ls .endpoint-#{endpoint.name}.env")
       unix_ssh("rm -f .endpoint-#{endpoint.name}.env")
       unix_ssh("rm -f .ssh/endpoint-#{endpoint.name}.pub")
+      unix_ssh("rm -f .ssh/endpoint-#{endpoint.name}-deploy.pem")
+      unix_ssh("rm -f bin/endpoint-#{endpoint.name}-git")
         # TODO: Remove the pub from the authorized keys.
     rescue Rush::BashFailed => boom
       log "#{head}: Could not destroy Remote Unix #{endpoint.at_type} #{remote_user}@#{remote_host} : #{boom}"
