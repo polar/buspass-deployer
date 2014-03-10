@@ -98,7 +98,10 @@ module DeployUnixEndpointOperations
     unix_scp(deploy_cert_path, "~/.ssh/endpoint-#{name}-deploy.pem")
     unix_ssh("chmod 700 ~/.ssh/endpoint-#{name}-deploy.pem")
     unix_ssh("mkdir -p ~/bin")
-    unix_ssh("echo exec /usr/bin/ssh -o StrictHostKeyChecking=no -i ~/.ssh/endpoint-#{name}-deploy.pem \'\$@\' > ~/bin/endpoint-#{name}-git")
+    file = Tempfile.new("gitssh")
+    file.write("exec /usr/bin/ssh -o StrictHostKeyChecking=no -i ~/.ssh/endpoint-#{name}-deploy.pem $@ ")
+    file.close
+    unix_scp(file.path, '~/bin/endpoint-#{name}-git')
     unix_ssh("chmod +x ~/bin/endpoint-#{name}-git")
     unix_ssh("ls -la")
     unix_ssh("test -e .rvm || \\curl -L https://get.rvm.io | bash -s stable --autolibs=read-fail")
