@@ -99,7 +99,7 @@ module DeployUnixEndpointOperations
     unix_ssh("chmod 700 ~/.ssh/endpoint-#{name}-deploy.pem")
     unix_ssh("mkdir -p ~/bin")
     file = Tempfile.new("gitssh")
-    file.write("exec /usr/bin/ssh -o StrictHostKeyChecking=no -i ~/.ssh/endpoint-#{name}-deploy.pem $@ ")
+    file.write("exec /usr/bin/ssh -o StrictHostKeyChecking=no -i ~/.ssh/endpoint-#{name}-deploy.pem $@\n")
     file.close
     unix_scp(file.path, "~/bin/endpoint-#{name}-git")
     unix_ssh("chmod +x ~/bin/endpoint-#{name}-git")
@@ -116,6 +116,7 @@ module DeployUnixEndpointOperations
   def git_ssh
     if @git_ssh.nil?
       @git_ssh = unix_ssh("ls ~/bin/endpoint-#{name}-git")
+      @git_ssh.strip!
     end
     "export GIT_SSH=\"#{@git_ssh}\""
   end
