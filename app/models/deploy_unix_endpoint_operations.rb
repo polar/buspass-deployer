@@ -92,11 +92,11 @@ module DeployUnixEndpointOperations
       log "#{head}: error creating ~#{remote_user}/.ssh/endpoint-#{name}.pub on #{remote_host} - #{boom4} - trying to ignore"
     end
     file.unlink
-    uadmin_unix_ssh("sudo chown -R #{remote_user}:#{remote_user} ~#{remote_user}")
+    uadmin_unix_ssh("sudo chown #{remote_user}:#{remote_user} ~#{remote_user} ~#{remote_user}/.ssh ~#{remote_user}/.ssh/*")
     uadmin_unix_ssh("sudo -u #{remote_user} chmod 700 ~#{remote_user}/.ssh ~#{remote_user}/.ssh/*.pem")
 
     unix_scp(deploy_cert_path, "~/.ssh/endpoint-#{name}-deploy.pem")
-    unix_ssh("chmod 700 ~/.ssh/endpoint#{name}-deploy.pem")
+    unix_ssh("chmod 700 ~/.ssh/endpoint-#{name}-deploy.pem")
     unix_ssh("mkdir -p ~/bin")
     unix_ssh("echo 'exec /usr/bin/ssh -o StrictHostKeyChecking=no -i ~/.ssh/endpoint-#{name}-deploy.pem \"$@\"' > ~/bin/endpoint-#{name}-git")
     unix_ssh("chmod +x ~/bin/endpoint-#{name}-git")
