@@ -111,7 +111,10 @@ module DeployUnixEndpointOperations
   end
 
   def git_ssh
-    "export GIT_SSH=\"~/bin/endpoint-#{name}-git\""
+    if @git_ssh.nil?
+      @git_ssh = unix_ssh("ls ~/bin/endpoint-#{name}-git")
+    end
+    "export GIT_SSH=\"#{@git_ssh}\""
   end
 
   def unix_remote_endpoint_exists?
