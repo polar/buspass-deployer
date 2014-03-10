@@ -6,6 +6,8 @@ REFSPEC=$3
 DIRECTORY=$4
 SSH_KEY=$5
 
+echo $0
+
 if [ "x$DIRECTORY" = "x" ];then
     DIRECTORY=/tmp
 fi
