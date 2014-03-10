@@ -15,7 +15,7 @@ fi
 cd "$DIRECTORY"
 
 if [ "x$SSH_KEY" != "x" ];then
-    echo "exec /usr/bin/ssh -o StrictHostKeyChecking=no -i "$SSH_KEY" \"$@\"" > ./gitsh
+    echo "exec /usr/bin/ssh -o StrictHostKeyChecking=no -i "$SSH_KEY" \"\$\@\"" > ./gitsh
     chmod +x ./gitsh
     export GIT_SSH="$PWD/gitsh"
 fi
