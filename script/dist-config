@@ -12,6 +12,7 @@ if [ "x$DIRECTORY" = "x" ];then
     DIRECTORY=/tmp
 fi
 
+echo "cd $DIRECTORY"
 cd "$DIRECTORY"
 
 if [ "x$SSH_KEY" != "x" ];then
