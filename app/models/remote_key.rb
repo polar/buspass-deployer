@@ -1,11 +1,12 @@
+require "carrierwave"
+require "carrierwave/orm/mongomapper"
+
 class RemoteKey
   include MongoMapper::Document
 
   key :name
   key :key_encrypted_content
 
-  # We don't use CarrierWave this in Swifty and we don't need the key here (yet).
-  # so if we don't have it, we don't need it.
   begin
   mount_uploader :ssh_key, RemoteKeyFileUploader
   rescue NameError
