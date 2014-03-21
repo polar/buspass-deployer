@@ -39,7 +39,7 @@ class RemoteKeysController < ApplicationController
 
     respond_to do |format|
       if @remote_key.save
-        @remote_key.encrypt_key_content(@remote_key.ssh_key.file.read, :key => params[:key])
+        @remote_key.encrypt_key_content(@remote_key.ssh_key.file.read)
         @remote_key.save
         format.html { redirect_to @remote_key, notice: 'Remote key was successfully created.' }
         format.json { render json: @remote_key, status: :created, location: @remote_key }
