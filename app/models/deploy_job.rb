@@ -97,7 +97,7 @@ class DeployJob
     end
     remote_key = RemoteKey.find_by_name(frontend.installation.ssh_key_name)
     if ! File.exists?(remote_key.ssh_key.file.path) && remote_key.key_encrypted_content
-      remote_key.decrypt_key_content_to_file(:key => ENV["AWS_SECRET_ACCESS_KEY"])
+      remote_key.decrypt_key_content_to_file(:key => ENV["SECRET_ENCRYPTION_KEY"])
     end
     @ssh_cert = remote_key.ssh_key.file.path
   end
@@ -109,7 +109,7 @@ class DeployJob
     end
     remote_key = RemoteKey.find_by_name(frontend.installation.ssh_key_name)
     if ! File.exists?(remote_key.ssh_key.file.path) && remote_key.key_encrypted_content
-      remote_key.decrypt_key_content_to_file(:key => ENV["AWS_SECRET_ACCESS_KEY"])
+      remote_key.decrypt_key_content_to_file(:key => ENV["SECRET_ENCRYPTION_KEY"])
     end
     @deploy_cert = remote_key.ssh_key.file.path
   end

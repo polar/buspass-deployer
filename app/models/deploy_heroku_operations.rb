@@ -16,7 +16,7 @@ module DeployHerokuOperations
     # do not resolve themselves. Ugg.
     HerokuHeadless.reset
     deploy_cert_path = deploy_cert
-    ENV["HEROKU_API_KEY"] = deploy_heroku_api_key.decrypt_key_content(:key => ENV["AWS_SECRET_ACCESS_KEY"])
+    ENV["HEROKU_API_KEY"] = deploy_heroku_api_key.decrypt_key_content(:key => ENV["SECRET_ENCRYPTION_KEY"])
     HerokuHeadless.configure do |config|
       config.pre_deploy_git_commands = [
           "script/dist-config \"#{endpoint.git_repository}\" \"#{endpoint.git_name}\" \"#{endpoint.git_refspec}\" /tmp \"#{deploy_cert_path}\" "

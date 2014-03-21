@@ -1,7 +1,6 @@
 
-# To encrypt the private keys we use the
-# Heroku API key, since we will be using it only from
-# Heroku instances
+#
+# To encrypt any keys we use the this key which is in the environment.
 #
 
-Encryptor.default_options.merge!(:key => ENV["HEROKU_API_KEY"])
+Encryptor.default_options.merge!(:key => ENV["SECRET_ENCRYPTION_KEY"])
