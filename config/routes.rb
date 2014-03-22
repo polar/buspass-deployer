@@ -1,6 +1,9 @@
 
 
 BuspassDeployer::Application.routes.draw do
+
+  devise_for :deploy_user
+
   resources :installations  do
     member do
       get :edit_frontend_git

@@ -11,6 +11,7 @@
 <body>                                                  '
 
 <p id="notices"></p>
+<%= link_to "Sign Out", destroy_deploy_user_session_path, :method => :delete %>
 
 <%= yield %>
 

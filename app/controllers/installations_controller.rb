@@ -1,5 +1,7 @@
 class InstallationsController < ApplicationController
 
+  skip_before_filter :authorized_deploy_user!, :only => :index
+
   def index
     @installations = Installation.all
   end

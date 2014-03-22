@@ -14,6 +14,13 @@ GIT
       mongo_mapper (>= 0.11.0)
 
 GIT
+  remote: git://github.com/polar/devise-mongo_mapper
+  revision: 33fc92310b78f2f6c9fc8d102b9222069b8e33d0
+  specs:
+    devise-mongo_mapper (0.0.2)
+      devise (>= 2.1.0)
+
+GIT
   remote: git://github.com/polar/heroku-headless.git
   revision: e46fbcb2c42cb0f81ebf07ad77c502eb9dcfc2d4
   specs:
@@ -55,10 +62,7 @@ GEM
     asset_sync (1.0.0)
       activemodel
       fog (>= 1.8.0)
-    aws-sdk (1.14.1)
-      json (~> 1.4)
-      nokogiri (< 1.6.0)
-      uuidtools (~> 2.1)
+    bcrypt-ruby (3.1.2)
     bson (1.9.1)
     bson_ext (1.9.1)
       bson (~> 1.9.1)
@@ -86,6 +90,11 @@ GEM
     compass-rails (1.0.3)
       compass (>= 0.12.2, < 0.14)
     daemons (1.1.9)
+    devise (2.1.4)
+      bcrypt-ruby (~> 3.0)
+      orm_adapter (~> 0.1)
+      railties (~> 3.1)
+      warden (~> 1.2.1)
     encryptor (1.1.3)
     erubis (2.7.0)
     excon (0.25.3)
@@ -139,6 +148,7 @@ GEM
       newrelic_rpm (~> 3.5)
     newrelic_rpm (3.6.6.147)
     nokogiri (1.5.10)
+    orm_adapter (0.4.0)
     plucky (0.5.2)
       mongo (~> 1.5)
     polyglot (0.3.3)
@@ -195,14 +205,14 @@ GEM
     uglifier (2.1.2)
       execjs (>= 0.3.0)
       multi_json (~> 1.0, >= 1.0.2)
-    uuidtools (2.1.4)
+    warden (1.2.3)
+      rack (>= 1.0)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
   asset_sync
-  aws-sdk
   bson_ext
   carrierwave
   client_side_validations
@@ -212,8 +222,9 @@ DEPENDENCIES
   daemons
   delayed_job!
   delayed_job_mongo_mapper!
+  devise
+  devise-mongo_mapper!
   encryptor
-  fog
   heroku-api
   heroku-headless!
   jquery-rails

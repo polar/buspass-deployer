@@ -18,16 +18,13 @@ gem "mongo_mapper"
 
 gem "carrierwave"
 gem "mm-carrierwave"   # Using the MongoMapper ORM
-gem "fog"
+
+gem "devise"
+gem 'devise-mongo_mapper', :git => "git://github.com/polar/devise-mongo_mapper"
 
 # For encryption
 
 gem "encryptor"
-
-# This is needed for Paperclip. We use Paperclip for images and other
-# files for the CMS part and upload them to S3.
-
-gem 'aws-sdk'
 
 # The following gems are required for handling background
 # processing.
