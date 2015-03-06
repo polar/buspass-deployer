@@ -93,7 +93,7 @@ module DeployUnixEndpointOperations
     end
     file.unlink
     uadmin_unix_ssh("sudo chown #{remote_user}:#{remote_user} ~#{remote_user} ~#{remote_user}/.ssh ~#{remote_user}/.ssh/*")
-    uadmin_unix_ssh("sudo -u #{remote_user} chmod 700 ~#{remote_user}/.ssh ~#{remote_user}/.ssh/*.pem")
+    uadmin_unix_ssh("sudo -u #{remote_user} chmod 700 -f ~#{remote_user}/.ssh ~#{remote_user}/.ssh/*.pem")
 
     unix_scp(deploy_cert_path, "~/.ssh/endpoint-#{name}-deploy.pem")
     unix_ssh("chmod 700 ~/.ssh/endpoint-#{name}-deploy.pem")
@@ -104,6 +104,7 @@ module DeployUnixEndpointOperations
     unix_scp(file.path, "~/bin/endpoint-#{name}-git")
     unix_ssh("chmod +x ~/bin/endpoint-#{name}-git")
     unix_ssh("ls -la")
+    unix_ssh("gpg --keyserver hkp://keys.gnupg.net --recv-keys D39DC0E3")
     unix_ssh("test -e .rvm || \\curl -L https://get.rvm.io | bash -s stable --autolibs=read-fail")
     unix_ssh("test -e .rvm && bash --login -c \"rvm install #{ruby_version}\"")
     log "#{head}: Remote #{endpoint.at_type} #{remote_user}@#{remote_host} exists."
