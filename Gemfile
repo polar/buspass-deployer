@@ -3,6 +3,8 @@ ruby "1.9.3"
 
 gem 'rails', '3.2.11'
 gem 'rake'
+gem "rack", "1.4.0"
+gem "rack-cache", "1.2"
 
 # Bundle edge Rails instead:
 # gem 'rails', :git => 'git://github.com/rails/rails.git'
@@ -19,7 +21,7 @@ gem "mongo_mapper"
 gem "carrierwave"
 gem "mm-carrierwave"   # Using the MongoMapper ORM
 
-gem "devise"
+gem "devise", "2.1.0"
 gem 'devise-mongo_mapper', :git => "git://github.com/polar/devise-mongo_mapper"
 
 # For encryption
@@ -76,3 +78,6 @@ gem 'newrelic_mongo'
 
 # To use debugger
 # gem 'debugger'
+
+gem 'net-ssh', '2.7.0'
+gem "fog", "1.8.0"
